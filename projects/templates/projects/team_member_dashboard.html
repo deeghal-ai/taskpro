@@ -1,0 +1,918 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Visual Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+    
+    /* Enhanced Timer Display */
+    .timer-display {
+        font-family: 'Courier New', monospace;
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--success-color);
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        display: inline-block;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Enhanced Cards with Hover Effects */
+    .summary-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .assignment-card {
+        transition: all var(--transition-speed) ease;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .assignment-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+    }
+    
+    /* Active Timer Animation */
+    .timer-active {
+        border-left: 5px solid var(--success-color);
+        background: linear-gradient(90deg, rgba(40, 167, 69, 0.05) 0%, transparent 100%);
+        animation: activeGlow 2s ease-in-out infinite;
+    }
+    
+    @keyframes activeGlow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.2); }
+        50% { box-shadow: 0 0 20px 5px rgba(40, 167, 69, 0.1); }
+    }
+    
+    /* Pulse Animation for Active Timer Card */
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+        }
+        70% {
+            transform: scale(1.01);
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+    
+    /* Status Indicators */
+    .overdue {
+        color: var(--danger-color);
+        font-weight: 600;
+    }
+    
+    .due-today {
+        color: var(--warning-color);
+        font-weight: 600;
+    }
+    
+    /* Button Enhancements */
+    .btn {
+        transition: all var(--transition-speed) ease;
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .btn-timer-start {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+    }
+    
+    .btn-timer-start:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-timer-stop {
+        background-color: var(--danger-color);
+        border-color: var(--danger-color);
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+    }
+    
+    .btn-timer-stop:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Loading State for Buttons */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+    }
+    
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+    
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Table Enhancements */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table tbody tr {
+        transition: background-color var(--transition-speed) ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: var(--light-bg);
+    }
+    
+    /* Badge Improvements */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.8rem;
+    }
+    
+    /* Responsive Improvements */
+    @media (max-width: 768px) {
+        .timer-display {
+            font-size: 2rem;
+            padding: 0.75rem 1.5rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+        }
+    }
+    
+    /* Empty State Styling */
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+    
+    /* Modal Enhancements */
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-header.bg-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    }
+    
+    .modal-header.bg-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+    }
+    
+    /* Improved Form Controls */
+    .form-control:focus,
+    .form-select:focus,
+    .form-check-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Animation for New Time Entries */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .new-entry {
+        animation: slideIn 0.5s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Enhanced Header Summary Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card summary-card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-speedometer2"></i> My Tasks Dashboard
+                        </h4>
+                        <div>
+                            <a href="{% url 'projects:daily_roster' %}" class="btn btn-outline-light btn-sm me-2">
+                                <i class="bi bi-clock-history"></i> Daily Roster
+                            </a>
+                            <a href="{% url 'projects:roster' %}" class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-calendar3"></i> Monthly Roster
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Today's Total Time -->
+                        <div class="col-md-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-clock display-4 text-primary"></i>
+                                    </div>
+                                    <h5 class="card-title text-muted mb-1">Today's Time</h5>
+                                    <h3 class="mb-0 text-primary">{{ today_summary.formatted_total }}</h3>
+                                    <p class="text-muted mb-0 small">Hours Logged</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Assignments Count -->
+                        <div class="col-md-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-list-task display-4 text-info"></i>
+                                    </div>
+                                    <h5 class="card-title text-muted mb-1">Active Tasks</h5>
+                                    <h3 class="mb-0 text-info">{{ active_assignments|length }}</h3>
+                                    <p class="text-muted mb-0 small">In Progress</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Timer Section -->
+                        {% if active_timer %}
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light h-100 pulse">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-success mb-3">
+                                        <i class="bi bi-play-circle-fill"></i> 
+                                        Timer Running
+                                    </h5>
+                                    <div class="timer-display mb-2" 
+                                         id="timer-display"
+                                         data-start-time="{{ active_timer.started_at|date:'c' }}">
+                                        {{ elapsed_time.formatted }}
+                                    </div>
+                                    <p class="text-muted mb-2">
+                                        <strong>{{ active_timer.assignment.task.product_task.name }}</strong>
+                                        <br>
+                                        {{ active_timer.assignment.sub_task }}
+                                        <br>
+                                        <small>{{ active_timer.assignment.assignment_id }}</small>
+                                    </p>
+                                    
+                                    <!-- Timer Stop Button -->
+                                    <button type="button" 
+                                            class="btn btn-danger btn-timer-stop" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#stopTimerModal">
+                                        <i class="bi bi-stop-circle-fill"></i> Stop Timer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-pause-circle display-1 text-muted"></i>
+                                    </div>
+                                    <h5 class="card-title text-muted mb-1">Timer Status</h5>
+                                    <p class="text-muted mb-0">No active timer</p>
+                                    <small class="text-muted">Start a timer on any task below</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Assignments Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-task text-primary"></i> Active Assignments
+                        <span class="badge bg-primary ms-2">{{ active_assignments|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if active_assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Assignment</th>
+                                        <th>Project</th>
+                                        <th>Product</th>
+                                        <th>Task</th>
+                                        <th>Sub-Task</th>
+                                        <th>Project Incharge</th>
+                                        <th>Delivery Date</th>
+                                        <th>Hours</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in active_assignments %}
+                                    <tr class="{% if assignment == active_timer.assignment %}timer-active{% endif %}">
+                                        <td class="ps-4">
+                                            <a href="{% url 'projects:assignment_timesheet' assignment.id %}" 
+                                               class="text-decoration-none fw-bold">
+                                                {{ assignment.assignment_id }}
+                                            </a>
+                                            {% if assignment == active_timer.assignment %}
+                                                <span class="badge bg-success ms-2">
+                                                    <i class="bi bi-play-fill"></i> Running
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ assignment.task.project.project_name }}</div>
+                                            <small class="text-muted">{{ assignment.task.project.hs_id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ assignment.task.project.product.name }}</span>
+                                        </td>
+                                        <td>{{ assignment.task.product_task.name }}</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;" 
+                                                 title="{{ assignment.sub_task }}"
+                                                 data-bs-toggle="tooltip"
+                                                 data-bs-placement="top">
+                                                {{ assignment.sub_task }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if assignment.task.project.project_incharge %}
+                                                {{ assignment.task.project.project_incharge.get_full_name }}
+                                            {% else %}
+                                                <span class="text-muted">Not assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if assignment.expected_delivery_date %}
+                                                {% with delivery_date=assignment.expected_delivery_date|date:'Y-m-d' today_date=now|date:'Y-m-d' %}
+                                                    <span class="{% if delivery_date < today_date %}overdue{% elif delivery_date == today_date %}due-today{% endif %}">
+                                                        {{ assignment.expected_delivery_date|date:"M d, Y" }}
+                                                    </span>
+                                                {% endwith %}
+                                            {% else %}
+                                                <span class="text-muted">Not set</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">Projected:</small> <strong>{{ assignment.get_formatted_hours }}</strong><br>
+                                            <small class="text-muted">Worked:</small> <strong>{{ assignment.total_working_hours }}</strong>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                {% if assignment == active_timer.assignment %}
+                                                    <!-- Stop Timer Button -->
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#stopTimerModal"
+                                                            title="Stop Timer">
+                                                        <i class="bi bi-stop-fill"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <!-- Start Timer Button -->
+                                                    <form method="post" class="d-inline timer-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="start_timer" value="1">
+                                                        <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+                                                        <button type="submit" 
+                                                                class="btn btn-sm btn-success btn-timer-start" 
+                                                                {% if active_timer %}disabled{% endif %}
+                                                                title="{% if active_timer %}Stop current timer first{% else %}Start Timer{% endif %}">
+                                                            <i class="bi bi-play-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                
+                                                <!-- Add Manual Time Button -->
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-secondary add-time-btn" 
+                                                        data-assignment-id="{{ assignment.id }}"
+                                                        data-assignment-name="{{ assignment.assignment_id }}"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#addTimeModal"
+                                                        title="Add Manual Time">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </button>
+                                                
+                                                
+                                                
+                                                <!-- Complete Assignment Button -->
+                                                <form method="post" class="d-inline complete-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="mark_completed" value="1">
+                                                    <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+                                                    <button type="submit" 
+                                                            class="btn btn-sm btn-warning complete-assignment-btn"
+                                                            title="Mark as Completed">
+                                                        <i class="bi bi-check-circle"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                            <h5 class="text-muted">No Active Assignments</h5>
+                            <p class="text-muted mb-0">You don't have any active assignments at the moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recently Completed Assignments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-check-circle text-success"></i> Recently Completed
+                        <small class="text-muted ms-2">(Last 7 days)</small>
+                        <span class="badge bg-success ms-2">{{ completed_assignments|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if completed_assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Assignment</th>
+                                        <th>Project</th>
+                                        <th>Product</th>
+                                        <th>Task</th>
+                                        <th>Sub-Task</th>
+                                        <th>Completed</th>
+                                        <th>Hours</th>
+                                        <th>Quality</th>
+                                        <th class="text-center">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in completed_assignments %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <span class="fw-bold">{{ assignment.assignment_id }}</span>
+                                            <span class="badge bg-success ms-2">
+                                                <i class="bi bi-check"></i> Done
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ assignment.task.project.project_name }}</div>
+                                            <small class="text-muted">{{ assignment.task.project.hs_id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ assignment.task.project.product.name }}</span>
+                                        </td>
+                                        <td>{{ assignment.task.product_task.name }}</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;" 
+                                                 title="{{ assignment.sub_task }}"
+                                                 data-bs-toggle="tooltip"
+                                                 data-bs-placement="top">
+                                                {{ assignment.sub_task }}
+                                            </div>
+                                        </td>
+                                        <td>{{ assignment.completion_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <small class="text-muted">Projected:</small> {{ assignment.get_formatted_hours }}<br>
+                                            <small class="text-muted">Worked:</small> <strong>{{ assignment.total_working_hours }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if assignment.quality_rating %}
+                                                <span class="badge bg-primary">
+                                                    <i class="bi bi-star-fill"></i> {{ assignment.quality_rating|floatformat:1 }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">Not rated</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'projects:assignment_timesheet' assignment.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <p class="text-muted mb-0">No recently completed assignments.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stop Timer Modal -->
+<div class="modal fade" id="stopTimerModal" tabindex="-1" aria-labelledby="stopTimerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="stopTimerForm">
+                {% csrf_token %}
+                <input type="hidden" name="stop_timer" value="1">
+                
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="stopTimerModalLabel">
+                        <i class="bi bi-stop-circle-fill"></i> Stop Timer
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if active_timer %}
+                    <div class="alert alert-info">
+                        <div class="mb-2">
+                            <strong><i class="bi bi-info-circle"></i> Timer Details</strong>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4"><strong>Assignment:</strong></div>
+                            <div class="col-sm-8">{{ active_timer.assignment.assignment_id }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4"><strong>Task:</strong></div>
+                            <div class="col-sm-8">{{ active_timer.assignment.task.product_task.name }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4"><strong>Elapsed Time:</strong></div>
+                            <div class="col-sm-8"><span id="modal-timer-display" class="fw-bold">{{ elapsed_time.formatted }}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ timer_stop_form.description.id_for_label }}" class="form-label">
+                            Work Description <small class="text-muted">(Optional)</small>
+                        </label>
+                        {{ timer_stop_form.description }}
+                        <div class="form-text">Briefly describe what you worked on during this session</div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        {{ timer_stop_form.is_completed }}
+                        <label class="form-check-label" for="{{ timer_stop_form.is_completed.id_for_label }}">
+                            <strong>Mark entire assignment as completed</strong>
+                        </label>
+                        <div class="form-text">Check this only if you've finished all work for this assignment</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-stop-circle-fill"></i> Stop Timer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Manual Time Modal -->
+<div class="modal fade" id="addTimeModal" tabindex="-1" aria-labelledby="addTimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addTimeModalLabel">
+                    <i class="bi bi-plus-circle"></i> Add Manual Time Entry
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="manualTimeForm">
+                {% csrf_token %}
+                <input type="hidden" name="add_time" value="1">
+                <input type="hidden" name="assignment_id" id="manualTimeAssignmentId">
+                
+                <div class="modal-body">
+                    <div class="alert alert-info alert-sm">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Assignment:</strong> <span id="manualTimeAssignmentName"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="manualTimeDate" class="form-label">
+                            Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" name="date" id="manualTimeDate" 
+                               max="{{ now|date:'Y-m-d' }}" required>
+                        <div class="form-text">When did you perform this work?</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="manualTimeHours" class="form-label">Hours</label>
+                            <input type="number" class="form-control" name="duration_hours" 
+                                   id="manualTimeHours" min="0" max="23" value="0" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="manualTimeMinutes" class="form-label">Minutes</label>
+                            <input type="number" class="form-control" name="duration_minutes" 
+                                   id="manualTimeMinutes" min="0" max="59" value="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="manualTimeDescription" class="form-label">
+                            Description <small class="text-muted">(Optional)</small>
+                        </label>
+                        <textarea class="form-control" name="description" id="manualTimeDescription" 
+                                  rows="3" placeholder="What did you work on?"></textarea>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_completed" 
+                               id="manualTimeCompleted">
+                        <label class="form-check-label" for="manualTimeCompleted">
+                            <strong>Mark assignment as completed</strong>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Time
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enhanced JavaScript with better organization and error handling
+(function() {
+    'use strict';
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Timer Management
+    const TimerManager = {
+        timerElement: document.getElementById('timer-display'),
+        modalTimerElement: document.getElementById('modal-timer-display'),
+        interval: null,
+        
+        init() {
+            if (this.timerElement && this.timerElement.getAttribute('data-start-time')) {
+                this.startTimer();
+            }
+        },
+        
+        startTimer() {
+            this.updateDisplay();
+            this.interval = setInterval(() => this.updateDisplay(), 1000);
+        },
+        
+        updateDisplay() {
+            const startTimeStr = this.timerElement.getAttribute('data-start-time');
+            if (!startTimeStr) return;
+            
+            const startTime = new Date(startTimeStr);
+            const now = new Date();
+            const elapsed = Math.floor((now - startTime) / 1000);
+            
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            
+            const display = [hours, minutes, seconds]
+                .map(val => String(val).padStart(2, '0'))
+                .join(':');
+            
+            this.timerElement.textContent = display;
+            if (this.modalTimerElement) {
+                this.modalTimerElement.textContent = display;
+            }
+        },
+        
+        stop() {
+            if (this.interval) {
+                clearInterval(this.interval);
+            }
+        }
+    };
+    
+    // Form Handler with Loading States
+    const FormHandler = {
+        init() {
+            this.attachTimerFormHandlers();
+            this.attachCompletionHandlers();
+            this.attachModalHandlers();
+        },
+        
+        attachTimerFormHandlers() {
+            document.querySelectorAll('.timer-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const button = this.querySelector('.btn-timer-start');
+                    if (button && !button.disabled) {
+                        button.disabled = true;
+                        button.classList.add('btn-loading');
+                    }
+                });
+            });
+        },
+        
+        attachCompletionHandlers() {
+            document.querySelectorAll('.complete-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    if (!confirm('Are you sure you want to mark this assignment as completed? This action cannot be undone.')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    const button = this.querySelector('.complete-assignment-btn');
+                    if (button) {
+                        button.disabled = true;
+                        button.classList.add('btn-loading');
+                    }
+                });
+            });
+        },
+        
+        attachModalHandlers() {
+            // Stop Timer Modal
+            const stopTimerModal = document.getElementById('stopTimerModal');
+            if (stopTimerModal) {
+                stopTimerModal.addEventListener('show.bs.modal', function() {
+                    const descField = document.getElementById('{{ timer_stop_form.description.id_for_label }}');
+                    const completedField = document.getElementById('{{ timer_stop_form.is_completed.id_for_label }}');
+                    if (descField) descField.value = '';
+                    if (completedField) completedField.checked = false;
+                });
+            }
+            
+            // Manual Time Modal
+            const addTimeModal = document.getElementById('addTimeModal');
+            if (addTimeModal) {
+                addTimeModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const assignmentId = button.getAttribute('data-assignment-id');
+                    const assignmentName = button.getAttribute('data-assignment-name');
+                    
+                    document.getElementById('manualTimeAssignmentId').value = assignmentId;
+                    document.getElementById('manualTimeAssignmentName').textContent = assignmentName;
+                    
+                    // Reset form
+                    document.getElementById('manualTimeHours').value = 0;
+                    document.getElementById('manualTimeMinutes').value = 0;
+                    document.getElementById('manualTimeDescription').value = '';
+                    document.getElementById('manualTimeCompleted').checked = false;
+                    
+                    // Set today's date
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('manualTimeDate').value = today;
+                });
+            }
+        }
+    };
+    
+    // Form Validation
+    const FormValidator = {
+        init() {
+            const manualTimeForm = document.getElementById('manualTimeForm');
+            if (manualTimeForm) {
+                manualTimeForm.addEventListener('submit', this.validateManualTime);
+            }
+            
+            const stopTimerForm = document.getElementById('stopTimerForm');
+            if (stopTimerForm) {
+                stopTimerForm.addEventListener('submit', this.handleStopTimer);
+            }
+        },
+        
+        validateManualTime(e) {
+            const hours = parseInt(document.getElementById('manualTimeHours').value) || 0;
+            const minutes = parseInt(document.getElementById('manualTimeMinutes').value) || 0;
+            
+            if (hours === 0 && minutes === 0) {
+                e.preventDefault();
+                alert('Please enter at least 1 minute of work time.');
+                return false;
+            }
+            
+            if (hours > 23 || minutes > 59) {
+                e.preventDefault();
+                alert('Invalid time values. Hours must be 0-23, minutes must be 0-59.');
+                return false;
+            }
+            
+            // Add loading state to submit button
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('btn-loading');
+            }
+        },
+        
+        handleStopTimer(e) {
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('btn-loading');
+            }
+        }
+    };
+    
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        TimerManager.init();
+        FormHandler.init();
+        FormValidator.init();
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        TimerManager.stop();
+    });
+})();
+</script>
+{% endblock %}

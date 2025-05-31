@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 4px;
+    }
+    
+    .summary-stat {
+        text-align: center;
+        padding: 1rem;
+        border-right: 1px solid #dee2e6;
+    }
+    
+    .summary-stat:last-child {
+        border-right: none;
+    }
+    
+    .summary-stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    
+    .summary-stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .edited-badge {
+        font-size: 0.7rem;
+        vertical-align: top;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Assignment Header -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Timesheet: {{ assignment.assignment_id }}</h4>
+                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Project</dt>
+                        <dd class="col-sm-8">{{ assignment.task.project.project_name }}</dd>
+                        
+                        <dt class="col-sm-4">Product</dt>
+                        <dd class="col-sm-8">{{ assignment.task.project.product.name }}</dd>
+                        
+                        <dt class="col-sm-4">Task</dt>
+                        <dd class="col-sm-8">{{ assignment.task.product_task.name }}</dd>
+                        
+                        <dt class="col-sm-4">Task Type</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ assignment.task.get_task_type_display }}
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Sub-Task</dt>
+                        <dd class="col-sm-8">{{ assignment.sub_task }}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Assigned Date</dt>
+                        <dd class="col-sm-8">{{ assignment.assigned_date|date:"M d, Y" }}</dd>
+                        
+                        <dt class="col-sm-4">Projected Hours</dt>
+                        <dd class="col-sm-8">{{ assignment_summary.projected_formatted }}</dd>
+                        
+                        <dt class="col-sm-4">Total Worked</dt>
+                        <dd class="col-sm-8">{{ assignment_summary.total_worked_formatted }}</dd>
+                        
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            {% if assignment.is_completed %}
+                                <span class="badge bg-success">Completed</span>
+                            {% else %}
+                                <span class="badge bg-primary">Active</span>
+                            {% endif %}
+                        </dd>
+                        
+                        {% if assignment.is_completed and assignment.completion_date %}
+                            <dt class="col-sm-4">Completed On</dt>
+                            <dd class="col-sm-8">
+                                <strong>{{ assignment.completion_date|date:"M d, Y" }}</strong>
+                                <small class="text-muted d-block">{{ assignment.completion_date|date:"H:i" }}</small>
+                            </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Combined Daily Totals and Assignment Summary -->
+    <div class="row mb-4">
+        <!-- Daily Totals - Compact Version -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Daily Time Totals</h5>
+                    <small class="text-muted">Auto-calculated from individual sessions</small>
+                </div>
+                <div class="card-body p-0">
+                    {% if daily_totals %}
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="text-end">Total Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for daily_total in daily_totals %}
+                                    <tr>
+                                        <td>{{ daily_total.date_worked|date:"M d, Y" }}</td>
+                                        <td class="text-end">
+                                            <strong>{{ daily_total.get_formatted_total }}</strong>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">No time entries found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assignment Summary -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Assignment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">Progress</span>
+                            <span class="text-muted">{{ assignment_summary.progress_percentage }}%</span>
+                        </div>
+                        <div class="progress progress-bar-custom">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 data-progress="{{ assignment_summary.progress_percentage }}"
+                                 aria-valuenow="{{ assignment_summary.progress_percentage }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">{{ assignment_summary.total_worked_formatted }} worked</small>
+                            <small class="text-muted">{{ assignment_summary.projected_formatted }} projected</small>
+                        </div>
+                    </div>
+                    
+                    <!-- UPDATED: Summary Stats - Different for completed vs active assignments -->
+                    {% if assignment_summary.is_completed %}
+                        <!-- For completed assignments: Days Worked | Task Productivity | Quality Rating | Timer Usage % -->
+                        <div class="row border rounded">
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.days_worked }}</div>
+                                <div class="summary-stat-label">Days Worked</div>
+                            </div>
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.task_productivity }}</div>
+                                <div class="summary-stat-label">Task Productivity</div>
+                            </div>
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value {{ assignment_summary.quality_rating_class }}">
+                                    {{ assignment_summary.quality_rating }}
+                                </div>
+                                <div class="summary-stat-label">Quality Rating</div>
+                            </div>
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.timer_usage_percentage }}</div>
+                                <div class="summary-stat-label">Timer Usage</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- For active assignments: Days Worked | Days Remaining | Timer Usage % -->
+                        <div class="row border rounded">
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.days_worked }}</div>
+                                <div class="summary-stat-label">Days Worked</div>
+                            </div>
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value {% if 'Overdue' in assignment_summary.days_remaining %}text-danger{% elif 'Due Today' in assignment_summary.days_remaining %}text-warning{% else %}text-success{% endif %}">
+                                    {{ assignment_summary.days_remaining }}
+                                </div>
+                                <div class="summary-stat-label">Days Remaining</div>
+                            </div>
+                            <div class="col summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.timer_usage_percentage }}</div>
+                                <div class="summary-stat-label">Timer Usage</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Sessions - WITH EDITING FOR TIMER SESSIONS -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Individual Sessions</h5>
+            <small class="text-muted">
+                {% if assignment.is_completed %}
+                    Editing disabled - Assignment completed
+                {% else %}
+                    Timer sessions can be edited, manual entries cannot
+                {% endif %}
+            </small>
+        </div>
+        <div class="card-body p-0">
+            {% if sessions %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                {% if not assignment.is_completed %}
+                                    <th>Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                            <tr>
+                                <td>{{ session.date_worked|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if session.started_at %}
+                                        {{ session.started_at|date:"H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if session.ended_at %}
+                                        {{ session.ended_at|date:"H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ session.get_formatted_duration }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge {% if session.session_type == 'TIMER' %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ session.get_session_type_display }}
+                                    </span>
+                                    {% if session.is_edited %}
+                                        <span class="badge bg-warning edited-badge">
+                                            <i class="bi bi-pencil-fill"></i> Edited
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ session.description|default:"-" }}</td>
+                                {% if not assignment.is_completed %}
+                                    <td>
+                                        {% if session.is_editable %}
+                                            <button class="btn btn-sm btn-outline-primary edit-session-btn"
+                                                    data-session-id="{{ session.id }}"
+                                                    data-duration-minutes="{{ session.duration_minutes }}"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editSessionModal">
+                                                <i class="bi bi-pencil"></i> Edit Duration
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted small">Not editable</span>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No individual sessions found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- UPDATED: Only show edit modal for active assignments -->
+{% if not assignment.is_completed %}
+<!-- Edit Session Duration Modal -->
+<div class="modal fade" id="editSessionModal" tabindex="-1" aria-labelledby="editSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="edit_session_duration" value="1">
+                <input type="hidden" name="session_id" id="edit_session_id" value="">
+                
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSessionModalLabel">
+                        <i class="bi bi-pencil"></i> Edit Session Duration
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Only the duration will be updated. Start and end times are kept for reference.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Duration</label>
+                        <div class="time-inputs-group">
+                            <div class="time-input-wrapper">
+                                <label class="form-label small mb-1">Hours</label>
+                                <input type="number" name="duration_hours" id="duration_hours" 
+                                       class="form-control" min="0" max="23" value="0">
+                            </div>
+                            <div class="time-separator align-self-end mb-3">:</div>
+                            <div class="time-input-wrapper">
+                                <label class="form-label small mb-1">Minutes</label>
+                                <input type="number" name="duration_minutes" id="duration_minutes" 
+                                       class="form-control" min="0" max="59" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            This will automatically recalculate the daily total for this date and mark the session as edited.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Duration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar width from data attribute (fixes CSS linter warning)
+    var progressBar = document.querySelector('.progress-bar[data-progress]');
+    if (progressBar) {
+        var progress = progressBar.getAttribute('data-progress');
+        progressBar.style.width = progress + '%';
+    }
+    
+    {% if not assignment.is_completed %}
+    // Edit session modal functionality - only for active assignments
+    var editButtons = document.querySelectorAll('.edit-session-btn');
+    editButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            var sessionId = this.getAttribute('data-session-id');
+            var totalMinutes = parseInt(this.getAttribute('data-duration-minutes')) || 0;
+            
+            // Calculate hours and minutes from total minutes
+            var hours = Math.floor(totalMinutes / 60);
+            var minutes = totalMinutes % 60;
+            
+            document.getElementById('edit_session_id').value = sessionId;
+            document.getElementById('duration_hours').value = hours;
+            document.getElementById('duration_minutes').value = minutes;
+        });
+    });
+    
+    // Form validation
+    var form = document.querySelector('#editSessionModal form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var hours = parseInt(document.getElementById('duration_hours').value) || 0;
+            var minutes = parseInt(document.getElementById('duration_minutes').value) || 0;
+            
+            if (hours === 0 && minutes === 0) {
+                e.preventDefault();
+                alert('Duration must be at least 1 minute.');
+                return false;
+            }
+            
+            if (hours > 23 || minutes > 59) {
+                e.preventDefault();
+                alert('Invalid time values. Hours must be 0-23, minutes must be 0-59.');
+                return false;
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

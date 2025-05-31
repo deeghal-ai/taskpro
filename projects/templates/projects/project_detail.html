@@ -1,0 +1,730 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Enhanced Header Card */
+    .project-header-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .project-header-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        border: none;
+        padding: 1.5rem;
+    }
+
+    .project-header-card .card-header h4 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Info Cards */
+    .info-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all var(--transition-speed) ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .info-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .info-card .card-header {
+        background: var(--light-bg);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        margin: -1.5rem -1.5rem 1rem;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .info-card h5 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card h5 i {
+        color: var(--primary-color);
+    }
+
+    /* Data List Styling */
+    .data-list {
+        margin: 0;
+    }
+
+    .data-list dt {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .data-list dd {
+        font-size: 1rem;
+        color: #212529;
+        margin-bottom: 1rem;
+    }
+
+    .data-list dd:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Enhanced Status Display */
+    .status-display {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        background: var(--light-bg);
+        border: 1px solid var(--border-color);
+        color: #495057;
+    }
+
+    .status-update-btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Action Cards */
+    .action-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .action-card h5 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Status History Table */
+    .history-table {
+        margin-bottom: 0;
+    }
+
+    .history-table thead {
+        background: var(--light-bg);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .history-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        padding: 1rem;
+        border: none;
+    }
+
+    .history-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .history-table tbody tr {
+        transition: all var(--transition-speed) ease;
+    }
+
+    .history-table tbody tr:hover {
+        background: var(--light-bg);
+    }
+
+    .history-date {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .history-time {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Modal Enhancements */
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-header.bg-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%) !important;
+    }
+
+    /* Success Alert */
+    .status-success-alert {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Badge Improvements */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.75em;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .info-card {
+            margin-bottom: 1rem;
+        }
+
+        .data-list dt, .data-list dd {
+            display: block;
+            width: 100%;
+        }
+    }
+
+    /* Timeline Dot for History */
+    .timeline-dot {
+        width: 12px;
+        height: 12px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+        position: relative;
+    }
+
+    .timeline-dot::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Project Header -->
+    <div class="project-header-card">
+        <div class="card-header text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4>{{ project.project_name }}</h4>
+                    <div class="d-flex gap-3 align-items-center">
+                        <small>
+                            <strong>HS ID:</strong> {{ project.hs_id }}
+                        </small>
+                        <small>
+                            <strong>Opportunity ID:</strong> {{ project.opportunity_id }}
+                        </small>
+                    </div>
+                </div>
+                <a href="{% url 'projects:project_list' %}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Projects
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Tasks Button (DPM only) -->
+    {% if user == project.dpm %}
+    <div class="mb-4 d-flex justify-content-end">
+        <a href="{% url 'projects:project_management' project.id %}" 
+        class="btn btn-primary btn-sm shadow-sm" style="font-weight:500;">
+            <i class="bi bi-kanban"></i> Manage Tasks
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Main Info Sections -->
+    <div class="row mb-4">
+        <!-- Basic Information -->
+        <div class="col-md-6 mb-4">
+            <div class="info-card">
+                <h5>
+                    <i class="bi bi-info-circle-fill"></i> Basic Information
+                </h5>
+                <dl class="data-list">
+                    <dt>Builder Name</dt>
+                    <dd>{{ project.builder_name }}</dd>
+
+                    <dt>Project Type</dt>
+                    <dd>{{ project.project_type|default:"Not specified" }}</dd>
+
+                    <dt>Location</dt>
+                    <dd>{{ project.city }}</dd>
+
+                    <dt>Current Status</dt>
+                    <dd>
+                        <div class="status-display">
+                            <span class="status-badge">{{ project.current_status.name }}</span>
+                            {% if user == project.dpm %}
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-primary status-update-btn"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#statusUpdateModal">
+                                    <i class="bi bi-pencil"></i> Update
+                                </button>
+                            {% endif %}
+                        </div>
+                    </dd>
+
+                    <dt>DPM</dt>
+                    <dd>{{ project.dpm.get_full_name }}</dd>
+                    
+                    <dt>Project Incharge</dt>
+                    <dd>
+                        {% if project.project_incharge %}
+                            {{ project.project_incharge.get_full_name }}
+                        {% else %}
+                            <span class="text-muted">Not assigned</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="col-md-6 mb-4">
+            <div class="info-card">
+                <h5>
+                    <i class="bi bi-box-seam"></i> Product Information
+                </h5>
+                <dl class="data-list">
+                    <dt>Product</dt>
+                    <dd><span class="badge bg-info">{{ project.product.name }}</span></dd>
+
+                    <dt>Subcategory</dt>
+                    <dd>{{ project.product_subcategory.name|default:"Not specified" }}</dd>
+
+                    <dt>Package ID</dt>
+                    <dd>{{ project.package_id|default:"Not specified" }}</dd>
+
+                    <dt>Quantity</dt>
+                    <dd>{{ project.quantity }}</dd>
+
+                    <dt>Expected TAT</dt>
+                    <dd>{{ project.expected_tat }} days</dd>
+                    
+                    <dt>Expected Completion</dt>
+                    <dd>
+                        {% if project.expected_completion_date %}
+                            <span class="fw-semibold">{{ project.expected_completion_date|date:"M d, Y" }}</span>
+                        {% else %}
+                            <span class="text-muted">Not set</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Status History -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history text-primary"></i> Status History
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table history-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Changed By</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in status_history %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="timeline-dot"></span>
+                                    <div>
+                                        <div class="history-date">{{ history.changed_at|date:"M d, Y" }}</div>
+                                        <div class="history-time">{{ history.changed_at|date:"h:i A" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ history.status.name }}</span>
+                            </td>
+                            <td>{{ history.changed_by.get_full_name }}</td>
+                            <td>{{ history.comments|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <i class="bi bi-clock-history display-4 d-block mb-2"></i>
+                                No status history available
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+{% if user == project.dpm %}
+<div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'projects:update_project_status' project.id %}" id="statusUpdateForm">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="statusUpdateModalLabel">
+                        <i class="bi bi-arrow-repeat"></i> Update Project Status
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Current Status:</strong> {{ project.current_status.name }}
+                    </div>
+                    
+                    {% if form %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Default form fields if form is not passed -->
+                        <div class="mb-3">
+                            <label for="id_status" class="form-label">
+                                New Status <span class="text-danger">*</span>
+                            </label>
+                            <select name="status" id="id_status" class="form-select" required>
+                                <option value="">Select a status</option>
+                                {% for status in status_options %}
+                                    <option value="{{ status.id }}">{{ status.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select the new status for this project</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_comments" class="form-label">
+                                Comments
+                            </label>
+                            <textarea name="comments" id="id_comments" class="form-control" rows="3" 
+                                      placeholder="Enter any comments about this status change"></textarea>
+                            <div class="form-text">Optional: Add any relevant comments about this status change</div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Success Alert (Hidden by default) -->
+<div class="alert alert-success alert-dismissible fade status-success-alert d-none" role="alert" id="statusSuccessAlert">
+    <i class="bi bi-check-circle-fill"></i>
+    <strong>Success!</strong> Project status has been updated.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // Status Update Handler
+    const StatusUpdateHandler = {
+        form: null,
+        modal: null,
+        
+        init() {
+            this.form = document.getElementById('statusUpdateForm');
+            this.modal = document.getElementById('statusUpdateModal');
+            
+            if (this.form && this.modal) {
+                this.attachEventListeners();
+                this.setupModal();
+            }
+        },
+        
+        attachEventListeners() {
+            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        },
+        
+        setupModal() {
+            // Get status options via AJAX when modal opens
+            this.modal.addEventListener('show.bs.modal', () => this.loadStatusOptions());
+        },
+        
+        async loadStatusOptions() {
+            try {
+                const response = await fetch('{% url "projects:update_project_status" project.id %}', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status_options) {
+                        this.updateStatusDropdown(data.status_options);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading status options:', error);
+            }
+        },
+        
+        updateStatusDropdown(options) {
+            const statusSelect = document.getElementById('id_status');
+            if (statusSelect) {
+                statusSelect.innerHTML = '<option value="">Select a status</option>';
+                options.forEach(option => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = option.id;
+                    optionEl.textContent = option.name;
+                    statusSelect.appendChild(optionEl);
+                });
+            }
+        },
+        
+        async handleSubmit(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('btn-loading');
+            }
+            
+            try {
+                const formData = new FormData(this.form);
+                
+                const response = await fetch(this.form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Close modal
+                    bootstrap.Modal.getInstance(this.modal).hide();
+                    
+                    // Show success message
+                    this.showSuccessAlert(data.message);
+                    
+                    // Reload page after a short delay to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Show error message
+                    this.showErrorInForm(data.errors || data.message);
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                this.showErrorInForm('An error occurred. Please try again.');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-loading');
+                }
+            }
+        },
+        
+        showSuccessAlert(message) {
+            const alert = document.getElementById('statusSuccessAlert');
+            if (alert) {
+                alert.classList.remove('d-none');
+                alert.classList.add('show');
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    alert.classList.add('d-none');
+                }, 5000);
+            }
+        },
+        
+        showErrorInForm(errors) {
+            if (typeof errors === 'string') {
+                // General error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    ${errors}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                this.form.insertBefore(alertDiv, this.form.firstChild);
+            } else {
+                // Field-specific errors
+                Object.keys(errors).forEach(field => {
+                    const fieldElement = document.querySelector(`[name="${field}"]`);
+                    if (fieldElement) {
+                        fieldElement.classList.add('is-invalid');
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback';
+                        errorDiv.textContent = errors[field].join(' ');
+                        fieldElement.parentNode.appendChild(errorDiv);
+                    }
+                });
+            }
+        }
+    };
+    
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        StatusUpdateHandler.init();
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,763 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Enhanced Header Card */
+    .project-header-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .project-header-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        border: none;
+        padding: 1.25rem;
+    }
+
+    .project-header-card .card-header h4 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+    }
+
+    /* Project Info Display */
+    .project-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: var(--light-bg);
+        border-radius: 0.5rem;
+    }
+
+    .project-info-item {
+        text-align: center;
+    }
+
+    .project-info-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .project-info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    /* Configuration Section */
+    .config-section {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+    }
+
+    .config-section:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .config-section h5 {
+        color: #212529;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .config-section h5 i {
+        color: var(--primary-color);
+    }
+
+    /* Task Creation Section */
+    .task-form-section {
+        background: linear-gradient(135deg, #e8f4f8 0%, #e3f2fd 100%);
+        border: 1px solid rgba(13, 110, 253, 0.1);
+        border-radius: 0.75rem;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+    }
+
+    .task-form-section:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .task-form-section h5 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.625rem 0.75rem;
+        transition: all var(--transition-speed) ease;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .form-label-required::after {
+        content: " *";
+        color: var(--danger-color);
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    /* Task Cards */
+    .task-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all var(--transition-speed) ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .task-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--primary-color);
+        transition: width var(--transition-speed) ease;
+    }
+
+    .task-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+    }
+
+    .task-card:hover::before {
+        width: 6px;
+    }
+
+    /* Task Info Grid */
+    .task-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    .task-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .task-info-item i {
+        color: var(--primary-color);
+    }
+
+    .task-info-item strong {
+        color: #212529;
+        font-weight: 600;
+    }
+
+    /* Enhanced Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.75em;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-success {
+        background: var(--success-color);
+        border-color: var(--success-color);
+    }
+
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Warning Alert */
+    .config-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
+        border: 1px solid #ffeaa7;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: start;
+        gap: 1rem;
+    }
+
+    .config-warning i {
+        color: var(--warning-color);
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h5 {
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Tasks List Header */
+    .tasks-header {
+        background: #fff;
+        border-bottom: 2px solid var(--border-color);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .tasks-header h5 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .project-info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .task-info {
+            flex-direction: column;
+            align-items: start;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Input Group Enhancement */
+    .time-input-group {
+        position: relative;
+    }
+
+    .time-input-group .form-control {
+        padding-right: 3rem;
+    }
+
+    .time-input-group::after {
+        content: "HH:MM";
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+
+    /* Smooth Transitions */
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Enhanced Project Overview Card -->
+    <div class="project-header-card">
+        <div class="card-header text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">
+                        <i class="bi bi-kanban"></i> Project Management
+                    </h4>
+                    <small>{{ project.project_name }}</small>
+                </div>
+                <a href="{% url 'projects:dpm_task_dashboard' %}" 
+                   class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="project-info-grid">
+                <div class="project-info-item">
+                    <div class="project-info-label">HS ID</div>
+                    <div class="project-info-value"><a href="{% url 'projects:project_detail' project_id=project.id %}">{{ project.hs_id }}</a></div>
+                </div>
+                <div class="project-info-item">
+                    <div class="project-info-label">Product</div>
+                    <div class="project-info-value">
+                        <span class="badge bg-info">{{ project.product.name }}</span>
+                    </div>
+                </div>
+                <div class="project-info-item">
+                    <div class="project-info-label">Quantity</div>
+                    <div class="project-info-value">{{ project.quantity }}</div>
+                </div>
+                <div class="project-info-item">
+                    <div class="project-info-label">Current Status</div>
+                    <div class="project-info-value">
+                        <span class="badge bg-secondary">{{ project.current_status.name }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Configuration -->
+    <div class="config-section">
+        <h5>
+            <i class="bi bi-gear-fill"></i> Project Configuration
+        </h5>
+        <form method="post" action="{% url 'projects:update_project_configuration' project.id %}" id="configForm">
+            {% csrf_token %}
+            
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="{{ project_form.project_incharge.id_for_label }}" 
+                           class="form-label form-label-required">
+                        Project Incharge
+                    </label>
+                    {{ project_form.project_incharge }}
+                    {% if project_form.project_incharge.help_text %}
+                        <div class="form-text">{{ project_form.project_incharge.help_text }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label for="{{ project_form.expected_completion_date.id_for_label }}" 
+                           class="form-label form-label-required">
+                        Expected Completion Date
+                    </label>
+                    {{ project_form.expected_completion_date }}
+                    {% if project_form.expected_completion_date.help_text %}
+                        <div class="form-text">{{ project_form.expected_completion_date.help_text }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label for="{{ project_form.delivery_performance_rating.id_for_label }}" 
+                           class="form-label">
+                        Delivery Performance Rating
+                    </label>
+                    {{ project_form.delivery_performance_rating }}
+                    {% if project_form.delivery_performance_rating.help_text %}
+                        <div class="form-text">{{ project_form.delivery_performance_rating.help_text }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="text-end mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Update Configuration
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Task Creation Section -->
+    <div class="task-form-section fade-in" id="taskCreationSection"
+         {% if not project.project_incharge or not project.expected_completion_date %}style="display: none;"{% endif %}>
+        <h5>
+            <i class="bi bi-plus-circle"></i> Create New Task
+        </h5>
+        <form method="post" action="{% url 'projects:create_project_task' project.id %}" id="createTaskForm">
+            {% csrf_token %}
+            
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="{{ task_form.product_task.id_for_label }}" 
+                           class="form-label form-label-required">
+                        Task
+                    </label>
+                    {{ task_form.product_task }}
+                    {% if task_form.product_task.help_text %}
+                        <div class="form-text">{{ task_form.product_task.help_text }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label for="{{ task_form.task_type.id_for_label }}" 
+                           class="form-label form-label-required">
+                        Task Type
+                    </label>
+                    {{ task_form.task_type }}
+                    {% if task_form.task_type.help_text %}
+                        <div class="form-text">{{ task_form.task_type.help_text }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <label for="{{ task_form.estimated_time.id_for_label }}" 
+                           class="form-label form-label-required">
+                        Estimated Time
+                    </label>
+                    <div class="time-input-group">
+                        {{ task_form.estimated_time }}
+                    </div>
+                    {% if task_form.estimated_time.help_text %}
+                        <div class="form-text">{{ task_form.estimated_time.help_text }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="text-end mt-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Create Task
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Configuration Warning -->
+    {% if not project.project_incharge or not project.expected_completion_date %}
+    <div class="config-warning fade-in">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+            <strong>Configuration Required!</strong> 
+            Please complete the project configuration above before creating tasks.
+            <br>
+            <small class="text-muted">Missing: 
+                {% if not project.project_incharge %}Project Incharge{% endif %}
+                {% if not project.project_incharge and not project.expected_completion_date %}, {% endif %}
+                {% if not project.expected_completion_date %}Expected Completion Date{% endif %}
+            </small>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tasks List -->
+    <div class="card border-0 shadow-sm">
+        <div class="tasks-header">
+            <h5>
+                <i class="bi bi-list-task text-primary"></i> Project Tasks
+                <span class="badge bg-primary">{{ tasks|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if tasks %}
+                {% for task in tasks %}
+                    <div class="task-card fade-in">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    {{ task.task_id }}
+                                    <span class="badge {% if task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                        <i class="bi {% if task.task_type == 'NEW' %}bi-plus-circle{% else %}bi-arrow-repeat{% endif %}"></i>
+                                        {{ task.get_task_type_display }}
+                                    </span>
+                                </h6>
+                                <p class="mb-2 text-muted">
+                                    <i class="bi bi-card-list"></i> {{ task.product_task.name }}
+                                </p>
+                                <div class="task-info">
+                                    <div class="task-info-item">
+                                        <i class="bi bi-clock"></i> 
+                                        Estimated: <strong>{{ task.get_formatted_time }}</strong>
+                                    </div>
+                                    <div class="task-info-item">
+                                        <i class="bi bi-people"></i> 
+                                        Assignments: <strong>{{ task.assignments.count }}</strong>
+                                    </div>
+                                    <div class="task-info-item">
+                                        <i class="bi bi-hourglass-split"></i> 
+                                        Total Projected: <strong>{{ task.get_formatted_hours }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="{% url 'projects:task_detail' project.id task.id %}" 
+                                   class="btn btn-primary">
+                                    <i class="bi bi-person-plus"></i> Manage Assignments
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-clipboard"></i>
+                    </div>
+                    <h5>No Tasks Created</h5>
+                    <p class="text-muted">
+                        {% if project.project_incharge and project.expected_completion_date %}
+                            Create your first task using the form above.
+                        {% else %}
+                            Complete the project configuration to start creating tasks.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // Configuration Manager
+    const ConfigManager = {
+        init() {
+            this.checkConfiguration();
+            this.attachListeners();
+        },
+        
+        checkConfiguration() {
+            const inchargeSelect = document.querySelector('[name="project_incharge"]');
+            const completionDate = document.querySelector('[name="expected_completion_date"]');
+            const taskSection = document.getElementById('taskCreationSection');
+            
+            if (inchargeSelect && completionDate && taskSection) {
+                const hasConfig = inchargeSelect.value && completionDate.value;
+                
+                if (hasConfig) {
+                    taskSection.style.display = 'block';
+                    taskSection.classList.add('fade-in');
+                } else {
+                    taskSection.style.display = 'none';
+                }
+            }
+        },
+        
+        attachListeners() {
+            const configForm = document.getElementById('configForm');
+            if (configForm) {
+                configForm.addEventListener('change', () => this.checkConfiguration());
+            }
+        }
+    };
+    
+    // Form Handler
+    const FormHandler = {
+        init() {
+            this.attachSubmitHandlers();
+            this.attachValidation();
+        },
+        
+        attachSubmitHandlers() {
+            // Configuration Form
+            const configForm = document.getElementById('configForm');
+            if (configForm) {
+                configForm.addEventListener('submit', function(e) {
+                    const btn = this.querySelector('button[type="submit"]');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('btn-loading');
+                    }
+                });
+            }
+            
+            // Task Creation Form
+            const taskForm = document.getElementById('createTaskForm');
+            if (taskForm) {
+                taskForm.addEventListener('submit', function(e) {
+                    const btn = this.querySelector('button[type="submit"]');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('btn-loading');
+                    }
+                });
+            }
+        },
+        
+        attachValidation() {
+            // Add visual feedback for required fields
+            document.querySelectorAll('.form-label-required').forEach(label => {
+                const input = document.querySelector(`#${label.getAttribute('for')}`);
+                if (input) {
+                    input.addEventListener('invalid', function() {
+                        this.classList.add('is-invalid');
+                    });
+                    
+                    input.addEventListener('input', function() {
+                        if (this.value) {
+                            this.classList.remove('is-invalid');
+                        }
+                    });
+                }
+            });
+            
+            // Time input validation
+            const timeInput = document.querySelector('input[placeholder*="HH:MM"]');
+            if (timeInput) {
+                timeInput.addEventListener('blur', function() {
+                    const value = this.value;
+                    if (value && !/^([0-9]{1,2}):([0-5][0-9])$/.test(value)) {
+                        this.setCustomValidity('Please enter time in HH:MM format');
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.setCustomValidity('');
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            }
+        }
+    };
+    
+    // Animation Controller
+    const AnimationController = {
+        init() {
+            this.observeElements();
+        },
+        
+        observeElements() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.task-card').forEach(card => {
+                observer.observe(card);
+            });
+        }
+    };
+    
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        ConfigManager.init();
+        FormHandler.init();
+        AnimationController.init();
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+})();
+</script>
+{% endblock %}

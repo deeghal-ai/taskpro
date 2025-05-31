@@ -1,0 +1,103 @@
+<!--/templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Management System - {% block title %}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Project Management</a>
+            
+            <!-- Navbar Toggler for Mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Collapsible Navigation Content -->
+            <div class="collapse navbar-collapse" id="navbarMain">
+                {% if user.is_authenticated %}
+                    <!-- Left-aligned nav items -->
+                    <ul class="navbar-nav me-auto">
+                        {% if user.role == 'DPM' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'projects:project_list' %}">Project Management</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'projects:dpm_task_dashboard' %}">Task Management</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'projects:create_project' %}">Create Project</a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'TEAM_MEMBER' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'projects:team_member_dashboard' %}">My Tasks</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    <!-- Right-aligned user menu -->
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.get_full_name|default:user.username }}
+                                {% if user.role %}
+                                    ({{ user.get_role_display }})
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                {% if user.is_staff %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin:index' %}">Admin Panel</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Messages/Alerts -->
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Main Content Block -->
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

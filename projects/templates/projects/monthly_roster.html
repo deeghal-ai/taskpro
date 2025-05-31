@@ -1,0 +1,906 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+    
+    /* Enhanced Header Card */
+    .roster-header-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .roster-header-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        border: none;
+        padding: 1.25rem;
+    }
+    
+    /* Summary Cards */
+    .summary-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        height: 100%;
+        transition: all var(--transition-speed) ease;
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .summary-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .summary-card p {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    
+    .summary-card.present { border-top: 4px solid var(--success-color); }
+    .summary-card.present h3 { color: var(--success-color); }
+    
+    .summary-card.leave { border-top: 4px solid var(--danger-color); }
+    .summary-card.leave h3 { color: var(--danger-color); }
+    
+    .summary-card.weekoff { border-top: 4px solid #6c757d; }
+    .summary-card.weekoff h3 { color: #6c757d; }
+    
+    .summary-card.task-hours { border-top: 4px solid var(--primary-color); }
+    .summary-card.task-hours h3 { color: var(--primary-color); }
+    
+    .summary-card.misc-hours { border-top: 4px solid var(--success-color); }
+    .summary-card.misc-hours h3 { color: var(--success-color); }
+    
+    .summary-card.total-hours { border-top: 4px solid var(--warning-color); }
+    .summary-card.total-hours h3 { color: var(--warning-color); }
+    
+    /* Enhanced Calendar */
+    .calendar-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .calendar-card .card-header {
+        background: #fff;
+        border-bottom: 2px solid var(--border-color);
+        padding: 1.25rem;
+    }
+    
+    .calendar-card .card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .calendar-legend {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        display: inline-block;
+    }
+    
+    /* Calendar Table */
+    .roster-calendar {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+    }
+    
+    .roster-calendar th,
+    .roster-calendar td {
+        border: 1px solid var(--border-color);
+        padding: 0;
+        vertical-align: top;
+        position: relative;
+    }
+    
+    .roster-calendar th {
+        background: var(--light-bg);
+        height: 50px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    
+    .roster-calendar td {
+        height: 100px;
+        width: 14.28%;
+        background: #fff;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    /* Day Cell Styling */
+    .day-cell {
+        height: 100%;
+        padding: 0.5rem;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .day-cell:hover:not(.empty-cell) {
+        background: var(--light-bg);
+        transform: scale(1.02);
+        z-index: 1;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .day-cell:not(.empty-cell):hover::after {
+        content: "Click to edit";
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        font-size: 0.65rem;
+        color: #666;
+        background: rgba(255,255,255,0.9);
+        padding: 2px 6px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .day-number {
+        font-weight: 700;
+        margin-bottom: 4px;
+        font-size: 1rem;
+        color: #212529;
+    }
+    
+    .day-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .day-hours {
+        font-size: 0.7rem;
+        line-height: 1.3;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .task-hours {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .misc-hours {
+        color: var(--success-color);
+        font-weight: 500;
+    }
+    
+    .total-hours {
+        color: var(--danger-color);
+        font-weight: 700;
+        border-top: 1px solid var(--border-color);
+        padding-top: 2px;
+        margin-top: 2px;
+    }
+
+    .empty-cell {
+        background-color: #fafafa;
+        cursor: default;
+    }
+
+    .empty-cell:hover {
+        background-color: #fafafa;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    /* Status Styling */
+    .status-present { 
+        background: rgba(25, 135, 84, 0.1);
+        color: var(--success-color);
+    }
+    .status-leave { 
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--danger-color);
+    }
+    .status-week_off { 
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    .status-holiday { 
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--warning-color);
+    }
+    .status-half_day { 
+        background: rgba(13, 202, 240, 0.1);
+        color: var(--info-color);
+    }
+    .status-team_outing {
+        background: rgba(111, 66, 193, 0.1);
+        color: #6f42c1;
+    }
+    
+    /* Modal Enhancements */
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-header.bg-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%) !important;
+    }
+    
+    /* Floating Action Button */
+    .add-misc-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .add-misc-btn:hover {
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    
+    /* Time Input Group */
+    .time-inputs-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .time-input-wrapper {
+        flex: 1;
+        position: relative;
+    }
+    
+    .time-separator {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #6c757d;
+        padding: 0 0.25rem;
+        margin-top: 1.5rem;
+    }
+    
+    .time-input-wrapper label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Navigation Buttons */
+    .nav-btn {
+        font-weight: 500;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .nav-btn:hover {
+        transform: translateX(-3px);
+    }
+    
+    .nav-btn:last-child:hover {
+        transform: translateX(3px);
+    }
+    
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Alert Enhancement */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .roster-calendar td {
+            height: 80px;
+            font-size: 0.75rem;
+        }
+        
+        .day-cell {
+            padding: 0.25rem;
+        }
+        
+        .day-number {
+            font-size: 0.875rem;
+        }
+        
+        .day-status {
+            font-size: 0.65rem;
+            padding: 1px 4px;
+        }
+        
+        .day-hours {
+            font-size: 0.65rem;
+        }
+        
+        .summary-card h3 {
+            font-size: 1.5rem;
+        }
+        
+        .calendar-legend {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+    }
+    
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+    
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+    
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Weekend Highlight */
+    .roster-calendar td:first-child,
+    .roster-calendar td:last-child {
+        background: rgba(108, 117, 125, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Enhanced Header -->
+    <div class="roster-header-card">
+        <div class="card-header text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-calendar3"></i> Monthly Roster
+                </h4>
+                <div>
+                    <button type="button" class="btn btn-outline-light btn-sm me-2" 
+                            data-bs-toggle="modal" data-bs-target="#addMiscHoursModal">
+                        <i class="bi bi-plus-circle"></i> Add Misc Hours
+                    </button>
+                    <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0">{{ monthly_data.month_name }} {{ monthly_data.year }}</h5>
+                    <p class="text-muted mb-0">Your monthly timesheet and attendance record</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{% url 'projects:roster_date' prev_month.year prev_month.month %}" 
+                       class="btn btn-outline-primary nav-btn">
+                        <i class="bi bi-chevron-left"></i> {{ prev_month|date:"M Y" }}
+                    </a>
+                    <a href="{% url 'projects:roster_date' next_month.year next_month.month %}" 
+                       class="btn btn-outline-primary nav-btn ms-2">
+                        {{ next_month|date:"M Y" }} <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Summary Cards -->
+    <div class="row mb-4 g-3">
+        <div class="col-6 col-md-2">
+            <div class="summary-card present">
+                <h3>{{ monthly_data.summary.present_days }}</h3>
+                <p>Present Days</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="summary-card leave">
+                <h3>{{ monthly_data.summary.leave_days }}</h3>
+                <p>Leave Days</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="summary-card weekoff">
+                <h3>{{ monthly_data.summary.weekoff_days }}</h3>
+                <p>Week Offs</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="summary-card task-hours">
+                <h3>{{ monthly_data.summary.task_hours }}</h3>
+                <p>Task Hours</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="summary-card misc-hours">
+                <h3>{{ monthly_data.summary.misc_hours }}</h3>
+                <p>Misc Hours</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="summary-card total-hours">
+                <h3>{{ monthly_data.summary.total_hours }}</h3>
+                <p>Total Hours</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Calendar -->
+    <div class="calendar-card">
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-calendar3 text-primary"></i> Monthly Calendar
+            </h5>
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <span class="legend-dot task-hours" style="background: var(--primary-color);"></span>
+                    <span>Task Hours</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot misc-hours" style="background: var(--success-color);"></span>
+                    <span>Misc Hours</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot total-hours" style="background: var(--danger-color);"></span>
+                    <span>Total Hours</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <table class="roster-calendar">
+                <thead>
+                    <tr>
+                        <th>Sunday</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in monthly_data.calendar_weeks %}
+                    <tr>
+                        {% for day_roster in week %}
+                        <td class="{% if not day_roster %}empty-cell{% endif %}">
+                            {% if day_roster %}
+                                <div class="day-cell" data-date="{{ day_roster.date|date:'Y-m-d' }}">
+                                    <div class="day-number">{{ day_roster.date.day }}</div>
+                                    <div class="day-status status-{{ day_roster.status|lower }}">
+                                        {{ day_roster.get_status_display }}
+                                    </div>
+                                    <div class="day-hours">
+                                        {% if day_roster.assignment_hours > 0 %}
+                                            <div class="task-hours">
+                                                <i class="bi bi-clock-fill"></i> {{ day_roster.task_hours_formatted }}
+                                            </div>
+                                        {% endif %}
+                                        {% if day_roster.misc_hours > 0 %}
+                                            <div class="misc-hours">
+                                                <i class="bi bi-plus-circle-fill"></i> {{ day_roster.misc_hours_formatted }}
+                                            </div>
+                                        {% endif %}
+                                        {% if day_roster.total_hours > 0 %}
+                                            <div class="total-hours">{{ day_roster.total_hours_formatted }}</div>
+                                        {% endif %}
+                                        {% if day_roster.total_hours == 0 %}
+                                            <div class="text-muted">-</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="day-cell empty-cell">
+                                    <div class="day-number">&nbsp;</div>
+                                </div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Status Edit Modal -->
+    <div class="modal fade" id="editDayModal" tabindex="-1" aria-labelledby="editDayModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{% url 'projects:update_roster_day' %}" id="editDayForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" id="modal_date" value="">
+                    
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="editDayModalLabel">
+                            <i class="bi bi-calendar-check"></i> Edit Day Status
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Date</label>
+                            <p id="modal_date_display" class="text-muted mb-0"></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="modal_status" class="form-label">
+                                Status <span class="text-danger">*</span>
+                            </label>
+                            <select name="status" id="modal_status" class="form-select" required>
+                                <option value="PRESENT">Present</option>
+                                <option value="HALF_DAY">Half Day</option>
+                                <option value="LEAVE">Leave</option>
+                                <option value="TEAM_OUTING">Team Outing</option>
+                                <option value="WEEK_OFF">Week Off</option>
+                                <option value="HOLIDAY">Holiday</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="modal_notes" class="form-label">Notes</label>
+                            <textarea name="notes" id="modal_notes" class="form-control" rows="2" 
+                                      placeholder="Any additional notes for this day"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <small>Task hours are automatically calculated from your time tracking.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Update Status
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Misc Hours Modal -->
+    <div class="modal fade" id="addMiscHoursModal" tabindex="-1" aria-labelledby="addMiscHoursModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" id="miscHoursForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_misc_hours" value="1">
+                    
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="addMiscHoursModalLabel">
+                            <i class="bi bi-plus-circle"></i> Add Miscellaneous Hours
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="{{ misc_hours_form.date.id_for_label }}" class="form-label">
+                                Date <span class="text-danger">*</span>
+                            </label>
+                            {{ misc_hours_form.date }}
+                            <div class="form-text">{{ misc_hours_form.date.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ misc_hours_form.activity.id_for_label }}" class="form-label">
+                                Activity <span class="text-danger">*</span>
+                            </label>
+                            {{ misc_hours_form.activity }}
+                            <div class="form-text">{{ misc_hours_form.activity.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Duration <span class="text-danger">*</span></label>
+                            <div class="time-inputs-group">
+                                <div class="time-input-wrapper">
+                                    <label class="form-label small mb-1">Hours</label>
+                                    <input type="number" name="duration_hours" id="duration_hours" 
+                                           class="form-control text-center" min="0" max="23" value="0" required>
+                                </div>
+                                <div class="time-separator">:</div>
+                                <div class="time-input-wrapper">
+                                    <label class="form-label small mb-1">Minutes</label>
+                                    <input type="number" name="duration_minutes" id="duration_minutes" 
+                                           class="form-control text-center" min="0" max="59" value="0" required>
+                                </div>
+                            </div>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i>
+                                Enter the time spent on this activity (minimum 1 minute)
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb"></i>
+                            <strong>Tip:</strong> This will be added to any existing miscellaneous hours for the selected date.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Add Hours
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button (Mobile) -->
+    <button type="button" class="btn btn-success add-misc-btn d-md-none" 
+            data-bs-toggle="modal" data-bs-target="#addMiscHoursModal"
+            title="Add Misc Hours">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // Calendar Manager
+    const CalendarManager = {
+        init() {
+            this.attachCellClickHandlers();
+            this.attachModalHandlers();
+        },
+        
+        attachCellClickHandlers() {
+            const dayCells = document.querySelectorAll('.day-cell:not(.empty-cell)');
+            const editModal = new bootstrap.Modal(document.getElementById('editDayModal'));
+            
+            dayCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const date = this.getAttribute('data-date');
+                    if (date) {
+                        CalendarManager.openEditModal(date, this, editModal);
+                    }
+                });
+            });
+        },
+        
+        openEditModal(date, cell, modal) {
+            // Parse the date
+            const dateObj = new Date(date + 'T12:00:00');
+            const displayDate = dateObj.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Get current status from the cell
+            const statusElement = cell.querySelector('.day-status');
+            let currentStatus = 'PRESENT';
+            
+            if (statusElement) {
+                const statusText = statusElement.textContent.trim();
+                const statusMap = {
+                    'Present': 'PRESENT',
+                    'Half Day': 'HALF_DAY',
+                    'Leave': 'LEAVE',
+                    'Team Outing': 'TEAM_OUTING',
+                    'Week Off': 'WEEK_OFF',
+                    'Holiday': 'HOLIDAY'
+                };
+                currentStatus = statusMap[statusText] || 'PRESENT';
+            }
+            
+            // Populate modal
+            document.getElementById('modal_date').value = date;
+            document.getElementById('modal_date_display').textContent = displayDate;
+            document.getElementById('modal_status').value = currentStatus;
+            document.getElementById('modal_notes').value = '';
+            
+            // Show modal
+            modal.show();
+        },
+        
+        attachModalHandlers() {
+            // Edit Day Form
+            const editForm = document.getElementById('editDayForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    const btn = this.querySelector('button[type="submit"]');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('btn-loading');
+                    }
+                });
+            }
+        }
+    };
+    
+    // Misc Hours Manager
+    const MiscHoursManager = {
+        init() {
+            this.attachFormValidation();
+            this.attachSubmitHandler();
+        },
+        
+        attachFormValidation() {
+            const form = document.getElementById('miscHoursForm');
+            if (form) {
+                form.addEventListener('submit', (e) => this.validateForm(e));
+            }
+        },
+        
+        validateForm(e) {
+            const hours = parseInt(document.getElementById('duration_hours').value) || 0;
+            const minutes = parseInt(document.getElementById('duration_minutes').value) || 0;
+            const activity = document.querySelector('[name="activity"]').value.trim();
+            
+            if (hours === 0 && minutes === 0) {
+                e.preventDefault();
+                this.showError('Duration must be at least 1 minute.');
+                document.getElementById('duration_minutes').focus();
+                return false;
+            }
+            
+            if (!activity) {
+                e.preventDefault();
+                this.showError('Please enter an activity description.');
+                document.querySelector('[name="activity"]').focus();
+                return false;
+            }
+            
+            // Confirm if hours > 12
+            if (hours > 12) {
+                if (!confirm(`You entered ${hours} hours. Are you sure this is correct?`)) {
+                    e.preventDefault();
+                    document.getElementById('duration_hours').focus();
+                    return false;
+                }
+            }
+            
+            return true;
+        },
+        
+        attachSubmitHandler() {
+            const form = document.getElementById('miscHoursForm');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    if (MiscHoursManager.validateForm.call(this, event) !== false) {
+                        const btn = this.querySelector('button[type="submit"]');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.classList.add('btn-loading');
+                        }
+                    }
+                });
+            }
+        },
+        
+        showError(message) {
+            // Create alert element
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-2';
+            alertDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle-fill"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert after form header
+            const modalBody = document.querySelector('#addMiscHoursModal .modal-body');
+            modalBody.insertBefore(alertDiv, modalBody.firstChild);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    };
+    
+    // Auto-dismiss Success Messages
+    const MessageHandler = {
+        init() {
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert-success');
+                alerts.forEach(alert => {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        }
+    };
+    
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        CalendarManager.init();
+        MiscHoursManager.init();
+        MessageHandler.init();
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+})();
+</script>
+{% endblock %}

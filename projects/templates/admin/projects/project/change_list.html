@@ -1,0 +1,12 @@
+<!--projects/templates/admin/projects/project/change_list.html-->
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url 'projects:project_list' %}" class="addlink">
+            View Projects Dashboard
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

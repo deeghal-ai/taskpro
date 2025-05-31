@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .roster-card {
+        transition: all 0.2s ease;
+    }
+    
+    .roster-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .total-time {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    
+    .assignment-row {
+        border-left: 4px solid #0d6efd;
+        background-color: #f8f9fa;
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+    }
+    
+    .time-display {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Daily Roster</h4>
+                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-0">{{ date_range }}</h5>
+                    <p class="text-muted mb-0">Time breakdown for your assignments</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="total-time">
+                        Total: {{ total_formatted }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-funnel"></i> Filter Options
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="{{ filter_form.date.id_for_label }}" class="form-label">
+                            Select Date
+                        </label>
+                        {{ filter_form.date }}
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check">
+                            {{ filter_form.week_view }}
+                            <label class="form-check-label" for="{{ filter_form.week_view.id_for_label }}">
+                                Show entire week
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Apply Filter
+                        </button>
+                        <a href="{% url 'projects:daily_roster' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Time Breakdown -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-clock-history"></i> Time Breakdown
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if daily_totals %}
+                {% if show_week %}
+                    <!-- Week View - Simplified -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        Showing time entries for the selected week. Each entry shows the total time for that assignment on that specific date.
+                    </div>
+                    
+                    {% regroup daily_totals by date_worked as daily_groups %}
+                    {% for day_group in daily_groups %}
+                        <div class="mb-4">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-calendar-date"></i> 
+                                {{ day_group.grouper|date:"l, M d, Y" }}
+                            </h6>
+                            
+                            {% for daily_total in day_group.list %}
+                                <div class="assignment-row">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="fw-bold">{{ daily_total.assignment.assignment_id }}</div>
+                                            <div class="text-muted small">
+                                                {{ daily_total.assignment.task.project.project_name }} - 
+                                                {{ daily_total.assignment.task.product_task.name }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-muted small">Sub-task:</div>
+                                            <div class="text-truncate" style="max-width: 200px;" title="{{ daily_total.assignment.sub_task }}">
+                                                {{ daily_total.assignment.sub_task }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <div class="time-display">{{ daily_total.get_formatted_total }}</div>
+                                            {% if daily_total.is_manually_edited %}
+                                                <span class="badge bg-info ms-2">Edited</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Single Day View -->
+                    {% for daily_total in daily_totals %}
+                        <div class="assignment-row roster-card">
+                            <div class="row align-items-center">
+                                <div class="col-md-5">
+                                    <div class="fw-bold">
+                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
+                                           class="text-decoration-none">
+                                            {{ daily_total.assignment.assignment_id }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">
+                                        {{ daily_total.assignment.task.project.project_name }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        Task: {{ daily_total.assignment.task.product_task.name }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-muted small">Sub-task:</div>
+                                    <div class="text-truncate" title="{{ daily_total.assignment.sub_task }}">
+                                        {{ daily_total.assignment.sub_task }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <div class="time-display">{{ daily_total.get_formatted_total }}</div>
+                                    <div class="mt-1">
+                                        {% if daily_total.is_manually_edited %}
+                                            <span class="badge bg-info">Manually Edited</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Auto-calculated</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% else %}
+                <!-- No Data State -->
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <h5 class="text-muted">No Time Entries</h5>
+                    <p class="text-muted mb-4">
+                        No time has been logged for the selected 
+                        {% if show_week %}week{% else %}date{% endif %}.
+                    </p>
+                    <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Start Working on Tasks
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    {% if daily_totals %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Summary</h5>
+                    <div class="row">
+                        <div class="col">
+                            <div class="h4 text-primary">{{ daily_totals|length }}</div>
+                            <div class="text-muted">Assignment{{ daily_totals|length|pluralize }}</div>
+                        </div>
+                        <div class="col">
+                            <div class="h4 text-success">{{ total_formatted }}</div>
+                            <div class="text-muted">Total Time</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary">
+                            <i class="bi bi-speedometer2"></i> Go to Dashboard
+                        </a>
+                        <button type="button" class="btn btn-secondary" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print Roster
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form when week view checkbox changes
+    var weekViewCheckbox = document.querySelector('input[name="week_view"]');
+    if (weekViewCheckbox) {
+        weekViewCheckbox.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
+    
+    // Auto-submit form when date changes
+    var dateInput = document.querySelector('input[name="date"]');
+    if (dateInput) {
+        dateInput.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
+    
+    // Print styles
+    var style = document.createElement('style');
+    style.innerHTML = `
+        @media print {
+            .btn, .card-header, .navbar { display: none !important; }
+            .card { border: none !important; box-shadow: none !important; }
+            .assignment-row { break-inside: avoid; }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}
