@@ -4,44 +4,397 @@
 
 {% block extra_css %}
 <style>
-    .roster-card {
-        transition: all 0.2s ease;
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
     }
     
-    .roster-card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    /* Enhanced Header Card */
+    .roster-header-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 2rem;
     }
     
+    .roster-header-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        border: none;
+        padding: 1.25rem;
+    }
+    
+    .roster-header-card .card-body {
+        background: var(--light-bg);
+    }
+    
+    /* Total Time Display */
     .total-time {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #0d6efd;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        display: inline-block;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
     }
     
+    /* Filter Section */
+    .filter-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .filter-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+    
+    .filter-card h5 {
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .filter-card h5 i {
+        color: var(--primary-color);
+    }
+    
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    /* Assignment Row Styling */
     .assignment-row {
-        border-left: 4px solid #0d6efd;
-        background-color: #f8f9fa;
-        margin-bottom: 0.5rem;
-        padding: 0.75rem;
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--primary-color);
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all var(--transition-speed) ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .assignment-row:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-left-width: 6px;
+    }
+    
+    .assignment-row::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, rgba(13, 110, 253, 0.05) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity var(--transition-speed) ease;
+    }
+    
+    .assignment-row:hover::before {
+        opacity: 1;
+    }
+    
+    /* Time Display Enhancement */
+    .time-display {
+        font-family: 'Courier New', monospace;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        background: var(--light-bg);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+        border: 1px solid var(--border-color);
+    }
+    
+    /* Enhanced Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.75em;
+        font-size: 0.8rem;
         border-radius: 0.375rem;
     }
     
-    .time-display {
-        font-family: monospace;
-        font-size: 1.1rem;
-        font-weight: bold;
+    .badge.bg-info {
+        background-color: var(--info-color) !important;
+    }
+    
+    .badge.bg-success {
+        background-color: var(--success-color) !important;
+    }
+    
+    /* Week View Enhancements */
+    .week-day-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        border-left: 4px solid var(--primary-color);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        color: #495057;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .week-day-content {
+        padding-left: 1rem;
+        border-left: 2px dashed var(--border-color);
+        margin-left: 0.5rem;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 1rem;
+        background: var(--light-bg);
+        border-radius: 0.75rem;
+        margin: 2rem 0;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--border-color);
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .empty-state h5 {
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state p {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Summary Cards */
+    .summary-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all var(--transition-speed) ease;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .summary-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    
+    .summary-card h5 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+    
+    .summary-stat {
+        text-align: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .summary-stat:last-child {
+        border-bottom: none;
+    }
+    
+    .summary-stat h4 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .summary-stat .text-muted {
+        font-size: 0.875rem;
+    }
+    
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Alert Styling */
+    .alert-info {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+    
+    .alert-info i {
+        color: var(--info-color);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .total-time {
+            font-size: 1.5rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .assignment-row {
+            padding: 1rem;
+        }
+        
+        .time-display {
+            font-size: 1.1rem;
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+        }
+    }
+    
+    /* Print Styles */
+    @media print {
+        .btn, .card-header, .navbar, .filter-card, .summary-card .btn { 
+            display: none !important; 
+        }
+        
+        .card { 
+            border: none !important; 
+            box-shadow: none !important; 
+        }
+        
+        .assignment-row { 
+            break-inside: avoid;
+            border: 1px solid #000 !important;
+            margin-bottom: 0.5rem !important;
+            box-shadow: none !important;
+        }
+        
+        .roster-header-card .card-body {
+            background: none !important;
+        }
+        
+        .total-time {
+            background: none !important;
+            box-shadow: none !important;
+        }
+    }
+    
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+    
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+    
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Hover Effects for Links */
+    .assignment-row a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .assignment-row a:hover {
+        color: #0a58ca;
+        text-decoration: underline;
+    }
+    
+    /* Animation for new entries */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .assignment-row {
+        animation: slideIn 0.3s ease-out;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+    <!-- Enhanced Header -->
+    <div class="roster-header-card">
+        <div class="card-header text-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Daily Roster</h4>
-                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light">
+                <h4 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Daily Roster
+                </h4>
+                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
@@ -52,41 +405,39 @@
                     <h5 class="mb-0">{{ date_range }}</h5>
                     <p class="text-muted mb-0">Time breakdown for your assignments</p>
                 </div>
-                <div class="col-md-4 text-end">
+                <div class="col-md-4 text-md-end text-center">
                     <div class="total-time">
-                        Total: {{ total_formatted }}
+                        <i class="bi bi-clock-fill"></i> {{ total_formatted }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-funnel"></i> Filter Options
-            </h5>
-        </div>
-        <div class="card-body">
-            <form method="get">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="{{ filter_form.date.id_for_label }}" class="form-label">
-                            Select Date
+    <!-- Enhanced Filter Section -->
+    <div class="filter-card">
+        <h5>
+            <i class="bi bi-funnel-fill"></i> Filter Options
+        </h5>
+        <form method="get" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="{{ filter_form.date.id_for_label }}" class="form-label">
+                        <i class="bi bi-calendar3"></i> Select Date
+                    </label>
+                    {{ filter_form.date }}
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        {{ filter_form.week_view }}
+                        <label class="form-check-label" for="{{ filter_form.week_view.id_for_label }}">
+                            <i class="bi bi-calendar-week"></i> Show entire week
                         </label>
-                        {{ filter_form.date }}
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <div class="form-check">
-                            {{ filter_form.week_view }}
-                            <label class="form-check-label" for="{{ filter_form.week_view.id_for_label }}">
-                                Show entire week
-                            </label>
-                        </div>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i> Apply Filter
                         </button>
                         <a href="{% url 'projects:daily_roster' %}" class="btn btn-secondary">
@@ -94,93 +445,113 @@
                         </a>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <!-- Time Breakdown -->
-    <div class="card">
-        <div class="card-header">
+    <!-- Time Breakdown Section -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
             <h5 class="card-title mb-0">
-                <i class="bi bi-clock-history"></i> Time Breakdown
+                <i class="bi bi-clock-history text-primary"></i> Time Breakdown
             </h5>
         </div>
         <div class="card-body">
             {% if daily_totals %}
                 {% if show_week %}
-                    <!-- Week View - Simplified -->
+                    <!-- Week View -->
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> 
+                        <i class="bi bi-info-circle-fill"></i> 
                         Showing time entries for the selected week. Each entry shows the total time for that assignment on that specific date.
                     </div>
                     
                     {% regroup daily_totals by date_worked as daily_groups %}
                     {% for day_group in daily_groups %}
                         <div class="mb-4">
-                            <h6 class="border-bottom pb-2 mb-3">
+                            <h6 class="week-day-header">
                                 <i class="bi bi-calendar-date"></i> 
-                                {{ day_group.grouper|date:"l, M d, Y" }}
+                                {{ day_group.grouper|date:"l, F d, Y" }}
                             </h6>
                             
-                            {% for daily_total in day_group.list %}
-                                <div class="assignment-row">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-6">
-                                            <div class="fw-bold">{{ daily_total.assignment.assignment_id }}</div>
-                                            <div class="text-muted small">
-                                                {{ daily_total.assignment.task.project.project_name }} - 
-                                                {{ daily_total.assignment.task.product_task.name }}
+                            <div class="week-day-content">
+                                {% for daily_total in day_group.list %}
+                                    <div class="assignment-row">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6">
+                                                <div class="fw-bold mb-1">
+                                                    <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
+                                                        {{ daily_total.assignment.assignment_id }}
+                                                    </a>
+                                                </div>
+                                                <div class="text-muted">
+                                                    <small>
+                                                        <i class="bi bi-folder2"></i> {{ daily_total.assignment.task.project.project_name }}
+                                                    </small>
+                                                    <br>
+                                                    <small>
+                                                        <i class="bi bi-card-list"></i> {{ daily_total.assignment.task.product_task.name }}
+                                                    </small>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="text-muted small">Sub-task:</div>
-                                            <div class="text-truncate" style="max-width: 200px;" title="{{ daily_total.assignment.sub_task }}">
-                                                {{ daily_total.assignment.sub_task }}
+                                            <div class="col-md-3">
+                                                <div class="text-muted small mb-1">Sub-task:</div>
+                                                <div class="text-truncate" style="max-width: 250px;" 
+                                                     title="{{ daily_total.assignment.sub_task }}">
+                                                    {{ daily_total.assignment.sub_task }}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-3 text-end">
-                                            <div class="time-display">{{ daily_total.get_formatted_total }}</div>
-                                            {% if daily_total.is_manually_edited %}
-                                                <span class="badge bg-info ms-2">Edited</span>
-                                            {% endif %}
+                                            <div class="col-md-3 text-md-end text-start">
+                                                <div class="time-display">{{ daily_total.get_formatted_total }}</div>
+                                                {% if daily_total.is_manually_edited %}
+                                                    <span class="badge bg-info ms-2">
+                                                        <i class="bi bi-pencil"></i> Edited
+                                                    </span>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            {% endfor %}
+                                {% endfor %}
+                            </div>
                         </div>
                     {% endfor %}
                 {% else %}
                     <!-- Single Day View -->
                     {% for daily_total in daily_totals %}
-                        <div class="assignment-row roster-card">
+                        <div class="assignment-row">
                             <div class="row align-items-center">
                                 <div class="col-md-5">
-                                    <div class="fw-bold">
-                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
-                                           class="text-decoration-none">
+                                    <div class="fw-bold mb-1">
+                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
                                             {{ daily_total.assignment.assignment_id }}
                                         </a>
                                     </div>
-                                    <div class="text-muted small">
-                                        {{ daily_total.assignment.task.project.project_name }}
-                                    </div>
-                                    <div class="text-muted small">
-                                        Task: {{ daily_total.assignment.task.product_task.name }}
+                                    <div class="text-muted">
+                                        <small>
+                                            <i class="bi bi-folder2"></i> {{ daily_total.assignment.task.project.project_name }}
+                                        </small>
+                                        <br>
+                                        <small>
+                                            <i class="bi bi-card-list"></i> {{ daily_total.assignment.task.product_task.name }}
+                                        </small>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="text-muted small">Sub-task:</div>
+                                    <div class="text-muted small mb-1">Sub-task:</div>
                                     <div class="text-truncate" title="{{ daily_total.assignment.sub_task }}">
                                         {{ daily_total.assignment.sub_task }}
                                     </div>
                                 </div>
-                                <div class="col-md-3 text-end">
-                                    <div class="time-display">{{ daily_total.get_formatted_total }}</div>
-                                    <div class="mt-1">
+                                <div class="col-md-3 text-md-end text-start">
+                                    <div class="time-display mb-2">{{ daily_total.get_formatted_total }}</div>
+                                    <div>
                                         {% if daily_total.is_manually_edited %}
-                                            <span class="badge bg-info">Manually Edited</span>
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-pencil"></i> Manually Edited
+                                            </span>
                                         {% else %}
-                                            <span class="badge bg-success">Auto-calculated</span>
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-calculator"></i> Auto-calculated
+                                            </span>
                                         {% endif %}
                                     </div>
                                     <div class="mt-2">
@@ -195,13 +566,11 @@
                     {% endfor %}
                 {% endif %}
             {% else %}
-                <!-- No Data State -->
-                <div class="text-center py-5">
-                    <div class="display-1 text-muted mb-3">
-                        <i class="bi bi-clock"></i>
-                    </div>
-                    <h5 class="text-muted">No Time Entries</h5>
-                    <p class="text-muted mb-4">
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <i class="bi bi-clock empty-state-icon"></i>
+                    <h5>No Time Entries</h5>
+                    <p>
                         No time has been logged for the selected 
                         {% if show_week %}week{% else %}date{% endif %}.
                     </p>
@@ -217,16 +586,20 @@
     {% if daily_totals %}
     <div class="row mt-4">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Summary</h5>
-                    <div class="row">
-                        <div class="col">
-                            <div class="h4 text-primary">{{ daily_totals|length }}</div>
+            <div class="summary-card">
+                <h5 class="text-center">
+                    <i class="bi bi-graph-up text-primary"></i> Summary
+                </h5>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="summary-stat">
+                            <h4 class="text-primary">{{ daily_totals|length }}</h4>
                             <div class="text-muted">Assignment{{ daily_totals|length|pluralize }}</div>
                         </div>
-                        <div class="col">
-                            <div class="h4 text-success">{{ total_formatted }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="summary-stat">
+                            <h4 class="text-success">{{ total_formatted }}</h4>
                             <div class="text-muted">Total Time</div>
                         </div>
                     </div>
@@ -234,17 +607,17 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Quick Actions</h5>
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary">
-                            <i class="bi bi-speedometer2"></i> Go to Dashboard
-                        </a>
-                        <button type="button" class="btn btn-secondary" onclick="window.print()">
-                            <i class="bi bi-printer"></i> Print Roster
-                        </button>
-                    </div>
+            <div class="summary-card">
+                <h5 class="text-center">
+                    <i class="bi bi-lightning-charge text-warning"></i> Quick Actions
+                </h5>
+                <div class="d-grid gap-2 p-3">
+                    <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary">
+                        <i class="bi bi-speedometer2"></i> Go to Dashboard
+                    </a>
+                    <button type="button" class="btn btn-secondary" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Roster
+                    </button>
                 </div>
             </div>
         </div>
@@ -255,33 +628,119 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-submit form when week view checkbox changes
-    var weekViewCheckbox = document.querySelector('input[name="week_view"]');
-    if (weekViewCheckbox) {
-        weekViewCheckbox.addEventListener('change', function() {
-            this.form.submit();
-        });
-    }
+(function() {
+    'use strict';
     
-    // Auto-submit form when date changes
-    var dateInput = document.querySelector('input[name="date"]');
-    if (dateInput) {
-        dateInput.addEventListener('change', function() {
-            this.form.submit();
-        });
-    }
-    
-    // Print styles
-    var style = document.createElement('style');
-    style.innerHTML = `
-        @media print {
-            .btn, .card-header, .navbar { display: none !important; }
-            .card { border: none !important; box-shadow: none !important; }
-            .assignment-row { break-inside: avoid; }
+    // Form Handler
+    const FormHandler = {
+        init() {
+            this.attachEventListeners();
+            this.initializeTooltips();
+        },
+        
+        attachEventListeners() {
+            // Auto-submit form when week view checkbox changes
+            const weekViewCheckbox = document.querySelector('input[name="week_view"]');
+            if (weekViewCheckbox) {
+                weekViewCheckbox.addEventListener('change', function() {
+                    // Add loading state to submit button
+                    const submitBtn = this.form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('btn-loading');
+                    }
+                    this.form.submit();
+                });
+            }
+            
+            // Auto-submit form when date changes
+            const dateInput = document.querySelector('input[name="date"]');
+            if (dateInput) {
+                dateInput.addEventListener('change', function() {
+                    // Add loading state to submit button
+                    const submitBtn = this.form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('btn-loading');
+                    }
+                    this.form.submit();
+                });
+            }
+            
+            // Form submission handler
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(e) {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('btn-loading');
+                    }
+                });
+            }
+        },
+        
+        initializeTooltips() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         }
-    `;
-    document.head.appendChild(style);
-});
+    };
+    
+    // Print Handler
+    const PrintHandler = {
+        init() {
+            // Add print-specific styles dynamically
+            window.addEventListener('beforeprint', () => {
+                document.body.classList.add('printing');
+            });
+            
+            window.addEventListener('afterprint', () => {
+                document.body.classList.remove('printing');
+            });
+        }
+    };
+    
+    // Animation Handler
+    const AnimationHandler = {
+        init() {
+            this.observeElements();
+        },
+        
+        observeElements() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateX(0)';
+                        }, index * 50);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.assignment-row').forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                row.style.transition = 'all 0.3s ease';
+                observer.observe(row);
+            });
+        }
+    };
+    
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        FormHandler.init();
+        PrintHandler.init();
+        AnimationHandler.init();
+    });
+})();
 </script>
 {% endblock %}

@@ -221,7 +221,7 @@ def project_list(request):
         'projects': projects,
         'filter_form': filter_form,
         'filters_applied': filters_applied,
-        'filter_options': filter_options,
+        'filter_options': filter_options,  # Make sure this is included
         'title': 'Project List'
     }
     

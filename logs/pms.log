@@ -3947,3 +3947,133 @@ WARNING 2025-05-31 21:59:20,391 basehttp "GET /.well-known/appspecific/com.chrom
 INFO 2025-05-31 21:59:31,007 basehttp "GET /projects/roster/2025/5/ HTTP/1.1" 200 63957
 WARNING 2025-05-31 21:59:31,037 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
 WARNING 2025-05-31 21:59:31,037 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2776
+INFO 2025-05-31 23:53:35,753 basehttp "GET /projects/4829002e-f245-45a2-9033-e73c9578063e/manage/ HTTP/1.1" 200 30384
+INFO 2025-05-31 23:53:38,572 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 19901
+INFO 2025-05-31 23:53:51,238 basehttp "GET /projects/roster/2025/5/ HTTP/1.1" 200 63957
+INFO 2025-05-31 23:59:05,536 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-05-31 23:59:10,591 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 16596
+INFO 2025-05-31 23:59:58,487 basehttp "GET /projects/daily-roster/?date=&week_view=on HTTP/1.1" 200 16613
+INFO 2025-06-01 00:00:05,355 basehttp "GET /projects/daily-roster/?date= HTTP/1.1" 200 8742
+INFO 2025-06-01 00:00:07,110 basehttp "GET /projects/daily-roster/?date=&week_view=on HTTP/1.1" 200 8750
+INFO 2025-06-01 00:00:10,170 basehttp "GET /projects/daily-roster/?date= HTTP/1.1" 200 8742
+INFO 2025-06-01 00:00:12,869 basehttp "GET /projects/daily-roster/?date=&week_view=on HTTP/1.1" 200 8750
+INFO 2025-06-01 00:00:18,476 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 00:00:23,487 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 8733
+INFO 2025-06-01 00:00:27,514 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 00:01:10,917 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 8733
+INFO 2025-06-01 00:01:23,028 basehttp "GET /projects/daily-roster/?date=2025-05-26 HTTP/1.1" 200 14181
+INFO 2025-06-01 00:01:27,367 basehttp "GET /projects/daily-roster/?date=2025-05-26&week_view=on HTTP/1.1" 200 38759
+INFO 2025-06-01 00:03:20,086 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 05:46:23,824 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 8733
+INFO 2025-06-01 05:46:28,910 basehttp "GET /projects/daily-roster/?date=2025-06-27 HTTP/1.1" 200 8718
+INFO 2025-06-01 05:46:34,604 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 18746
+INFO 2025-06-01 05:46:40,830 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 38759
+INFO 2025-06-01 05:49:09,798 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 38759
+INFO 2025-06-01 05:49:13,127 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 38759
+INFO 2025-06-01 05:49:23,785 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 05:49:28,415 basehttp "GET /projects/roster/ HTTP/1.1" 200 61388
+INFO 2025-06-01 05:49:30,776 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 05:49:31,730 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 8733
+INFO 2025-06-01 05:50:45,644 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 20624
+INFO 2025-06-01 05:50:53,073 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 31875
+INFO 2025-06-01 05:51:05,405 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 67356
+INFO 2025-06-01 05:51:47,709 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 31875
+INFO 2025-06-01 05:51:51,158 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 05:51:52,831 basehttp "GET /projects/roster/ HTTP/1.1" 200 61388
+INFO 2025-06-01 05:51:54,586 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 05:51:55,590 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 20624
+INFO 2025-06-01 05:52:04,226 basehttp "GET /projects/daily-roster/?date=2025-05-25 HTTP/1.1" 200 20607
+INFO 2025-06-01 05:52:05,668 basehttp "GET /projects/daily-roster/?date=2025-05-25&week_view=on HTTP/1.1" 200 20649
+INFO 2025-06-01 05:52:12,359 basehttp "GET /projects/daily-roster/?date=2025-05-26&week_view=on HTTP/1.1" 200 67356
+INFO 2025-06-01 11:34:26,681 basehttp "GET /projects/daily-roster/?date=2025-05-26&week_view=on HTTP/1.1" 200 67356
+INFO 2025-06-01 11:34:31,005 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 83996
+INFO 2025-06-01 11:45:22,812 basehttp "GET /projects/ HTTP/1.1" 200 48013
+INFO 2025-06-01 11:46:51,476 basehttp "GET /projects/ HTTP/1.1" 200 48013
+INFO 2025-06-01 11:46:54,096 basehttp "GET /projects/ HTTP/1.1" 200 48013
+ERROR 2025-06-01 11:47:15,107 log Internal Server Error: /projects/
+Traceback (most recent call last):
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\deegh\OneDrive\Documents\pm_system\projects\views.py", line 228, in project_list
+    return render(request, 'projects/project_list.html', context)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 609, in compile_filter
+    return FilterExpression(token, self)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 705, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "C:\Users\deegh\AppData\Roaming\Python\Python310\site-packages\django\template\base.py", line 615, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'selectattr'
+ERROR 2025-06-01 11:47:15,119 basehttp "GET /projects/ HTTP/1.1" 500 359090
+INFO 2025-06-01 11:51:18,515 basehttp "GET /projects/ HTTP/1.1" 200 42299
+INFO 2025-06-01 11:51:47,206 basehttp "GET /projects/api/cities/?region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195 HTTP/1.1" 200 197
+INFO 2025-06-01 11:54:12,572 basehttp "GET /projects/ HTTP/1.1" 200 48013
+INFO 2025-06-01 11:54:30,189 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 11:54:32,291 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 19901
+INFO 2025-06-01 11:56:34,671 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 11:56:43,531 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 19901
+INFO 2025-06-01 11:56:45,319 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/manage/ HTTP/1.1" 200 27953
+INFO 2025-06-01 11:56:48,813 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/tasks/431e9ab9-f56f-4564-a47a-2d2a1dc7851a/ HTTP/1.1" 200 61402
+INFO 2025-06-01 11:56:56,317 basehttp "GET /projects/ HTTP/1.1" 200 48013
+INFO 2025-06-01 17:23:17,465 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\views.py changed, reloading.
+INFO 2025-06-01 17:23:24,995 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 17:23:54,883 basehttp "GET /projects/ HTTP/1.1" 200 48013
+INFO 2025-06-01 17:24:40,671 basehttp "GET /projects/ HTTP/1.1" 200 43101
+INFO 2025-06-01 17:24:58,534 basehttp "GET /projects/api/cities/?region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195 HTTP/1.1" 200 197
+INFO 2025-06-01 17:25:08,445 basehttp "GET /projects/api/cities/?region=7aefc82e-4705-40e6-9499-797571f80f5e HTTP/1.1" 200 69
+INFO 2025-06-01 17:25:49,137 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31006
+INFO 2025-06-01 17:25:51,727 basehttp "GET /projects/ HTTP/1.1" 200 43101
+INFO 2025-06-01 17:25:57,654 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 8259
+INFO 2025-06-01 17:26:09,067 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31006
+INFO 2025-06-01 17:26:16,531 basehttp "GET /projects/ HTTP/1.1" 200 43101
