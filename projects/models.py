@@ -1077,3 +1077,217 @@ class Holiday(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.date} ({self.location})"
+
+
+
+# projects/models.py (additions)
+
+class ReportingPeriod(models.TextChoices):
+    DAILY = 'DAILY', 'Daily'
+    WEEKLY = 'WEEKLY', 'Weekly'
+    MONTHLY = 'MONTHLY', 'Monthly'
+    QUARTERLY = 'QUARTERLY', 'Quarterly'
+    YEARLY = 'YEARLY', 'Yearly'
+
+class TeamMemberMetrics(models.Model):
+    """
+    Stores calculated metrics for team members for efficient reporting.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    team_member = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='metrics'
+    )
+    date = models.DateField(help_text="The date these metrics represent")
+    
+    # Productivity Metrics (for completed assignments)
+    total_projected_minutes = models.PositiveIntegerField(default=0)
+    total_worked_minutes = models.PositiveIntegerField(default=0)
+    productivity_score = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True,
+        help_text="Projected/Worked ratio as percentage"
+    )
+    
+    # Utilization Metrics
+    available_minutes = models.PositiveIntegerField(
+        default=480,  # 8 hours default
+        help_text="Total available minutes for the day"
+    )
+    utilization_score = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True,
+        help_text="Worked/Available ratio as percentage"
+    )
+    
+    # Quality Metrics (from assignments)
+    assignments_completed = models.PositiveIntegerField(default=0)
+    total_quality_points = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0
+    )
+    average_quality_rating = models.DecimalField(
+        max_digits=3, decimal_places=2, null=True
+    )
+    
+    # Delivery Performance Metrics (as project incharge)
+    projects_delivered = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of projects delivered on this date where user was incharge"
+    )
+    total_delivery_rating_points = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0,
+        help_text="Sum of delivery performance ratings"
+    )
+    average_delivery_rating = models.DecimalField(
+        max_digits=3, decimal_places=2, null=True,
+        help_text="Average delivery performance rating as project incharge"
+    )
+    
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['team_member', 'date']
+        indexes = [
+            models.Index(fields=['team_member', 'date']),
+            models.Index(fields=['date']),
+        ]
+    
+class ProjectMetrics(models.Model):
+    """
+    Stores calculated metrics at project level.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        related_name='metrics'
+    )
+    date = models.DateField()
+    
+    # Team Performance
+    project_incharge = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='incharge_metrics'
+    )
+    delivery_performance_rating = models.DecimalField(
+        max_digits=2, decimal_places=1, null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    
+    # Status
+    status_name = models.CharField(max_length=100)
+    is_final_delivery = models.BooleanField(default=False)
+    
+    # Progress Metrics
+    tasks_total = models.PositiveIntegerField(default=0)
+    tasks_completed = models.PositiveIntegerField(default=0)
+    completion_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0
+    )
+    
+    calculated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['project', 'date']
+        indexes = [
+            models.Index(fields=['project', 'date']),
+            models.Index(fields=['date', 'is_final_delivery']),
+        ]
+
+class AggregatedMetrics(models.Model):
+    """
+    Pre-calculated aggregated metrics for different periods and scopes.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Scope
+    metric_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('TEAM_MEMBER', 'Team Member'),
+            ('TEAM', 'Team'),
+            ('PROJECT', 'Project'),
+            ('ORGANIZATION', 'Organization'),
+        ]
+    )
+    entity_id = models.UUIDField(
+        null=True,
+        help_text="ID of team_member, project, etc. Null for organization-wide"
+    )
+    
+    # Period
+    period_type = models.CharField(
+        max_length=20,
+        choices=ReportingPeriod.choices
+    )
+    period_start = models.DateField()
+    period_end = models.DateField()
+    
+    # Aggregated Data (JSON for flexibility)
+    metrics_data = models.JSONField(
+        default=dict,
+        help_text="Stores all calculated metrics as JSON"
+    )
+    
+    calculated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['metric_type', 'entity_id', 'period_type', 'period_start']
+        indexes = [
+            models.Index(fields=['metric_type', 'entity_id', 'period_start']),
+            models.Index(fields=['period_type', 'period_start']),
+        ]
+
+
+class ProjectDelivery(models.Model):
+    """
+    Tracks when projects reach final delivery status.
+    This is important for historical reporting of delivery performance.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        related_name='deliveries'
+    )
+    project_incharge = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.PROTECT,
+        related_name='project_deliveries',
+        help_text="The project incharge at time of delivery"
+    )
+    delivery_date = models.DateField(
+        help_text="Date when project reached final delivery status"
+    )
+    delivery_performance_rating = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Performance rating given to project incharge"
+    )
+    
+    # Snapshot data for historical accuracy
+    project_name = models.CharField(max_length=255)
+    hs_id = models.CharField(max_length=10)
+    expected_completion_date = models.DateField(null=True, blank=True)
+    actual_completion_date = models.DateField()
+    days_variance = models.IntegerField(
+        help_text="Negative means delivered early, positive means late"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['project', 'delivery_date']
+        indexes = [
+            models.Index(fields=['project_incharge', 'delivery_date']),
+            models.Index(fields=['delivery_date']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        # Calculate days variance
+        if self.expected_completion_date and self.actual_completion_date:
+            self.days_variance = (self.actual_completion_date - self.expected_completion_date).days
+        super().save(*args, **kwargs)

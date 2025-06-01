@@ -1794,3 +1794,245 @@ class ProjectService:
         except Exception as e:
             logger.exception(f"Error calculating days remaining: {str(e)}")
             return "Unknown"
+
+
+    @staticmethod
+    def calculate_team_member_metrics(team_member, date):
+        """
+        Calculate and store daily metrics for a team member.
+        Includes productivity, utilization, quality, AND delivery performance.
+        """
+        # Get or create metrics record
+        metrics, created = TeamMemberMetrics.objects.get_or_create(
+            team_member=team_member,
+            date=date
+        )
+        
+        # 1. Calculate Productivity & Quality (completed assignments)
+        completed_assignments = TaskAssignment.objects.filter(
+            assigned_to=team_member,
+            is_completed=True,
+            completion_date__date=date
+        )
+        
+        total_projected = 0
+        total_worked = 0
+        quality_sum = 0
+        quality_count = 0
+        
+        for assignment in completed_assignments:
+            total_projected += assignment.projected_hours or 0
+            
+            # Get actual worked hours
+            worked_minutes = DailyTimeTotal.objects.filter(
+                assignment=assignment,
+                team_member=team_member
+            ).aggregate(total=Sum('total_minutes'))['total'] or 0
+            
+            total_worked += worked_minutes
+            
+            # Quality metrics
+            if assignment.quality_rating:
+                quality_sum += assignment.quality_rating
+                quality_count += 1
+        
+        # 2. Calculate Utilization
+        daily_roster = DailyRoster.objects.filter(
+            team_member=team_member,
+            date=date
+        ).first()
+        
+        if daily_roster and daily_roster.status == 'PRESENT':
+            available_minutes = 480  # 8 hours
+            worked_today = DailyTimeTotal.objects.filter(
+                team_member=team_member,
+                date_worked=date
+            ).aggregate(total=Sum('total_minutes'))['total'] or 0
+            
+            # Add misc hours
+            worked_today += daily_roster.misc_hours
+            
+            metrics.available_minutes = available_minutes
+            metrics.utilization_score = (worked_today / available_minutes * 100) if available_minutes > 0 else 0
+        
+        # 3. Calculate Delivery Performance (as project incharge)
+        delivered_projects = ProjectDelivery.objects.filter(
+            project_incharge=team_member,
+            delivery_date=date
+        )
+        
+        delivery_sum = 0
+        delivery_count = delivered_projects.count()
+        
+        for delivery in delivered_projects:
+            if delivery.delivery_performance_rating:
+                delivery_sum += delivery.delivery_performance_rating
+        
+        # Update all metrics
+        metrics.total_projected_minutes = total_projected
+        metrics.total_worked_minutes = total_worked
+        metrics.productivity_score = (total_projected / total_worked * 100) if total_worked > 0 else None
+        
+        metrics.assignments_completed = completed_assignments.count()
+        metrics.total_quality_points = quality_sum
+        metrics.average_quality_rating = (quality_sum / quality_count) if quality_count > 0 else None
+        
+        metrics.projects_delivered = delivery_count
+        metrics.total_delivery_rating_points = delivery_sum
+        metrics.average_delivery_rating = (delivery_sum / delivery_count) if delivery_count > 0 else None
+        
+        metrics.save()
+        return metrics
+    
+    @staticmethod
+    def track_project_delivery(project, delivery_date=None):
+        """
+        Track when a project reaches final delivery status.
+        This should be called when project status changes to "Final Delivery".
+        """
+        if not delivery_date:
+            delivery_date = date.today()
+        
+        # Check if already tracked
+        existing = ProjectDelivery.objects.filter(
+            project=project,
+            delivery_date=delivery_date
+        ).first()
+        
+        if existing:
+            return existing
+        
+        # Create delivery record
+        if not project.project_incharge:
+            logger.warning(f"Project {project.hs_id} reached final delivery without project incharge")
+            return None
+        
+        if not project.delivery_performance_rating:
+            logger.warning(f"Project {project.hs_id} reached final delivery without performance rating")
+            # Don't return None - still track the delivery
+        
+        delivery = ProjectDelivery.objects.create(
+            project=project,
+            project_incharge=project.project_incharge,
+            delivery_date=delivery_date,
+            delivery_performance_rating=project.delivery_performance_rating or 0,
+            project_name=project.project_name,
+            hs_id=project.hs_id,
+            expected_completion_date=project.expected_completion_date,
+            actual_completion_date=delivery_date
+        )
+        
+        # Recalculate metrics for the project incharge on this date
+        ReportingService.calculate_team_member_metrics(
+            project.project_incharge,
+            delivery_date
+        )
+        
+        logger.info(f"Tracked delivery for project {project.hs_id} with rating {delivery.delivery_performance_rating}")
+        return delivery
+    
+    @staticmethod
+    def get_team_member_report(team_member, start_date, end_date):
+        """
+        Get comprehensive report including delivery performance.
+        """
+        # Get daily metrics
+        daily_metrics = TeamMemberMetrics.objects.filter(
+            team_member=team_member,
+            date__range=[start_date, end_date]
+        ).order_by('date')
+        
+        # Calculate aggregates
+        aggregates = daily_metrics.aggregate(
+            avg_productivity=Avg('productivity_score'),
+            avg_utilization=Avg('utilization_score'),
+            avg_quality=Avg('average_quality_rating'),
+            avg_delivery=Avg('average_delivery_rating'),
+            total_assignments=Sum('assignments_completed'),
+            total_projects_delivered=Sum('projects_delivered'),
+            total_projected=Sum('total_projected_minutes'),
+            total_worked=Sum('total_worked_minutes')
+        )
+        
+        # Get detailed delivery history
+        delivery_history = ProjectDelivery.objects.filter(
+            project_incharge=team_member,
+            delivery_date__range=[start_date, end_date]
+        ).order_by('-delivery_date')
+        
+        # Calculate on-time delivery rate
+        on_time_count = delivery_history.filter(days_variance__lte=0).count()
+        total_deliveries = delivery_history.count()
+        on_time_rate = (on_time_count / total_deliveries * 100) if total_deliveries > 0 else None
+        
+        return {
+            'period': f"{start_date} to {end_date}",
+            'daily_metrics': daily_metrics,
+            'delivery_history': delivery_history,
+            'summary': {
+                'average_productivity': aggregates['avg_productivity'],
+                'average_utilization': aggregates['avg_utilization'],
+                'average_quality_rating': aggregates['avg_quality'],
+                'average_delivery_rating': aggregates['avg_delivery'],
+                'total_assignments_completed': aggregates['total_assignments'],
+                'total_projects_delivered': aggregates['total_projects_delivered'],
+                'on_time_delivery_rate': on_time_rate,
+                'total_hours_projected': (aggregates['total_projected'] or 0) / 60,
+                'total_hours_worked': (aggregates['total_worked'] or 0) / 60,
+            },
+            'charts_data': ReportingService._prepare_chart_data(daily_metrics)
+        }
+
+    @staticmethod
+    def calculate_project_metrics(project, date):
+        """
+        Calculate and store daily metrics for a project.
+        Handles delivery performance rating when status changes to Final Delivery.
+        """
+        metrics, created = ProjectMetrics.objects.get_or_create(
+            project=project,
+            date=date
+        )
+        
+        # Update basic info
+        metrics.project_incharge = project.project_incharge
+        metrics.delivery_performance_rating = project.delivery_performance_rating
+        metrics.status_name = project.current_status.name
+        
+        # Check if this is Final Delivery
+        if 'final' in project.current_status.name.lower() and 'delivery' in project.current_status.name.lower():
+            metrics.is_final_delivery = True
+        
+        # Calculate completion
+        total_tasks = project.tasks.count()
+        completed_tasks = project.tasks.filter(
+            assignments__is_completed=True
+        ).distinct().count()
+        
+        metrics.tasks_total = total_tasks
+        metrics.tasks_completed = completed_tasks
+        metrics.completion_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        
+        metrics.save()
+        return metrics
+    
+    @staticmethod
+    def get_organization_dashboard(start_date, end_date):
+        """
+        Get organization-wide dashboard metrics.
+        """
+        # This would aggregate across all team members and projects
+        # Implementation details...
+        pass
+    
+    @staticmethod
+    def _prepare_chart_data(daily_metrics):
+        """
+        Prepare data for chart visualization.
+        """
+        return {
+            'dates': [m.date.strftime('%Y-%m-%d') for m in daily_metrics],
+            'productivity': [float(m.productivity_score or 0) for m in daily_metrics],
+            'utilization': [float(m.utilization_score or 0) for m in daily_metrics],
+            'quality': [float(m.average_quality_rating or 0) for m in daily_metrics],
+        }

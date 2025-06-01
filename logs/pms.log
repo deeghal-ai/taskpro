@@ -4077,3 +4077,112 @@ INFO 2025-06-01 17:25:51,727 basehttp "GET /projects/ HTTP/1.1" 200 43101
 INFO 2025-06-01 17:25:57,654 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 8259
 INFO 2025-06-01 17:26:09,067 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31006
 INFO 2025-06-01 17:26:16,531 basehttp "GET /projects/ HTTP/1.1" 200 43101
+INFO 2025-06-01 17:29:31,621 basehttp "GET /projects/ HTTP/1.1" 200 43038
+INFO 2025-06-01 17:29:35,395 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 17:29:42,320 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31006
+INFO 2025-06-01 17:29:45,393 basehttp "GET /projects/ HTTP/1.1" 200 43038
+INFO 2025-06-01 17:29:52,317 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 30043
+INFO 2025-06-01 17:29:59,605 basehttp "GET /projects/ HTTP/1.1" 200 43038
+INFO 2025-06-01 17:30:10,998 basehttp "GET /projects/api/cities/?region=7aefc82e-4705-40e6-9499-797571f80f5e HTTP/1.1" 200 69
+INFO 2025-06-01 17:30:12,159 basehttp "GET /projects/?search=&status=&product=&region=7aefc82e-4705-40e6-9499-797571f80f5e&city=&dpm= HTTP/1.1" 200 30211
+INFO 2025-06-01 17:30:35,850 basehttp "GET /projects/api/cities/?region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195 HTTP/1.1" 200 197
+INFO 2025-06-01 17:30:36,702 basehttp "GET /projects/?search=&status=&product=&region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195&city=&dpm= HTTP/1.1" 200 33646
+INFO 2025-06-01 17:30:47,886 basehttp "GET /projects/?search=&status=&product=86c5519d-e6b8-4fed-ab6b-bdfa5e911168&region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195&city=&dpm= HTTP/1.1" 200 32332
+INFO 2025-06-01 18:52:30,228 basehttp "GET /projects/?search=&status=&product=86c5519d-e6b8-4fed-ab6b-bdfa5e911168&region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195&city=&dpm= HTTP/1.1" 200 32325
+INFO 2025-06-01 18:52:59,075 basehttp "GET /projects/?search=&status=&product=86c5519d-e6b8-4fed-ab6b-bdfa5e911168&region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195&city=&dpm= HTTP/1.1" 200 32325
+INFO 2025-06-01 18:54:02,245 basehttp "GET /projects/?search=&status=&product=86c5519d-e6b8-4fed-ab6b-bdfa5e911168&region=3df890e6-c0ba-4c5f-8ce3-81cc8df6d195&city=&dpm= HTTP/1.1" 200 32332
+INFO 2025-06-01 18:54:08,116 basehttp "GET /projects/ HTTP/1.1" 200 43038
+INFO 2025-06-01 18:54:59,146 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 19901
+INFO 2025-06-01 18:55:02,708 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 30043
+WARNING 2025-06-01 18:55:10,338 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-06-01 18:55:10,339 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2776
+INFO 2025-06-01 18:56:36,042 basehttp "GET /projects/ HTTP/1.1" 200 43070
+WARNING 2025-06-01 18:56:36,206 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-06-01 18:56:36,208 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2776
+INFO 2025-06-01 18:56:47,774 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 18:56:53,730 basehttp "GET /projects/ HTTP/1.1" 200 43070
+INFO 2025-06-01 18:57:07,745 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 18:57:17,531 basehttp "GET /projects/ HTTP/1.1" 200 43070
+INFO 2025-06-01 18:57:58,017 basehttp "GET /projects/ HTTP/1.1" 200 43069
+INFO 2025-06-01 18:58:42,090 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 18:58:56,375 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 18:59:01,380 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 18:59:12,495 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+WARNING 2025-06-01 18:59:18,472 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-06-01 18:59:18,474 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 2776
+INFO 2025-06-01 18:59:52,116 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26269
+INFO 2025-06-01 18:59:54,518 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 19:00:19,020 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-01 19:00:19,162 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 19:00:20,602 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 19:24:43,307 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/manage/ HTTP/1.1" 200 27953
+INFO 2025-06-01 20:14:46,215 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-01 20:14:46,701 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 20:15:07,907 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 19901
+INFO 2025-06-01 20:15:20,548 basehttp "GET /projects/ HTTP/1.1" 200 43085
+INFO 2025-06-01 20:15:36,642 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31006
+INFO 2025-06-01 20:15:44,041 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1422
+INFO 2025-06-01 20:15:48,882 services Updated status for project 798aed07-36ce-4a6a-83d0-ee26da9b73d1 to Sales Confirmation by sunny
+INFO 2025-06-01 20:15:48,914 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 104
+INFO 2025-06-01 20:15:50,623 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31842
+INFO 2025-06-01 20:15:59,332 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26271
+INFO 2025-06-01 20:16:05,417 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 31842
+INFO 2025-06-01 20:16:08,181 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 26271
+INFO 2025-06-01 20:16:20,134 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 19903
+INFO 2025-06-01 20:16:21,998 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 30043
+INFO 2025-06-01 20:16:32,767 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/99f3eaa2-6380-46cb-9239-da3b296a9f29/ HTTP/1.1" 200 45493
+INFO 2025-06-01 20:16:59,294 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/99f3eaa2-6380-46cb-9239-da3b296a9f29/rate-assignment/496e3027-f06d-4884-824c-1a41d763d541/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:16:59,481 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/99f3eaa2-6380-46cb-9239-da3b296a9f29/ HTTP/1.1" 200 46344
+INFO 2025-06-01 20:17:10,291 services Updated task assignment ASID_000036 by sunny
+INFO 2025-06-01 20:17:10,298 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/99f3eaa2-6380-46cb-9239-da3b296a9f29/update-assignment/05dab680-ad50-4939-a928-48f6c88ee00c/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:17:10,491 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/99f3eaa2-6380-46cb-9239-da3b296a9f29/ HTTP/1.1" 200 46317
+INFO 2025-06-01 20:17:38,364 services Timer started for praveen on ASID_000043
+INFO 2025-06-01 20:17:38,370 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:17:39,405 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 87491
+INFO 2025-06-01 20:17:48,341 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-01 20:17:48,350 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:17:48,746 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 84435
+INFO 2025-06-01 20:18:21,490 services Manual time added for praveen on ASID_000043: 60 minutes
+INFO 2025-06-01 20:18:21,498 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:18:21,812 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 84426
+INFO 2025-06-01 20:18:27,075 basehttp "GET /projects/assignments/d75ec496-f2f9-4fca-9996-22a296b0d75c/timesheet/ HTTP/1.1" 200 21906
+INFO 2025-06-01 20:19:07,017 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 84130
+INFO 2025-06-01 20:19:09,743 basehttp "GET /projects/assignments/9aa43e35-94bd-46cd-83be-32a417c49575/timesheet/ HTTP/1.1" 200 17709
+INFO 2025-06-01 20:19:24,763 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 84130
+INFO 2025-06-01 20:19:39,950 services Assignment ASID_000043 completed by praveen
+INFO 2025-06-01 20:19:39,956 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:19:40,280 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80767
+INFO 2025-06-01 20:19:56,270 basehttp "GET /projects/ HTTP/1.1" 200 43087
+INFO 2025-06-01 20:20:02,802 basehttp "GET /projects/4829002e-f245-45a2-9033-e73c9578063e/manage/ HTTP/1.1" 200 30384
+INFO 2025-06-01 20:20:31,509 basehttp "GET /projects/assignments/d75ec496-f2f9-4fca-9996-22a296b0d75c/timesheet/ HTTP/1.1" 200 16416
+INFO 2025-06-01 20:20:44,862 basehttp "GET /projects/4829002e-f245-45a2-9033-e73c9578063e/tasks/d37d48d2-290c-49f2-be17-cc87da895730/ HTTP/1.1" 200 30363
+INFO 2025-06-01 20:20:55,981 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80457
+INFO 2025-06-01 20:20:59,267 basehttp "GET /projects/roster/ HTTP/1.1" 200 61641
+INFO 2025-06-01 20:21:05,818 basehttp "GET /projects/roster/2025/5/ HTTP/1.1" 200 63957
+INFO 2025-06-01 20:21:35,504 services Updated roster for praveen on 2025-05-24: LEAVE
+INFO 2025-06-01 20:21:35,510 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:21:36,081 basehttp "GET /projects/roster/2025/5/ HTTP/1.1" 200 64251
+INFO 2025-06-01 20:21:47,157 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80457
+INFO 2025-06-01 20:21:48,565 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 24333
+INFO 2025-06-01 20:21:56,763 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 31875
+INFO 2025-06-01 20:22:09,078 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 70042
+INFO 2025-06-01 20:22:15,319 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80457
+INFO 2025-06-01 20:22:25,097 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 18957
+INFO 2025-06-01 20:22:38,582 services Session duration edited for praveen: e89dcb72-4c7f-4758-b379-dfcef85f2c3f
+INFO 2025-06-01 20:22:38,584 basehttp "POST /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 302 0
+INFO 2025-06-01 20:22:38,650 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 19512
+INFO 2025-06-01 20:23:03,082 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80457
+INFO 2025-06-01 21:48:15,803 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\models.py changed, reloading.
+INFO 2025-06-01 21:48:17,134 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 21:52:56,413 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\models.py changed, reloading.
+INFO 2025-06-01 21:52:56,986 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 21:53:38,338 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\models.py changed, reloading.
+INFO 2025-06-01 21:53:39,244 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 21:55:13,639 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\services.py changed, reloading.
+INFO 2025-06-01 21:55:14,270 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 21:56:50,579 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\views.py changed, reloading.
+INFO 2025-06-01 21:56:51,355 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 21:57:27,935 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\views.py changed, reloading.
+INFO 2025-06-01 21:57:28,517 autoreload Watching for file changes with StatReloader
+INFO 2025-06-01 22:02:28,364 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\services.py changed, reloading.
+INFO 2025-06-01 22:02:29,087 autoreload Watching for file changes with StatReloader
