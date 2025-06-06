@@ -4186,3 +4186,602 @@ INFO 2025-06-01 21:57:27,935 autoreload C:\Users\deegh\OneDrive\Documents\pm_sys
 INFO 2025-06-01 21:57:28,517 autoreload Watching for file changes with StatReloader
 INFO 2025-06-01 22:02:28,364 autoreload C:\Users\deegh\OneDrive\Documents\pm_system\projects\services.py changed, reloading.
 INFO 2025-06-01 22:02:29,087 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 05:47:03,682 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 05:47:13,668 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-02 05:47:13,739 basehttp "GET /accounts/login/ HTTP/1.1" 200 2877
+WARNING 2025-06-02 05:47:17,357 log Not Found: /favicon.ico
+WARNING 2025-06-02 05:47:17,358 basehttp "GET /favicon.ico HTTP/1.1" 404 2438
+INFO 2025-06-02 05:47:21,974 basehttp "POST /accounts/login/ HTTP/1.1" 302 0
+INFO 2025-06-02 05:47:22,003 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-02 05:47:22,195 basehttp "GET /projects/ HTTP/1.1" 200 43087
+INFO 2025-06-02 06:11:01,469 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 06:11:06,433 basehttp "GET /projects/ HTTP/1.1" 200 44196
+INFO 2025-06-02 06:11:10,658 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10544
+ERROR 2025-06-02 06:11:33,300 log Internal Server Error: /projects/reports/delivery-performance/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\report_views.py", line 171, in delivery_performance_report
+    return render(request, 'projects/reports/delivery_performance.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: projects/reports/delivery_performance.html
+ERROR 2025-06-02 06:11:33,300 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 500 88897
+INFO 2025-06-02 06:11:50,483 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-02 06:11:50,515 basehttp "GET /accounts/login/ HTTP/1.1" 200 2877
+INFO 2025-06-02 06:12:06,988 basehttp "POST /accounts/login/ HTTP/1.1" 302 0
+INFO 2025-06-02 06:12:07,011 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-02 06:12:07,156 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80744
+ERROR 2025-06-02 06:12:13,981 log Internal Server Error: /projects/reports/my-report/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\report_views.py", line 33, in team_member_report
+    ReportingService.calculate_team_member_metrics(team_member, current_date)
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py", line 1889, in calculate_team_member_metrics
+    metrics.save()
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\base.py", line 822, in save
+    self.save_base(
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\base.py", line 909, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\base.py", line 1040, in _save_table
+    updated = self._do_update(
+              ^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\base.py", line 1105, in _do_update
+    return filtered._update(values) > 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\query.py", line 1278, in _update
+    return query.get_compiler(self.db).execute_sql(CURSOR)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\compiler.py", line 1990, in execute_sql
+    cursor = super().execute_sql(result_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\compiler.py", line 1549, in execute_sql
+    sql, params = self.as_sql()
+                  ^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\compiler.py", line 1953, in as_sql
+    val = field.get_db_prep_save(val, connection=self.connection)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\fields\__init__.py", line 1823, in get_db_prep_save
+    return connection.ops.adapt_decimalfield_value(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\backends\base\operations.py", line 584, in adapt_decimalfield_value
+    return utils.format_number(value, max_digits, decimal_places)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\backends\utils.py", line 324, in format_number
+    value = value.quantize(
+            ^^^^^^^^^^^^^^^
+decimal.InvalidOperation: [<class 'decimal.InvalidOperation'>]
+ERROR 2025-06-02 06:12:14,014 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 500 141817
+INFO 2025-06-02 06:18:21,387 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py changed, reloading.
+INFO 2025-06-02 06:18:23,144 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 06:22:48,531 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\report_views.py changed, reloading.
+INFO 2025-06-02 06:22:50,776 autoreload Watching for file changes with StatReloader
+ERROR 2025-06-02 06:23:13,276 log Internal Server Error: /projects/reports/my-report/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\report_views.py", line 51, in team_member_report
+    return render(request, 'projects/reports/team_member_report.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 861, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 481, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 479, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 597, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 693, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 603, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'abs'
+ERROR 2025-06-02 06:23:13,298 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 500 295556
+INFO 2025-06-02 06:23:40,630 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10545
+INFO 2025-06-02 06:23:43,490 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10545
+ERROR 2025-06-02 06:23:47,046 log Internal Server Error: /projects/reports/delivery-performance/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\report_views.py", line 173, in delivery_performance_report
+    return render(request, 'projects/reports/delivery_performance.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 861, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 861, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 481, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 479, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 597, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 693, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 603, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'abs'
+ERROR 2025-06-02 06:23:47,063 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 500 449593
+INFO 2025-06-02 09:02:53,610 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\templatetags\report_filters.py changed, reloading.
+INFO 2025-06-02 09:02:56,034 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 09:04:25,735 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 09:04:51,503 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10545
+INFO 2025-06-02 09:04:55,019 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 200 7661
+INFO 2025-06-02 09:05:04,269 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80744
+INFO 2025-06-02 09:05:06,190 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 10833
+INFO 2025-06-02 09:05:23,369 basehttp "GET /projects/reports/my-report/?start_date=2025-05-26&end_date=2025-05-29 HTTP/1.1" 200 10200
+INFO 2025-06-02 09:05:36,821 basehttp "GET /projects/reports/my-report/?start_date=2025-05-19&end_date=2025-05-21 HTTP/1.1" 200 10134
+INFO 2025-06-02 09:37:43,605 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-02 09:37:43,722 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80744
+INFO 2025-06-02 09:37:46,545 basehttp "GET /projects/roster/ HTTP/1.1" 200 61928
+INFO 2025-06-02 09:37:50,759 basehttp "GET /projects/roster/2025/5/ HTTP/1.1" 200 64240
+INFO 2025-06-02 09:37:55,963 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 61928
+INFO 2025-06-02 09:38:07,173 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80744
+INFO 2025-06-02 09:38:45,230 basehttp "GET /projects/roster/ HTTP/1.1" 200 61928
+INFO 2025-06-02 09:38:51,423 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 10833
+INFO 2025-06-02 09:39:13,063 basehttp "GET /projects/reports/my-report/?start_date=2025-05-26&end_date=2025-05-31 HTTP/1.1" 200 10254
+INFO 2025-06-02 09:41:27,506 basehttp "GET /projects/ HTTP/1.1" 200 44196
+INFO 2025-06-02 09:41:34,959 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/ HTTP/1.1" 200 28870
+INFO 2025-06-02 09:41:41,623 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/update-status/ HTTP/1.1" 200 1422
+INFO 2025-06-02 09:41:48,132 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/update-status/ HTTP/1.1" 200 1422
+WARNING 2025-06-02 09:41:54,329 services Project A8 reached final delivery without performance rating
+INFO 2025-06-02 09:41:54,351 services Tracked delivery for project A8 with rating 0
+INFO 2025-06-02 09:41:54,351 signals Tracked final delivery for project A8
+INFO 2025-06-02 09:41:54,356 services Updated status for project aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d to Final Delivery by sunny
+INFO 2025-06-02 09:41:54,384 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/update-status/ HTTP/1.1" 200 100
+INFO 2025-06-02 09:41:55,928 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/ HTTP/1.1" 200 29690
+INFO 2025-06-02 09:42:00,787 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 31148
+INFO 2025-06-02 09:42:05,234 services Updated project configuration for aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d by sunny
+INFO 2025-06-02 09:42:05,247 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/update-configuration/ HTTP/1.1" 302 0
+INFO 2025-06-02 09:42:05,282 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 31463
+INFO 2025-06-02 09:42:10,494 basehttp "GET /projects/reports/my-report/?start_date=2025-05-26&end_date=2025-05-31 HTTP/1.1" 200 10254
+INFO 2025-06-02 09:43:47,507 basehttp "GET /projects/reports/my-report/?start_date=2025-05-26&end_date=2025-05-31 HTTP/1.1" 200 10254
+INFO 2025-06-02 09:44:01,270 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-02 09:44:06,989 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/ HTTP/1.1" 200 29690
+INFO 2025-06-02 09:47:10,589 basehttp "GET /projects/reports/my-report/?start_date=2025-05-26&end_date=2025-06-03 HTTP/1.1" 200 11965
+INFO 2025-06-02 10:01:27,582 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 31160
+INFO 2025-06-02 13:48:35,582 basehttp "GET /projects/reports/my-report/?start_date=2025-05-26&end_date=2025-06-03 HTTP/1.1" 200 11965
+INFO 2025-06-02 13:48:49,521 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-03 HTTP/1.1" 200 12540
+INFO 2025-06-02 13:48:51,174 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-03 HTTP/1.1" 200 12540
+INFO 2025-06-02 13:54:37,531 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py changed, reloading.
+INFO 2025-06-02 13:54:39,711 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 13:55:47,700 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py changed, reloading.
+INFO 2025-06-02 13:55:49,042 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 13:56:47,626 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py changed, reloading.
+INFO 2025-06-02 13:56:48,840 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 13:58:22,199 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py changed, reloading.
+INFO 2025-06-02 13:58:23,659 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 13:59:20,868 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-main\projects\services.py changed, reloading.
+INFO 2025-06-02 13:59:21,859 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 14:03:29,402 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 14:03:36,277 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-03 HTTP/1.1" 200 12538
+INFO 2025-06-02 14:03:39,350 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-03 HTTP/1.1" 200 12538
+INFO 2025-06-02 18:46:57,151 autoreload Watching for file changes with StatReloader
+INFO 2025-06-02 18:47:04,207 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-03 HTTP/1.1" 200 12540
+INFO 2025-06-02 18:47:13,916 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-02 HTTP/1.1" 200 12517
+INFO 2025-06-02 18:47:20,074 basehttp "GET /projects/reports/my-report/?start_date=2025-05-01&end_date=2025-06-01 HTTP/1.1" 200 10856
+INFO 2025-06-02 18:47:44,575 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 12471
+INFO 2025-06-02 18:47:53,492 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-02 18:47:53,546 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-02 18:47:56,470 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10553
+INFO 2025-06-02 18:48:00,944 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 13656
+INFO 2025-06-02 18:48:15,641 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10553
+INFO 2025-06-03 13:02:39,164 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 12471
+INFO 2025-06-03 13:02:45,295 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80753
+INFO 2025-06-03 13:02:52,615 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 19502
+INFO 2025-06-03 13:02:57,941 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80753
+INFO 2025-06-03 13:03:00,139 basehttp "GET /projects/assignments/c5a454ea-f9e2-4f1d-910a-e398773e60da/timesheet/ HTTP/1.1" 200 15580
+INFO 2025-06-03 13:03:46,787 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 80753
+INFO 2025-06-06 05:30:22,214 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 20897
+INFO 2025-06-06 05:30:27,961 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 05:30:30,493 basehttp "GET /projects/assignments/d75ec496-f2f9-4fca-9996-22a296b0d75c/timesheet/ HTTP/1.1" 200 16703
+INFO 2025-06-06 05:43:17,145 basehttp "GET /projects/assignments/d75ec496-f2f9-4fca-9996-22a296b0d75c/timesheet/ HTTP/1.1" 200 28826
+INFO 2025-06-06 05:43:43,795 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 05:43:51,322 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 31468
+INFO 2025-06-06 05:44:09,257 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 05:44:13,419 basehttp "GET /projects/assignments/9be64d49-844f-43e7-b10d-d5a53fcdaccb/timesheet/ HTTP/1.1" 200 33570
+INFO 2025-06-06 05:44:25,825 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 05:44:28,740 basehttp "GET /projects/assignments/d75ec496-f2f9-4fca-9996-22a296b0d75c/timesheet/ HTTP/1.1" 200 28826
+INFO 2025-06-06 06:11:03,271 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 06:11:06,710 basehttp "GET /projects/assignments/9be64d49-844f-43e7-b10d-d5a53fcdaccb/timesheet/ HTTP/1.1" 200 33570
+INFO 2025-06-06 06:11:14,392 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 06:11:16,661 basehttp "GET /projects/assignments/253529ee-f166-434b-8951-2527030b9eb9/timesheet/ HTTP/1.1" 200 43430
+INFO 2025-06-06 06:11:31,384 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 06:11:35,680 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 31468
+INFO 2025-06-06 06:11:43,101 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 06:11:54,579 services Manual time added for praveen on ASID_000042: 60 minutes
+INFO 2025-06-06 06:11:54,609 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 06:11:54,697 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 54059
+INFO 2025-06-06 06:11:57,731 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 33781
+INFO 2025-06-06 06:12:08,554 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 06:12:12,042 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 12474
+INFO 2025-06-06 12:00:28,463 autoreload Watching for file changes with StatReloader
+INFO 2025-06-06 12:00:37,219 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10553
+INFO 2025-06-06 12:00:39,633 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-06 12:00:39,728 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-06 12:00:47,077 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10553
+INFO 2025-06-06 12:01:09,146 basehttp "GET /projects/reports/team-overview/?start_date=2025-05-01&end_date=2025-05-31 HTTP/1.1" 200 10545
+INFO 2025-06-06 12:02:19,211 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-06 12:02:19,337 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 12:02:22,324 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 33781
+INFO 2025-06-06 12:02:39,422 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 12:02:41,600 basehttp "GET /projects/assignments/d75ec496-f2f9-4fca-9996-22a296b0d75c/timesheet/ HTTP/1.1" 200 28826
+INFO 2025-06-06 12:03:07,782 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 12:03:14,651 services Timer started for praveen on ASID_000042
+INFO 2025-06-06 12:03:14,651 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 12:03:14,730 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 57159
+INFO 2025-06-06 12:03:21,344 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-06 12:03:21,350 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 12:03:21,438 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 54068
+INFO 2025-06-06 12:03:24,454 services Timer started for praveen on ASID_000042
+INFO 2025-06-06 12:03:24,454 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 12:03:24,535 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 57159
+INFO 2025-06-06 12:03:44,012 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-06 12:03:44,020 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 12:03:44,098 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 54068
+INFO 2025-06-06 12:03:52,980 services Manual time added for praveen on ASID_000042: 60 minutes
+INFO 2025-06-06 12:03:52,980 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 12:03:53,074 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 54059
+INFO 2025-06-06 12:03:54,642 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 40626
+INFO 2025-06-06 12:09:52,425 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 53763
+INFO 2025-06-06 12:09:58,468 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 40626
+INFO 2025-06-06 13:18:44,437 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-06 13:18:44,671 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-06 13:19:11,734 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 32951
+INFO 2025-06-06 13:19:27,385 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1422
+INFO 2025-06-06 13:19:33,419 services Updated status for project 798aed07-36ce-4a6a-83d0-ee26da9b73d1 to Partial Data Received by sunny
+INFO 2025-06-06 13:19:33,449 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 107
+INFO 2025-06-06 13:19:35,047 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 33792
+INFO 2025-06-06 13:19:52,570 basehttp "GET /projects/ HTTP/1.1" 200 44195
+INFO 2025-06-06 13:19:54,502 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21011
+INFO 2025-06-06 13:20:13,034 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 27383
+INFO 2025-06-06 13:20:18,562 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21011
+INFO 2025-06-06 13:20:20,179 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 31160
+INFO 2025-06-06 13:20:47,445 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21011
+INFO 2025-06-06 13:20:49,334 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 27383
+INFO 2025-06-06 13:20:55,983 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-configuration/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:20:56,164 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 27694
+INFO 2025-06-06 13:21:07,507 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21011
+INFO 2025-06-06 13:21:09,406 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 31160
+INFO 2025-06-06 13:23:15,882 services Created new task TID_00026 for project aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d by sunny
+INFO 2025-06-06 13:23:15,882 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/create-task/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:23:15,989 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33552
+INFO 2025-06-06 13:23:22,744 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 26181
+INFO 2025-06-06 13:23:46,389 services Created task assignment ASID_000044 for task 17c8c644-811c-47af-b902-55c4cbd5e0a8 by sunny
+INFO 2025-06-06 13:23:46,395 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/create-assignment/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:23:46,463 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 33899
+INFO 2025-06-06 13:24:04,738 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:24:06,289 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:24:09,772 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:24:28,601 services Timer started for praveen on ASID_000044
+INFO 2025-06-06 13:24:28,608 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:24:28,693 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63392
+INFO 2025-06-06 13:24:39,132 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-06 13:24:39,140 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:24:39,242 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60364
+INFO 2025-06-06 13:24:50,364 basehttp "GET /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 200 31057
+INFO 2025-06-06 13:26:15,267 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:26:28,359 services Manual time added for praveen on ASID_000044: 60 minutes
+INFO 2025-06-06 13:26:28,359 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:26:28,391 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60355
+INFO 2025-06-06 13:26:31,128 basehttp "GET /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 200 32976
+INFO 2025-06-06 13:26:57,835 services Session duration edited for praveen: 81d50d21-87de-4f78-a9de-1de677ade27a
+INFO 2025-06-06 13:26:57,835 basehttp "POST /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:26:57,868 basehttp "GET /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 200 33563
+INFO 2025-06-06 13:27:39,362 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:27:51,987 services Manual time added for praveen on ASID_000044: 3 minutes
+INFO 2025-06-06 13:27:51,993 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:27:52,102 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60355
+INFO 2025-06-06 13:27:54,892 basehttp "GET /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 200 35573
+INFO 2025-06-06 13:28:11,160 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:28:22,951 basehttp "GET /projects/assignments/9aa43e35-94bd-46cd-83be-32a417c49575/timesheet/ HTTP/1.1" 200 30664
+INFO 2025-06-06 13:28:44,663 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60059
+INFO 2025-06-06 13:28:48,993 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 33601
+INFO 2025-06-06 13:29:00,800 signals Updated metrics for praveen on assignment completion
+INFO 2025-06-06 13:29:00,848 services Assignment ASID_000044 completed by praveen
+INFO 2025-06-06 13:29:00,852 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:29:00,968 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56696
+INFO 2025-06-06 13:29:05,785 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 31453
+INFO 2025-06-06 13:29:13,258 signals Updated metrics for praveen on assignment completion
+INFO 2025-06-06 13:29:13,258 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/rate-assignment/250e172f-8cc0-4001-bd96-896a68ad1d3e/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:29:13,290 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 32304
+INFO 2025-06-06 13:29:22,481 basehttp "GET /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 200 29070
+INFO 2025-06-06 13:29:27,646 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:29:32,721 basehttp "GET /projects/roster/ HTTP/1.1" 200 62434
+INFO 2025-06-06 13:30:05,411 services Misc hours added for praveen on 2025-06-06: 5 minutes
+INFO 2025-06-06 13:30:05,416 basehttp "POST /projects/roster/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:30:05,649 basehttp "GET /projects/roster/ HTTP/1.1" 200 62992
+INFO 2025-06-06 13:30:19,904 services Updated roster for praveen on 2025-06-13: LEAVE
+INFO 2025-06-06 13:30:19,904 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:30:20,151 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 62983
+INFO 2025-06-06 13:30:28,806 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:30:30,825 basehttp "GET /projects/roster/ HTTP/1.1" 200 62684
+INFO 2025-06-06 13:30:45,542 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:30:47,012 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 27164
+INFO 2025-06-06 13:30:54,318 basehttp "GET /projects/daily-roster/?date=2025-06-05 HTTP/1.1" 200 24548
+INFO 2025-06-06 13:30:59,574 basehttp "GET /projects/daily-roster/?date=2025-06-06 HTTP/1.1" 200 27163
+INFO 2025-06-06 13:31:07,615 basehttp "GET /projects/daily-roster/?date=2025-06-06&week_view=on HTTP/1.1" 200 29948
+INFO 2025-06-06 13:31:17,041 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:31:25,283 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 12485
+INFO 2025-06-06 13:31:43,737 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:32:03,609 basehttp "GET /projects/ HTTP/1.1" 200 44195
+INFO 2025-06-06 13:32:22,659 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10553
+INFO 2025-06-06 13:32:47,181 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 13670
+INFO 2025-06-06 13:32:55,356 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 200 14088
+INFO 2025-06-06 13:33:13,719 basehttp "GET /projects/ HTTP/1.1" 200 44195
+INFO 2025-06-06 13:33:17,175 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 33792
+INFO 2025-06-06 13:33:19,493 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1422
+INFO 2025-06-06 13:33:44,014 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 27383
+INFO 2025-06-06 13:33:52,383 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21011
+INFO 2025-06-06 13:33:54,273 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33264
+INFO 2025-06-06 13:34:08,200 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 31979
+INFO 2025-06-06 13:43:00,958 basehttp "GET /projects/ HTTP/1.1" 200 44195
+INFO 2025-06-06 13:43:20,474 basehttp "GET /projects/ HTTP/1.1" 200 44195
+INFO 2025-06-06 13:54:27,049 services Timer started for praveen on ASID_000042
+INFO 2025-06-06 13:54:27,066 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:54:27,239 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 59916
+INFO 2025-06-06 13:54:34,859 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-06 13:54:34,859 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:54:34,980 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56825
+INFO 2025-06-06 13:54:38,553 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 43091
+INFO 2025-06-06 13:54:47,068 services Session duration edited for praveen: c9a16b33-2087-4273-8fe1-d6a1d82077ea
+INFO 2025-06-06 13:54:47,070 basehttp "POST /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:54:47,132 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 43678
+INFO 2025-06-06 13:55:07,049 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:55:26,742 services Manual time added for praveen on ASID_000042: 2 minutes
+INFO 2025-06-06 13:55:26,742 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:55:26,830 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56816
+INFO 2025-06-06 13:55:28,497 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 45294
+INFO 2025-06-06 13:55:53,629 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:55:55,761 basehttp "GET /projects/assignments/250e172f-8cc0-4001-bd96-896a68ad1d3e/timesheet/ HTTP/1.1" 200 29070
+INFO 2025-06-06 13:56:03,102 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:56:04,602 basehttp "GET /projects/roster/ HTTP/1.1" 200 62684
+INFO 2025-06-06 13:56:10,611 services Updated roster for praveen on 2025-06-12: LEAVE
+INFO 2025-06-06 13:56:10,614 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-06 13:56:10,804 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 62979
+INFO 2025-06-06 13:56:16,557 basehttp "GET /projects/roster/2025/5/ HTTP/1.1" 200 64240
+INFO 2025-06-06 13:56:21,917 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:56:24,785 basehttp "GET /projects/roster/ HTTP/1.1" 200 62680
+INFO 2025-06-06 13:56:29,114 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:56:30,720 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 27164
+INFO 2025-06-06 13:56:38,228 basehttp "GET /projects/daily-roster/?date=&week_view=on HTTP/1.1" 200 27181
+INFO 2025-06-06 13:56:43,704 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 56520
+INFO 2025-06-06 13:56:53,589 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 33792
+INFO 2025-06-06 13:56:56,978 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1422
+INFO 2025-06-06 13:57:03,138 services Updated status for project 798aed07-36ce-4a6a-83d0-ee26da9b73d1 to Project Start Date by sunny
+INFO 2025-06-06 13:57:03,172 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 104
+INFO 2025-06-06 13:57:04,737 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34618
+INFO 2025-06-06 13:57:09,451 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 27380
+INFO 2025-06-06 13:57:18,413 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21008
+INFO 2025-06-06 13:57:20,590 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33264
+INFO 2025-06-06 13:57:36,516 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 31979
+INFO 2025-06-06 13:57:48,151 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33264
+INFO 2025-06-06 13:57:49,796 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21008
+INFO 2025-06-06 13:57:51,711 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/manage/ HTTP/1.1" 200 29062
+INFO 2025-06-06 13:57:53,123 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21008
+INFO 2025-06-06 13:57:54,866 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/manage/ HTTP/1.1" 200 29062
+INFO 2025-06-06 13:57:58,007 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/tasks/431e9ab9-f56f-4564-a47a-2d2a1dc7851a/ HTTP/1.1" 200 62511
+INFO 2025-06-06 14:00:11,654 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 12485
+INFO 2025-06-06 14:00:39,141 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10553
+INFO 2025-06-06 14:00:45,233 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 13670
+INFO 2025-06-06 14:01:11,664 basehttp "GET /admin/ HTTP/1.1" 200 17553
+INFO 2025-06-06 14:01:12,764 basehttp "GET /static/admin/js/theme.js HTTP/1.1" 200 1943
+INFO 2025-06-06 14:01:12,780 basehttp "GET /static/admin/css/base.css HTTP/1.1" 200 21544
+INFO 2025-06-06 14:01:12,780 basehttp "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2682
+INFO 2025-06-06 14:01:12,780 basehttp "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-06-06 14:01:12,812 basehttp "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-06-06 14:01:12,827 basehttp "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-06-06 14:01:12,843 basehttp "GET /static/admin/css/responsive.css HTTP/1.1" 200 17905
+INFO 2025-06-06 14:01:12,882 basehttp "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO 2025-06-06 14:01:12,882 basehttp "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+INFO 2025-06-06 14:01:12,882 basehttp "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 200 392
+INFO 2025-06-06 14:02:35,761 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-06 14:02:35,811 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-06 14:02:40,760 basehttp "GET /projects/create/ HTTP/1.1" 200 25110
+INFO 2025-06-06 14:02:47,635 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-06 14:02:47,713 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-06 14:02:51,620 basehttp "GET /projects/create/ HTTP/1.1" 200 25110
+INFO 2025-06-06 14:02:53,236 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-06 14:02:53,280 basehttp "GET /projects/ HTTP/1.1" 200 44192
+INFO 2025-06-06 14:02:58,628 basehttp "GET /projects/create/ HTTP/1.1" 200 25110

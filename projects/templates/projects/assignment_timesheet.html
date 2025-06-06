@@ -4,123 +4,598 @@
 
 {% block extra_css %}
 <style>
-    .progress-bar-custom {
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+    
+    /* Enhanced Header Card */
+    .timesheet-header-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .timesheet-header-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        border: none;
+        padding: 1.25rem;
+    }
+    
+    .timesheet-header-card .card-header h4 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+    }
+    
+    /* ID Badges */
+    .id-badge {
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        margin-left: 0.5rem;
+    }
+    
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 0;
+    }
+    
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #212529;
+    }
+    
+    /* Enhanced Cards */
+    .data-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .data-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+    
+    .data-card .card-header {
+        background: #fff;
+        border-bottom: 2px solid var(--border-color);
+        padding: 1rem 1.5rem;
+    }
+    
+    .data-card .card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #495057;
+    }
+    
+    .data-card .card-header h5 i {
+        color: var(--primary-color);
+    }
+    
+    .data-card .card-header small {
+        color: #6c757d;
+        font-weight: 400;
+    }
+    
+    /* Progress Bar */
+    .progress-section {
+        padding: 1.5rem;
+        background: var(--light-bg);
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .progress {
         height: 8px;
         border-radius: 4px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        background: var(--primary-color);
+        transition: width 0.6s ease;
+    }
+    
+    /* Summary Stats */
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
     }
     
     .summary-stat {
         text-align: center;
         padding: 1rem;
-        border-right: 1px solid #dee2e6;
+        border-right: 1px solid var(--border-color);
+        transition: all var(--transition-speed) ease;
     }
     
     .summary-stat:last-child {
         border-right: none;
     }
     
+    .summary-stat:hover {
+        background: var(--light-bg);
+        border-radius: 0.5rem;
+    }
+    
     .summary-stat-value {
         font-size: 1.5rem;
-        font-weight: bold;
-        color: #0d6efd;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
     }
     
     .summary-stat-label {
         font-size: 0.875rem;
         color: #6c757d;
-        margin-top: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Enhanced Tables */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        background: var(--light-bg);
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        padding: 1rem;
+        white-space: nowrap;
+    }
+    
+    .table tbody tr {
+        transition: all var(--transition-speed) ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .table tbody tr:hover {
+        background: var(--light-bg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+    
+    /* Scrollable Tables */
+    .table-scrollable {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+    }
+    
+    .table-scrollable::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .table-scrollable::-webkit-scrollbar-track {
+        background: var(--light-bg);
+    }
+    
+    .table-scrollable::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+    
+    .table-scrollable::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+    }
+    
+    /* Enhanced Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.75em;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
     }
     
     .edited-badge {
         font-size: 0.7rem;
         vertical-align: top;
+        margin-left: 0.25rem;
+    }
+    
+    /* Time Display */
+    .time-display {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+    
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        color: var(--border-color);
+        margin-bottom: 1rem;
+    }
+    
+    /* Modal Enhancements */
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-header.bg-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%) !important;
+    }
+    
+    /* Time Input Group */
+    .time-inputs-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .time-input-wrapper {
+        flex: 1;
+        position: relative;
+    }
+    
+    .time-separator {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #6c757d;
+        padding: 0 0.25rem;
+        margin-top: 1.5rem;
+    }
+    
+    .time-input-wrapper label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Alert Enhancements */
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .summary-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .table {
+            font-size: 0.875rem;
+        }
+        
+        .table thead th, .table tbody td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .id-badge {
+            display: block;
+            margin-left: 0;
+            margin-top: 0.25rem;
+        }
+    }
+    
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+    
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+    
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Fade In Animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.3s ease-out;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Assignment Header -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+    <!-- Enhanced Assignment Header -->
+    <div class="timesheet-header-card">
+        <div class="card-header text-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Timesheet: {{ assignment.assignment_id }}</h4>
-                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light">
+                <div>
+                    <h4 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Timesheet
+                        <span class="id-badge">{{ assignment.assignment_id }}</span>
+                        <span class="id-badge">{{ assignment.task.task_id }}</span>
+                    </h4>
+                    <small class="opacity-75">Detailed time tracking for this assignment</small>
+                </div>
+                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Project</dt>
-                        <dd class="col-sm-8">{{ assignment.task.project.project_name }}</dd>
-                        
-                        <dt class="col-sm-4">Product</dt>
-                        <dd class="col-sm-8">{{ assignment.task.project.product.name }}</dd>
-                        
-                        <dt class="col-sm-4">Task</dt>
-                        <dd class="col-sm-8">{{ assignment.task.product_task.name }}</dd>
-                        
-                        <dt class="col-sm-4">Task Type</dt>
-                        <dd class="col-sm-8">
-                            <span class="badge {% if assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %}">
-                                {{ assignment.task.get_task_type_display }}
-                            </span>
-                        </dd>
-                        
-                        <dt class="col-sm-4">Sub-Task</dt>
-                        <dd class="col-sm-8">{{ assignment.sub_task }}</dd>
-                    </dl>
+        <div class="card-body bg-light">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Project</span>
+                    <span class="info-value">{{ assignment.task.project.project_name }}</span>
                 </div>
-                <div class="col-md-6">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Assigned Date</dt>
-                        <dd class="col-sm-8">{{ assignment.assigned_date|date:"M d, Y" }}</dd>
-                        
-                        <dt class="col-sm-4">Projected Hours</dt>
-                        <dd class="col-sm-8">{{ assignment_summary.projected_formatted }}</dd>
-                        
-                        <dt class="col-sm-4">Total Worked</dt>
-                        <dd class="col-sm-8">{{ assignment_summary.total_worked_formatted }}</dd>
-                        
-                        <dt class="col-sm-4">Status</dt>
-                        <dd class="col-sm-8">
-                            {% if assignment.is_completed %}
-                                <span class="badge bg-success">Completed</span>
-                            {% else %}
-                                <span class="badge bg-primary">Active</span>
-                            {% endif %}
-                        </dd>
-                        
-                        {% if assignment.is_completed and assignment.completion_date %}
-                            <dt class="col-sm-4">Completed On</dt>
-                            <dd class="col-sm-8">
-                                <strong>{{ assignment.completion_date|date:"M d, Y" }}</strong>
-                                <small class="text-muted d-block">{{ assignment.completion_date|date:"H:i" }}</small>
-                            </dd>
+                <div class="info-item">
+                    <span class="info-label">Product</span>
+                    <span class="info-value">
+                        <span class="badge bg-info">{{ assignment.task.project.product.name }}</span>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Task</span>
+                    <span class="info-value">{{ assignment.task.product_task.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Task Type</span>
+                    <span class="info-value">
+                        <span class="badge {% if assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %}">
+                            <i class="bi {% if assignment.task.task_type == 'NEW' %}bi-plus-circle{% else %}bi-arrow-repeat{% endif %}"></i>
+                            {{ assignment.task.get_task_type_display }}
+                        </span>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">
+                        {% if assignment.is_completed %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle-fill"></i> Completed
+                            </span>
+                        {% else %}
+                            <span class="badge bg-primary">
+                                <i class="bi bi-clock"></i> Active
+                            </span>
                         {% endif %}
-                    </dl>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Sub-Task</span>
+                    <span class="info-value text-truncate" title="{{ assignment.sub_task }}">
+                        {{ assignment.sub_task }}
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Combined Daily Totals and Assignment Summary -->
+    <!-- Progress and Summary Section -->
     <div class="row mb-4">
-        <!-- Daily Totals - Compact Version -->
+        <!-- Progress Card -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="data-card h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Daily Time Totals</h5>
-                    <small class="text-muted">Auto-calculated from individual sessions</small>
+                    <h5>
+                        <i class="bi bi-graph-up"></i> Progress Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress-section">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">Completion Progress</span>
+                            <span class="text-primary fw-bold">{{ assignment_summary.progress_percentage }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 data-progress="{{ assignment_summary.progress_percentage }}"
+                                 aria-valuenow="{{ assignment_summary.progress_percentage }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> {{ assignment_summary.total_worked_formatted }} worked
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-flag"></i> {{ assignment_summary.projected_formatted }} projected
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mt-2">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-muted small">Assigned Date</div>
+                                <div class="fw-semibold">{{ assignment.assigned_date|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-muted small">
+                                    {% if assignment.is_completed %}Completed On{% else %}Expected Delivery{% endif %}
+                                </div>
+                                <div class="fw-semibold">
+                                    {% if assignment.is_completed and assignment.completion_date %}
+                                        {{ assignment.completion_date|date:"M d, Y" }}
+                                    {% elif assignment.expected_delivery_date %}
+                                        {{ assignment.expected_delivery_date|date:"M d, Y" }}
+                                    {% else %}
+                                        Not set
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Statistics -->
+        <div class="col-md-6">
+            <div class="data-card h-100">
+                <div class="card-header">
+                    <h5>
+                        <i class="bi bi-bar-chart"></i> Assignment Summary
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="summary-stats">
+                        {% if assignment_summary.is_completed %}
+                            <!-- For completed assignments -->
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.days_worked }}</div>
+                                <div class="summary-stat-label">Days Worked</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.task_productivity }}</div>
+                                <div class="summary-stat-label">Task Productivity</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value {{ assignment_summary.quality_rating_class }}">
+                                    {{ assignment_summary.quality_rating }}
+                                </div>
+                                <div class="summary-stat-label">Quality Rating</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.timer_usage_percentage }}</div>
+                                <div class="summary-stat-label">Timer Usage</div>
+                            </div>
+                        {% else %}
+                            <!-- For active assignments -->
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.days_worked }}</div>
+                                <div class="summary-stat-label">Days Worked</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value {% if 'Overdue' in assignment_summary.days_remaining %}text-danger{% elif 'Due Today' in assignment_summary.days_remaining %}text-warning{% else %}text-success{% endif %}">
+                                    {{ assignment_summary.days_remaining }}
+                                </div>
+                                <div class="summary-stat-label">Time Remaining</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">{{ assignment_summary.timer_usage_percentage }}</div>
+                                <div class="summary-stat-label">Timer Usage</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Totals and Individual Sessions -->
+    <div class="row">
+        <!-- Daily Totals -->
+        <div class="col-md-4">
+            <div class="data-card h-100">
+                <div class="card-header">
+                    <h5>
+                        <i class="bi bi-calendar-check"></i> Daily Time Totals
+                        <span class="badge bg-primary">{{ daily_totals|length }}</span>
+                    </h5>
+                    <small class="d-block mt-1">Auto-calculated from sessions</small>
                 </div>
                 <div class="card-body p-0">
                     {% if daily_totals %}
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <div class="table-scrollable">
                             <table class="table table-sm table-hover mb-0">
-                                <thead class="table-light sticky-top">
+                                <thead class="sticky-top">
                                     <tr>
                                         <th>Date</th>
                                         <th class="text-end">Total Hours</th>
@@ -128,10 +603,10 @@
                                 </thead>
                                 <tbody>
                                     {% for daily_total in daily_totals %}
-                                    <tr>
+                                    <tr class="fade-in">
                                         <td>{{ daily_total.date_worked|date:"M d, Y" }}</td>
                                         <td class="text-end">
-                                            <strong>{{ daily_total.get_formatted_total }}</strong>
+                                            <strong class="time-display">{{ daily_total.get_formatted_total }}</strong>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -139,7 +614,8 @@
                             </table>
                         </div>
                     {% else %}
-                        <div class="text-center py-4">
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x empty-state-icon"></i>
                             <p class="text-muted">No time entries found.</p>
                         </div>
                     {% endif %}
@@ -147,172 +623,116 @@
             </div>
         </div>
         
-        <!-- Assignment Summary -->
-        <div class="col-md-6">
-            <div class="card h-100">
+        <!-- Individual Sessions -->
+        <div class="col-md-8">
+            <div class="data-card h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Assignment Summary</h5>
+                    <h5>
+                        <i class="bi bi-list-ul"></i> Individual Sessions
+                        <span class="badge bg-primary">{{ sessions|length }}</span>
+                    </h5>
+                    <small class="d-block mt-1">
+                        {% if assignment.is_completed %}
+                            Editing disabled - Assignment completed
+                        {% else %}
+                            Timer sessions can be edited, manual entries cannot
+                        {% endif %}
+                    </small>
                 </div>
-                <div class="card-body">
-                    <!-- Progress Bar -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold">Progress</span>
-                            <span class="text-muted">{{ assignment_summary.progress_percentage }}%</span>
-                        </div>
-                        <div class="progress progress-bar-custom">
-                            <div class="progress-bar bg-primary" role="progressbar" 
-                                 data-progress="{{ assignment_summary.progress_percentage }}"
-                                 aria-valuenow="{{ assignment_summary.progress_percentage }}" 
-                                 aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <small class="text-muted">{{ assignment_summary.total_worked_formatted }} worked</small>
-                            <small class="text-muted">{{ assignment_summary.projected_formatted }} projected</small>
-                        </div>
-                    </div>
-                    
-                    <!-- UPDATED: Summary Stats - Different for completed vs active assignments -->
-                    {% if assignment_summary.is_completed %}
-                        <!-- For completed assignments: Days Worked | Task Productivity | Quality Rating | Timer Usage % -->
-                        <div class="row border rounded">
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value">{{ assignment_summary.days_worked }}</div>
-                                <div class="summary-stat-label">Days Worked</div>
-                            </div>
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value">{{ assignment_summary.task_productivity }}</div>
-                                <div class="summary-stat-label">Task Productivity</div>
-                            </div>
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value {{ assignment_summary.quality_rating_class }}">
-                                    {{ assignment_summary.quality_rating }}
-                                </div>
-                                <div class="summary-stat-label">Quality Rating</div>
-                            </div>
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value">{{ assignment_summary.timer_usage_percentage }}</div>
-                                <div class="summary-stat-label">Timer Usage</div>
-                            </div>
+                <div class="card-body p-0">
+                    {% if sessions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Start</th>
+                                        <th>End</th>
+                                        <th>Duration</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        {% if not assignment.is_completed %}
+                                            <th class="text-center">Actions</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for session in sessions %}
+                                    <tr class="fade-in">
+                                        <td>{{ session.date_worked|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if session.started_at %}
+                                                {{ session.started_at|date:"H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if session.ended_at %}
+                                                {{ session.ended_at|date:"H:i" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong class="time-display">{{ session.get_formatted_duration }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if session.session_type == 'TIMER' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                <i class="bi {% if session.session_type == 'TIMER' %}bi-play-circle{% else %}bi-pencil{% endif %}"></i>
+                                                {{ session.get_session_type_display }}
+                                            </span>
+                                            {% if session.is_edited %}
+                                                <span class="badge bg-warning edited-badge">
+                                                    <i class="bi bi-pencil-fill"></i> Edited
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if session.description %}
+                                                <span class="text-truncate d-inline-block" style="max-width: 200px;" 
+                                                      title="{{ session.description }}"
+                                                      data-bs-toggle="tooltip">
+                                                    {{ session.description }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        {% if not assignment.is_completed %}
+                                            <td class="text-center">
+                                                {% if session.is_editable %}
+                                                    <button class="btn btn-sm btn-outline-primary edit-session-btn"
+                                                            data-session-id="{{ session.id }}"
+                                                            data-duration-minutes="{{ session.duration_minutes }}"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editSessionModal">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </button>
+                                                {% else %}
+                                                    <span class="text-muted small">Not editable</span>
+                                                {% endif %}
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     {% else %}
-                        <!-- For active assignments: Days Worked | Days Remaining | Timer Usage % -->
-                        <div class="row border rounded">
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value">{{ assignment_summary.days_worked }}</div>
-                                <div class="summary-stat-label">Days Worked</div>
-                            </div>
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value {% if 'Overdue' in assignment_summary.days_remaining %}text-danger{% elif 'Due Today' in assignment_summary.days_remaining %}text-warning{% else %}text-success{% endif %}">
-                                    {{ assignment_summary.days_remaining }}
-                                </div>
-                                <div class="summary-stat-label">Days Remaining</div>
-                            </div>
-                            <div class="col summary-stat">
-                                <div class="summary-stat-value">{{ assignment_summary.timer_usage_percentage }}</div>
-                                <div class="summary-stat-label">Timer Usage</div>
-                            </div>
+                        <div class="empty-state">
+                            <i class="bi bi-inbox empty-state-icon"></i>
+                            <p class="text-muted">No individual sessions found.</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Individual Sessions - WITH EDITING FOR TIMER SESSIONS -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Individual Sessions</h5>
-            <small class="text-muted">
-                {% if assignment.is_completed %}
-                    Editing disabled - Assignment completed
-                {% else %}
-                    Timer sessions can be edited, manual entries cannot
-                {% endif %}
-            </small>
-        </div>
-        <div class="card-body p-0">
-            {% if sessions %}
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                                <th>Duration</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                                {% if not assignment.is_completed %}
-                                    <th>Actions</th>
-                                {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for session in sessions %}
-                            <tr>
-                                <td>{{ session.date_worked|date:"M d, Y" }}</td>
-                                <td>
-                                    {% if session.started_at %}
-                                        {{ session.started_at|date:"H:i" }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if session.ended_at %}
-                                        {{ session.ended_at|date:"H:i" }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <strong>{{ session.get_formatted_duration }}</strong>
-                                </td>
-                                <td>
-                                    <span class="badge {% if session.session_type == 'TIMER' %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {{ session.get_session_type_display }}
-                                    </span>
-                                    {% if session.is_edited %}
-                                        <span class="badge bg-warning edited-badge">
-                                            <i class="bi bi-pencil-fill"></i> Edited
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ session.description|default:"-" }}</td>
-                                {% if not assignment.is_completed %}
-                                    <td>
-                                        {% if session.is_editable %}
-                                            <button class="btn btn-sm btn-outline-primary edit-session-btn"
-                                                    data-session-id="{{ session.id }}"
-                                                    data-duration-minutes="{{ session.duration_minutes }}"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editSessionModal">
-                                                <i class="bi bi-pencil"></i> Edit Duration
-                                            </button>
-                                        {% else %}
-                                            <span class="text-muted small">Not editable</span>
-                                        {% endif %}
-                                    </td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="text-center py-4">
-                    <p class="text-muted">No individual sessions found.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
 </div>
 
-<!-- UPDATED: Only show edit modal for active assignments -->
+<!-- Edit Session Duration Modal (Only for active assignments) -->
 {% if not assignment.is_completed %}
-<!-- Edit Session Duration Modal -->
 <div class="modal fade" id="editSessionModal" tabindex="-1" aria-labelledby="editSessionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -321,11 +741,11 @@
                 <input type="hidden" name="edit_session_duration" value="1">
                 <input type="hidden" name="session_id" id="edit_session_id" value="">
                 
-                <div class="modal-header">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="editSessionModalLabel">
                         <i class="bi bi-pencil"></i> Edit Session Duration
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info">
@@ -334,18 +754,18 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Duration</label>
+                        <label class="form-label">Duration <span class="text-danger">*</span></label>
                         <div class="time-inputs-group">
                             <div class="time-input-wrapper">
                                 <label class="form-label small mb-1">Hours</label>
                                 <input type="number" name="duration_hours" id="duration_hours" 
-                                       class="form-control" min="0" max="23" value="0">
+                                       class="form-control text-center" min="0" max="23" value="0">
                             </div>
-                            <div class="time-separator align-self-end mb-3">:</div>
+                            <div class="time-separator">:</div>
                             <div class="time-input-wrapper">
                                 <label class="form-label small mb-1">Minutes</label>
                                 <input type="number" name="duration_minutes" id="duration_minutes" 
-                                       class="form-control" min="0" max="59" value="0">
+                                       class="form-control text-center" min="0" max="59" value="0">
                             </div>
                         </div>
                     </div>
@@ -359,7 +779,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Duration</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Update Duration
+                    </button>
                 </div>
             </form>
         </div>
@@ -371,12 +793,18 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Set progress bar width from data attribute (fixes CSS linter warning)
+    // Set progress bar width from data attribute
     var progressBar = document.querySelector('.progress-bar[data-progress]');
     if (progressBar) {
         var progress = progressBar.getAttribute('data-progress');
         progressBar.style.width = progress + '%';
     }
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
     
     {% if not assignment.is_completed %}
     // Edit session modal functionality - only for active assignments
@@ -414,9 +842,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Invalid time values. Hours must be 0-23, minutes must be 0-59.');
                 return false;
             }
+            
+            // Add loading state to submit button
+            var submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('btn-loading');
+            }
         });
     }
     {% endif %}
+    
+    // Add fade-in animation to table rows
+    var rows = document.querySelectorAll('tbody tr');
+    rows.forEach(function(row, index) {
+        row.style.animationDelay = (index * 0.05) + 's';
+    });
 });
 </script>
 {% endblock %}

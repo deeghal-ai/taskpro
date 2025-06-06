@@ -1,7 +1,7 @@
 #projects/services.py
 import logging
 from django.core.exceptions import ValidationError
-from .models import Project, DailyRoster, ProjectStatusHistory, ProjectStatusOption, ProductTask, ProjectTask, TaskAssignment, Product, ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog
+from .models import Project, DailyRoster, ProjectStatusHistory, ProjectStatusOption, ProductTask, ProjectTask, TaskAssignment, Product, ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, ProjectMetrics, ProjectDelivery, TeamMemberMetrics
 from django.db.models import Sum, Q, Subquery, OuterRef, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.db import transaction
 from datetime import date, datetime, timedelta
 import calendar
+from django.db.models import Avg
 
 logger = logging.getLogger(__name__)
 
@@ -600,16 +601,7 @@ class ProjectService:
     def update_project_configuration(project_id, config_data, dpm):
         """
         Updates a project's configuration (incharge, completion date, rating).
-                
-        Args:
-            project_id: UUID of the project
-            config_data: Dictionary with validated form data
-            dpm: User making the change (must be DPM)
-            
-        Returns:
-            tuple: (success, result)
-                - If successful: (True, project)
-                - If failed: (False, error_message)
+        Also updates any existing delivery records if rating changes.
         """
         try:
             project = Project.objects.get(id=project_id)
@@ -618,6 +610,10 @@ class ProjectService:
             if project.dpm != dpm:
                 logger.warning(f"User {dpm.id} attempted to update configuration for project {project_id} but is not the assigned DPM")
                 return False, "Only the assigned DPM can update project configuration"
+            
+            # Store old values for comparison
+            old_rating = project.delivery_performance_rating
+            old_incharge = project.project_incharge
             
             # Update project with validated data
             project.project_incharge = config_data['project_incharge']
@@ -628,6 +624,30 @@ class ProjectService:
                 project.delivery_performance_rating = config_data['delivery_performance_rating']
             
             project.save()
+            
+            # If delivery rating changed, update any existing ProjectDelivery records
+            if old_rating != project.delivery_performance_rating:
+                from .models import ProjectDelivery
+                updated_count = ProjectDelivery.objects.filter(project=project).update(
+                    delivery_performance_rating=project.delivery_performance_rating
+                )
+                
+                if updated_count > 0:
+                    logger.info(f"Updated {updated_count} delivery records for project {project_id} with new rating {project.delivery_performance_rating}")
+                    
+                    # Recalculate metrics for all affected dates
+                    deliveries = ProjectDelivery.objects.filter(project=project)
+                    for delivery in deliveries:
+                        ReportingService.calculate_team_member_metrics(
+                            delivery.project_incharge,
+                            delivery.delivery_date
+                        )
+            
+            # If project incharge changed, update delivery records
+            if old_incharge != project.project_incharge and project.project_incharge:
+                ProjectDelivery.objects.filter(project=project).update(
+                    project_incharge=project.project_incharge
+                )
             
             logger.info(f"Updated project configuration for {project_id} by {dpm.username}")
             return True, project
@@ -641,7 +661,7 @@ class ProjectService:
         except Exception as e:
             logger.exception(f"Error updating project configuration: {str(e)}")
             return False, f"An error occurred: {str(e)}"
-        
+
     @staticmethod
     def get_dpm_projects_for_task_management(dpm):
         """
@@ -1795,13 +1815,19 @@ class ProjectService:
             logger.exception(f"Error calculating days remaining: {str(e)}")
             return "Unknown"
 
-
+class ReportingService:
+    """
+    Service layer for all reporting functionality.
+    Handles metric calculations, aggregations, and caching.
+    """
     @staticmethod
     def calculate_team_member_metrics(team_member, date):
         """
         Calculate and store daily metrics for a team member.
-        Includes productivity, utilization, quality, AND delivery performance.
         """
+        from decimal import Decimal, InvalidOperation
+        import math
+        
         # Get or create metrics record
         metrics, created = TeamMemberMetrics.objects.get_or_create(
             team_member=team_member,
@@ -1817,7 +1843,7 @@ class ProjectService:
         
         total_projected = 0
         total_worked = 0
-        quality_sum = 0
+        quality_sum = Decimal('0')
         quality_count = 0
         
         for assignment in completed_assignments:
@@ -1833,7 +1859,7 @@ class ProjectService:
             
             # Quality metrics
             if assignment.quality_rating:
-                quality_sum += assignment.quality_rating
+                quality_sum += Decimal(str(assignment.quality_rating))
                 quality_count += 1
         
         # 2. Calculate Utilization
@@ -1853,35 +1879,72 @@ class ProjectService:
             worked_today += daily_roster.misc_hours
             
             metrics.available_minutes = available_minutes
-            metrics.utilization_score = (worked_today / available_minutes * 100) if available_minutes > 0 else 0
+            # Safely calculate utilization
+            if available_minutes > 0:
+                utilization = Decimal(str(worked_today)) / Decimal(str(available_minutes)) * 100
+                # Cap at 999.99 (max for 5,2 decimal field)
+                metrics.utilization_score = min(utilization, Decimal('999.99'))
+            else:
+                metrics.utilization_score = Decimal('0')
+        else:
+            metrics.utilization_score = None
         
-        # 3. Calculate Delivery Performance (as project incharge)
+        # 3. Calculate Delivery Performance
         delivered_projects = ProjectDelivery.objects.filter(
             project_incharge=team_member,
             delivery_date=date
         )
         
-        delivery_sum = 0
-        delivery_count = delivered_projects.count()
+        delivery_sum = Decimal('0')
+        delivery_count = 0
         
         for delivery in delivered_projects:
-            if delivery.delivery_performance_rating:
-                delivery_sum += delivery.delivery_performance_rating
+            if delivery.delivery_performance_rating is not None and delivery.delivery_performance_rating > 0:
+                delivery_sum += Decimal(str(delivery.delivery_performance_rating))
+                delivery_count += 1
         
-        # Update all metrics
+        # Update all metrics with safe calculations
         metrics.total_projected_minutes = total_projected
         metrics.total_worked_minutes = total_worked
-        metrics.productivity_score = (total_projected / total_worked * 100) if total_worked > 0 else None
+        
+        # Safely calculate productivity
+        if total_worked > 0:
+            productivity = Decimal(str(total_projected)) / Decimal(str(total_worked)) * 100
+            # Cap at 999.99 (max for 5,2 decimal field)
+            metrics.productivity_score = min(productivity, Decimal('999.99'))
+        else:
+            metrics.productivity_score = None
         
         metrics.assignments_completed = completed_assignments.count()
         metrics.total_quality_points = quality_sum
-        metrics.average_quality_rating = (quality_sum / quality_count) if quality_count > 0 else None
         
-        metrics.projects_delivered = delivery_count
+        # Safely calculate average quality
+        if quality_count > 0:
+            avg_quality = quality_sum / Decimal(str(quality_count))
+            # Ensure it's within 1-5 range
+            metrics.average_quality_rating = min(max(avg_quality, Decimal('1')), Decimal('5'))
+        else:
+            metrics.average_quality_rating = None
+        
+        metrics.projects_delivered = delivered_projects.count()  # Total projects delivered
         metrics.total_delivery_rating_points = delivery_sum
-        metrics.average_delivery_rating = (delivery_sum / delivery_count) if delivery_count > 0 else None
         
-        metrics.save()
+        # Safely calculate average delivery rating
+        if delivery_count > 0:
+            avg_delivery = delivery_sum / Decimal(str(delivery_count))
+            # Ensure it's within 1-5 range
+            metrics.average_delivery_rating = min(max(avg_delivery, Decimal('1')), Decimal('5'))
+        else:
+            metrics.average_delivery_rating = None
+        
+        try:
+            metrics.save()
+        except InvalidOperation as e:
+            logger.error(f"Invalid decimal operation for {team_member.username} on {date}: {str(e)}")
+            # Log the values for debugging
+            logger.error(f"Values - Productivity: {metrics.productivity_score}, Utilization: {metrics.utilization_score}")
+            raise
+        
         return metrics
     
     @staticmethod
@@ -1900,6 +1963,11 @@ class ProjectService:
         ).first()
         
         if existing:
+            # Update the rating if it changed
+            if project.delivery_performance_rating and existing.delivery_performance_rating != project.delivery_performance_rating:
+                existing.delivery_performance_rating = project.delivery_performance_rating
+                existing.save()
+                logger.info(f"Updated delivery rating for project {project.hs_id} to {project.delivery_performance_rating}")
             return existing
         
         # Create delivery record
@@ -1907,15 +1975,12 @@ class ProjectService:
             logger.warning(f"Project {project.hs_id} reached final delivery without project incharge")
             return None
         
-        if not project.delivery_performance_rating:
-            logger.warning(f"Project {project.hs_id} reached final delivery without performance rating")
-            # Don't return None - still track the delivery
-        
+        # Only create delivery record if there's a valid rating
         delivery = ProjectDelivery.objects.create(
             project=project,
             project_incharge=project.project_incharge,
             delivery_date=delivery_date,
-            delivery_performance_rating=project.delivery_performance_rating or 0,
+            delivery_performance_rating=project.delivery_performance_rating or None,  # Store None instead of 0
             project_name=project.project_name,
             hs_id=project.hs_id,
             expected_completion_date=project.expected_completion_date,
@@ -2030,9 +2095,14 @@ class ProjectService:
         """
         Prepare data for chart visualization.
         """
-        return {
+
+        import json
+    
+        data = {
             'dates': [m.date.strftime('%Y-%m-%d') for m in daily_metrics],
-            'productivity': [float(m.productivity_score or 0) for m in daily_metrics],
-            'utilization': [float(m.utilization_score or 0) for m in daily_metrics],
-            'quality': [float(m.average_quality_rating or 0) for m in daily_metrics],
+            'productivity': [float(m.productivity_score) if m.productivity_score else 0 for m in daily_metrics],
+            'utilization': [float(m.utilization_score) if m.utilization_score else 0 for m in daily_metrics],
+            'quality': [float(m.average_quality_rating) if m.average_quality_rating else 0 for m in daily_metrics],
         }
+        
+        return json.dumps(data)

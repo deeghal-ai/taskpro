@@ -1,0 +1,211 @@
+<!-- projects/templates/projects/reports/team_member_report.html -->
+{% extends "projects/reports/base_report.html" %}
+
+{% block report_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4>{{ team_member.get_full_name }} - Performance Report</h4>
+        <p class="text-muted">{{ report.period }}</p>
+    </div>
+</div>
+
+<!-- Summary Metrics -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-label">Average Productivity</div>
+            <div class="metric-value text-primary">
+                {% if report.summary.average_productivity %}
+                    {{ report.summary.average_productivity|floatformat:1 }}%
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <small class="text-muted">Projected Hours / Worked Hours</small>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-label">Average Utilization</div>
+            <div class="metric-value text-success">
+                {% if report.summary.average_utilization %}
+                    {{ report.summary.average_utilization|floatformat:1 }}%
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <small class="text-muted">Worked Hours / Available Hours</small>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-label">Average Quality</div>
+            <div class="metric-value text-info">
+                {% if report.summary.average_quality_rating %}
+                    {{ report.summary.average_quality_rating|floatformat:1 }}/5
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <small class="text-muted">From {{ report.summary.total_assignments_completed }} assignments</small>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-label">Delivery Performance</div>
+            <div class="metric-value text-warning">
+                {% if report.summary.average_delivery_rating %}
+                    {{ report.summary.average_delivery_rating|floatformat:1 }}/5
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <small class="text-muted">{{ report.summary.total_projects_delivered }} projects delivered</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Daily Productivity Trend</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="productivityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Daily Utilization Trend</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="utilizationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery History (if any) -->
+{% if report.delivery_history %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Project Deliveries</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Delivery Date</th>
+                                <th>Expected Date</th>
+                                <th>Variance</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for delivery in report.delivery_history %}
+                            <tr>
+                                <td>{{ delivery.project_name }}</td>
+                                <td>{{ delivery.delivery_date|date:"M d, Y" }}</td>
+                                <td>{{ delivery.expected_completion_date|date:"M d, Y"|default:"Not set" }}</td>
+                                <td>
+                                    {% if delivery.days_variance < 0 %}
+                                        <span class="text-success">{{ delivery.days_variance|stringformat:"d"|slice:"1:" }} days early</span>
+                                    {% elif delivery.days_variance > 0 %}
+                                        <span class="text-danger">{{ delivery.days_variance }} days late</span>
+                                    {% else %}
+                                        <span class="text-muted">On time</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if delivery.delivery_performance_rating %}
+                                        <span class="badge bg-primary">{{ delivery.delivery_performance_rating|floatformat:1 }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Not rated</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block report_scripts %}
+<script>
+    // Chart data from Django
+    const chartData = {{ report.charts_data|safe }};
+    
+    // Productivity Chart
+    const productivityCtx = document.getElementById('productivityChart').getContext('2d');
+    new Chart(productivityCtx, {
+        type: 'line',
+        data: {
+            labels: chartData.dates,
+            datasets: [{
+                label: 'Productivity %',
+                data: chartData.productivity,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 150
+                }
+            }
+        }
+    });
+    
+    // Utilization Chart
+    const utilizationCtx = document.getElementById('utilizationChart').getContext('2d');
+    new Chart(utilizationCtx, {
+        type: 'line',
+        data: {
+            labels: chartData.dates,
+            datasets: [{
+                label: 'Utilization %',
+                data: chartData.utilization,
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+<!-- projects/templates/projects/reports/team_overview.html -->
+{% extends "projects/reports/base_report.html" %}
+
+{% block report_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4>Team Performance Overview</h4>
+        <p class="text-muted">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Team Member</th>
+                        <th>Avg Productivity</th>
+                        <th>Avg Utilization</th>
+                        <th>Avg Quality</th>
+                        <th>Avg Delivery</th>
+                        <th>Assignments</th>
+                        <th>Projects</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in overview_data %}
+                    <tr>
+                        <td>{{ data.team_member.get_full_name }}</td>
+                        <td>
+                            {% if data.metrics.avg_productivity %}
+                                <span class="badge bg-primary">{{ data.metrics.avg_productivity|floatformat:1 }}%</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data.metrics.avg_utilization %}
+                                <span class="badge bg-success">{{ data.metrics.avg_utilization|floatformat:1 }}%</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data.metrics.avg_quality %}
+                                <span class="badge bg-info">{{ data.metrics.avg_quality|floatformat:1 }}/5</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data.metrics.avg_delivery %}
+                                <span class="badge bg-warning">{{ data.metrics.avg_delivery|floatformat:1 }}/5</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ data.metrics.total_assignments|default:0 }}</td>
+                        <td>{{ data.metrics.total_projects|default:0 }}</td>
+                        <td>
+                            <a href="{% url 'projects:team_member_report' data.team_member.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

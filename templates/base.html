@@ -39,10 +39,33 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'projects:create_project' %}">Create Project</a>
                             </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="reportsMenu" 
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-graph-up"></i> Reports
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="reportsMenu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:team_overview_report' %}">
+                                            Team Overview
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:delivery_performance_report' %}">
+                                            Delivery Performance
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
                         {% endif %}
                         {% if user.role == 'TEAM_MEMBER' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'projects:team_member_dashboard' %}">My Tasks</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'projects:my_report' %}">
+                                    <i class="bi bi-graph-up"></i> My Report
+                                </a>
                             </li>
                         {% endif %}
                     </ul>

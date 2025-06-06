@@ -1,0 +1,176 @@
+<!-- projects/templates/projects/reports/delivery_performance.html -->
+{% extends "projects/reports/base_report.html" %}
+{% load report_filters %}
+
+{% block report_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4>Delivery Performance Report</h4>
+        <p class="text-muted">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if report_data %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Project Incharge</th>
+                            <th>Average Rating</th>
+                            <th>Total Deliveries</th>
+                            <th>On-Time Rate</th>
+                            <th>Recent Projects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in report_data %}
+                        <tr>
+                            <td>
+                                <strong>{{ data.team_member.get_full_name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ data.team_member.username }}</small>
+                            </td>
+                            <td>
+                                {% if data.average_rating %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary fs-6">
+                                            {{ data.average_rating|floatformat:1 }}
+                                        </span>
+                                        <div class="ms-2">
+                                            {% for i in "12345" %}
+                                                {% if i|add:0 <= data.average_rating %}
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">No ratings</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ data.total_deliveries }}</span>
+                            </td>
+                            <td>
+                                {% if data.on_time_rate %}
+                                    <div class="progress" style="height: 25px;">
+                                        <div class="progress-bar {% if data.on_time_rate >= 90 %}bg-success{% elif data.on_time_rate >= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ data.on_time_rate }}%"
+                                             aria-valuenow="{{ data.on_time_rate }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ data.on_time_rate|floatformat:1 }}%
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.recent_deliveries %}
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#deliveries{{ forloop.counter }}">
+                                        <i class="bi bi-eye"></i> View ({{ data.recent_deliveries|length }})
+                                    </button>
+                                {% else %}
+                                    <span class="text-muted">None</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if data.recent_deliveries %}
+                        <tr class="collapse" id="deliveries{{ forloop.counter }}">
+                            <td colspan="5">
+                                <div class="p-3 bg-light">
+                                    <h6>Recent Deliveries:</h6>
+                                    <table class="table table-sm mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Project</th>
+                                                <th>Delivery Date</th>
+                                                <th>Expected Date</th>
+                                                <th>Variance</th>
+                                                <th>Rating</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for delivery in data.recent_deliveries %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ delivery.hs_id }}</strong>
+                                                    <br>
+                                                    <small>{{ delivery.project_name }}</small>
+                                                </td>
+                                                <td>{{ delivery.delivery_date|date:"M d, Y" }}</td>
+                                                <td>
+                                                    {% if delivery.expected_completion_date %}
+                                                        {{ delivery.expected_completion_date|date:"M d, Y" }}
+                                                    {% else %}
+                                                        <span class="text-muted">Not set</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if delivery.days_variance is not None %}
+                                                        {% if delivery.days_variance < 0 %}
+                                                            <span class="text-success">
+                                                                <i class="bi bi-arrow-down"></i>
+                                                                {% with days=delivery.days_variance %}
+                                                                    {% if days == -1 %}
+                                                                        1 day early
+                                                                    {% else %}
+                                                                        {{ days|stringformat:"d"|slice:"1:" }} days early
+                                                                    {% endif %}
+                                                                {% endwith %}
+                                                            </span>
+                                                        {% elif delivery.days_variance > 0 %}
+                                                            <span class="text-danger">
+                                                                <i class="bi bi-arrow-up"></i>
+                                                                {% if delivery.days_variance == 1 %}
+                                                                    1 day late
+                                                                {% else %}
+                                                                    {{ delivery.days_variance }} days late
+                                                                {% endif %}
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="text-muted">On time</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if delivery.delivery_performance_rating %}
+                                                        <span class="badge bg-primary">
+                                                            {{ delivery.delivery_performance_rating|floatformat:1 }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">Not rated</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h5 class="mt-3">No Delivery Data Available</h5>
+                <p class="text-muted">No projects have been delivered in the selected date range.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

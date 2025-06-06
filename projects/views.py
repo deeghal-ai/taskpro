@@ -7,10 +7,10 @@ from .services import ProjectService
 from accounts.models import User
 from locations.models import Region, City
 from django.http import JsonResponse
-from .models import Project, ProjectStatusOption, ProjectTask, TaskAssignment, ProjectStatusHistory, ActiveTimer, TimeSession, DailyTimeTotal
+from .models import Project, ProjectStatusOption, ProjectTask, TaskAssignment, ProjectStatusHistory, ActiveTimer, TimeSession, DailyTimeTotal, ProjectDelivery
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.db.models import Subquery, OuterRef, F
+from django.db.models import Subquery, OuterRef, F, Avg, Count, Q
 from django.core.exceptions import ValidationError
 import uuid
 from datetime import date, timedelta, datetime
@@ -355,6 +355,22 @@ def update_project_configuration(request, project_id):
         
         if success:
             messages.success(request, "Project details updated successfully")
+            
+            # Check if delivery performance rating was updated
+            if 'delivery_performance_rating' in form.changed_data:
+                # Update any existing ProjectDelivery records
+                from projects.models import ProjectDelivery
+                ProjectDelivery.objects.filter(project=project).update(
+                    delivery_performance_rating=form.cleaned_data['delivery_performance_rating']
+                )
+                
+                # Recalculate metrics if there are deliveries
+                deliveries = ProjectDelivery.objects.filter(project=project)
+                for delivery in deliveries:
+                    ProjectService.calculate_team_member_metrics(
+                        delivery.project_incharge,
+                        delivery.delivery_date
+                    )
         else:
             messages.error(request, result)
     else:
@@ -363,6 +379,7 @@ def update_project_configuration(request, project_id):
                 messages.error(request, f"{field}: {error}")
     
     return redirect('projects:project_management', project_id=project_id)
+
 
 
 @login_required
