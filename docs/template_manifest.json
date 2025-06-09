@@ -1,0 +1,340 @@
+{
+  "total_templates": 19,
+  "inheritance_tree": {
+    "base.html": [
+      "accounts\\templates\\accounts\\login.html",
+      "projects\\templates\\projects\\assignment_timesheet.html",
+      "projects\\templates\\projects\\create_project.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\dpm_task_dashboard.html",
+      "projects\\templates\\projects\\monthly_roster.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\status_update.html",
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_leader_dashboard.html",
+      "projects\\templates\\projects\\team_member_dashboard.html",
+      "projects\\templates\\projects\\reports\\base_report.html"
+    ],
+    "admin/change_list.html": [
+      "projects\\templates\\admin\\projects\\project\\change_list.html"
+    ],
+    "projects/reports/base_report.html": [
+      "projects\\templates\\projects\\reports\\delivery_performance.html",
+      "projects\\templates\\projects\\reports\\team_member_report.html",
+      "projects\\templates\\projects\\reports\\team_overview.html"
+    ]
+  },
+  "url_mapping": {
+    "projects:project_list": [
+      "templates\\base.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\admin\\projects\\project\\change_list.html"
+    ],
+    "projects:dpm_task_dashboard": [
+      "templates\\base.html",
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "projects:create_project": [
+      "templates\\base.html",
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "projects:team_overview_report": [
+      "templates\\base.html"
+    ],
+    "projects:delivery_performance_report": [
+      "templates\\base.html"
+    ],
+    "projects:team_member_dashboard": [
+      "templates\\base.html",
+      "projects\\templates\\projects\\assignment_timesheet.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "projects:my_report": [
+      "templates\\base.html"
+    ],
+    "admin:index": [
+      "templates\\base.html"
+    ],
+    "accounts:logout": [
+      "templates\\base.html",
+      "templates\\base.html"
+    ],
+    "admin:projects_project_changelist": [
+      "projects\\templates\\projects\\create_project.html"
+    ],
+    "projects:daily_roster": [
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "projects:assignment_timesheet": [
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\team_member_dashboard.html",
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "projects:project_management": [
+      "projects\\templates\\projects\\dpm_task_dashboard.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_leader_dashboard.html"
+    ],
+    "projects:roster_date": [
+      "projects\\templates\\projects\\monthly_roster.html",
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "projects:update_roster_day": [
+      "projects\\templates\\projects\\monthly_roster.html",
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "projects:update_project_status": [
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_detail.html"
+    ],
+    "projects:project_detail": [
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\status_update.html"
+    ],
+    "projects:api_cities": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "projects:update_project_configuration": [
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "projects:create_project_task": [
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "projects:task_detail": [
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "projects:create_task_assignment": [
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\task_detail.html"
+    ],
+    "projects:update_task_assignment": [
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\task_detail.html"
+    ],
+    "projects:update_quality_rating": [
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\task_detail.html"
+    ],
+    "projects:roster": [
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "projects:team_member_report": [
+      "projects\\templates\\projects\\reports\\team_overview.html"
+    ]
+  },
+  "template_groups": {},
+  "context_var_index": {
+    "message": [
+      "templates\\base.html"
+    ],
+    "user": [
+      "templates\\base.html"
+    ],
+    "next": [
+      "accounts\\templates\\accounts\\login.html"
+    ],
+    "assignment": [
+      "projects\\templates\\projects\\assignment_timesheet.html",
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "assignment_summary": [
+      "projects\\templates\\projects\\assignment_timesheet.html"
+    ],
+    "daily_total": [
+      "projects\\templates\\projects\\assignment_timesheet.html",
+      "projects\\templates\\projects\\daily_roster.html"
+    ],
+    "daily_totals": [
+      "projects\\templates\\projects\\assignment_timesheet.html",
+      "projects\\templates\\projects\\daily_roster.html"
+    ],
+    "session": [
+      "projects\\templates\\projects\\assignment_timesheet.html"
+    ],
+    "sessions": [
+      "projects\\templates\\projects\\assignment_timesheet.html"
+    ],
+    "title": [
+      "projects\\templates\\projects\\assignment_timesheet.html",
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\dpm_task_dashboard.html",
+      "projects\\templates\\projects\\monthly_roster.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\status_update.html",
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_leader_dashboard.html",
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "error": [
+      "projects\\templates\\projects\\create_project.html"
+    ],
+    "field": [
+      "projects\\templates\\projects\\create_project.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\status_update.html"
+    ],
+    "date_range": [
+      "projects\\templates\\projects\\daily_roster.html"
+    ],
+    "day_group": [
+      "projects\\templates\\projects\\daily_roster.html"
+    ],
+    "filter_form": [
+      "projects\\templates\\projects\\daily_roster.html",
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "total_formatted": [
+      "projects\\templates\\projects\\daily_roster.html"
+    ],
+    "project": [
+      "projects\\templates\\projects\\dpm_task_dashboard.html",
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\status_update.html",
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_leader_dashboard.html"
+    ],
+    "projects": [
+      "projects\\templates\\projects\\dpm_task_dashboard.html",
+      "projects\\templates\\projects\\project_list.html",
+      "projects\\templates\\projects\\team_leader_dashboard.html"
+    ],
+    "day_roster": [
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "misc_hours_form": [
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "monthly_data": [
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "next_month": [
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "prev_month": [
+      "projects\\templates\\projects\\monthly_roster.html"
+    ],
+    "history": [
+      "projects\\templates\\projects\\project_detail.html"
+    ],
+    "status": [
+      "projects\\templates\\projects\\project_detail.html",
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "city": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "dpm": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "filters_applied": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "key": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "num": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "product": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "region": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "value": [
+      "projects\\templates\\projects\\project_list.html"
+    ],
+    "project_form": [
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "task": [
+      "projects\\templates\\projects\\project_management.html",
+      "projects\\templates\\projects\\task_detail.html"
+    ],
+    "task_form": [
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "tasks": [
+      "projects\\templates\\projects\\project_management.html"
+    ],
+    "active_assignments": [
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "assignment_form": [
+      "projects\\templates\\projects\\task_detail.html"
+    ],
+    "completed_assignments": [
+      "projects\\templates\\projects\\task_detail.html",
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "active_timer": [
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "elapsed_time": [
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "now": [
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "timer_stop_form": [
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "today_summary": [
+      "projects\\templates\\projects\\team_member_dashboard.html"
+    ],
+    "block": [
+      "projects\\templates\\admin\\projects\\project\\change_list.html"
+    ],
+    "end_date": [
+      "projects\\templates\\projects\\reports\\base_report.html",
+      "projects\\templates\\projects\\reports\\delivery_performance.html",
+      "projects\\templates\\projects\\reports\\team_overview.html"
+    ],
+    "start_date": [
+      "projects\\templates\\projects\\reports\\base_report.html",
+      "projects\\templates\\projects\\reports\\delivery_performance.html",
+      "projects\\templates\\projects\\reports\\team_overview.html"
+    ],
+    "data": [
+      "projects\\templates\\projects\\reports\\delivery_performance.html",
+      "projects\\templates\\projects\\reports\\team_overview.html"
+    ],
+    "days": [
+      "projects\\templates\\projects\\reports\\delivery_performance.html"
+    ],
+    "delivery": [
+      "projects\\templates\\projects\\reports\\delivery_performance.html",
+      "projects\\templates\\projects\\reports\\team_member_report.html"
+    ],
+    "forloop": [
+      "projects\\templates\\projects\\reports\\delivery_performance.html"
+    ],
+    "report": [
+      "projects\\templates\\projects\\reports\\team_member_report.html"
+    ],
+    "team_member": [
+      "projects\\templates\\projects\\reports\\team_member_report.html"
+    ]
+  }
+}
