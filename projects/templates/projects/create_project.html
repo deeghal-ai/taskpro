@@ -1,187 +1,780 @@
 <!--projects/templates/projects/create_project.html -->
 {% extends "base.html" %}
 
-{% block title %}Create New Project{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        border-radius: 0.75rem;
+    }
+
+    .page-header h1 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Form Cards */
+    .form-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+    }
+
+    .form-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .form-card .card-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        border: none;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-card .card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .form-card .card-header h5 i {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+
+    .form-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.625rem 0.75rem;
+        transition: all var(--transition-speed) ease;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-label .text-danger {
+        font-size: 1rem;
+        margin-left: 0.25rem;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    /* Error Styling */
+    .invalid-feedback {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger-color);
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .form-control.is-invalid:focus, .form-select.is-invalid:focus {
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    /* Alert Styling */
+    .alert {
+        border-radius: 0.5rem;
+        border: none;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border-left: 4px solid var(--danger-color);
+    }
+
+    .alert-danger strong {
+        font-weight: 600;
+    }
+
+    .alert ul {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.625rem 1.25rem;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background: #0a58ca;
+        border-color: #0a58ca;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        border-color: #545b62;
+    }
+
+    /* Loading State */
+    .btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spinner 0.8s linear infinite;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        background: var(--light-bg);
+        border-top: 1px solid var(--border-color);
+        margin: 2rem -1.5rem -1.5rem;
+        padding: 1.5rem;
+        border-radius: 0 0 0.75rem 0.75rem;
+    }
+
+    /* Animations */
+    @keyframes spinner {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Field Icons */
+    .field-icon {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1rem 0;
+        }
+
+        .form-card .card-body {
+            padding: 1rem;
+        }
+
+        .form-actions {
+            margin: 1.5rem -1rem -1rem;
+            padding: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    /* Date Input Enhancement */
+    input[type="date"] {
+        cursor: pointer;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity var(--transition-speed) ease;
+    }
+
+    input[type="date"]:hover::-webkit-calendar-picker-indicator {
+        opacity: 1;
+    }
+
+    /* Progress Indicator */
+    .form-progress {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .form-progress::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-color);
+        z-index: 0;
+    }
+
+    .form-progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-progress-step-icon {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .form-progress-step.active .form-progress-step-icon {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .form-progress-step-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2 class="mb-4">Create New Project</h2>
-        
-        <form method="post" class="needs-validation" novalidate>
-            {% csrf_token %}
-            
-            {# Display form-wide errors #}
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                <strong>Form Errors:</strong>
-                <ul class="mb-0">
-                    {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4>
+                    <i class="bi bi-plus-circle"></i> Create New Project
+                </h4>
+                <!--<p class="mb-0 opacity-75">Fill in the project details to create a new project</p>-->
             </div>
-            {% endif %}
-            
-            {# Display specific field errors at the top #}
-            {% if form.errors %}
-            <div class="alert alert-danger">
-                <strong>Please correct the following errors:</strong>
-                <ul class="mb-0">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                        <li>{{ field.label }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-            
-            <div class="row">
-                <!-- Basic Information -->
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Basic Information</h5>
-                        </div>
-                        <div class="card-body">
-                            {% for field in form %}
-                                {% if field.name in 'opportunity_id,project_type,project_name,builder_name,city' %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">
-                                        {{ field.label }}
-                                        {% if field.field.required %}
-                                            <span class="text-danger">*</span>
-                                        {% endif %}
-                                    </label>
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                    {% endif %}
-                                    {% if field.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in field.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Product Information -->
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Product Information</h5>
-                        </div>
-                        <div class="card-body">
-                            {% for field in form %}
-                                {% if field.name in 'product,product_subcategory,package_id,quantity' %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">
-                                        {{ field.label }}
-                                        {% if field.field.required %}
-                                            <span class="text-danger">*</span>
-                                        {% endif %}
-                                    </label>
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                    {% endif %}
-                                    {% if field.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in field.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Dates -->
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Important Dates</h5>
-                        </div>
-                        <div class="card-body">
-                            {% for field in form %}
-                                {% if field.name in 'purchase_date,sales_confirmation_date' %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">
-                                        {{ field.label }}
-                                        {% if field.field.required %}
-                                            <span class="text-danger">*</span>
-                                        {% endif %}
-                                    </label>
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                    {% endif %}
-                                    {% if field.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in field.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Team Information -->
-                <div class="col-md-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Team Information</h5>
-                        </div>
-                        <div class="card-body">
-                            {% for field in form %}
-                                {% if field.name in 'account_manager,team_leader,current_status' %}
-                                <div class="mb-3">
-                                    <label for="{{ field.id_for_label }}" class="form-label">
-                                        {{ field.label }}
-                                        {% if field.field.required %}
-                                            <span class="text-danger">*</span>
-                                        {% endif %}
-                                    </label>
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                    {% endif %}
-                                    {% if field.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in field.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <div class="col">
-                    <button type="submit" class="btn btn-primary">Create Project</button>
-                    <a href="{% url 'admin:projects_project_changelist' %}" class="btn btn-secondary">Cancel</a>
-                </div>
-            </div>
-        </form>
+            <a href="{% url 'projects:project_list' %}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Projects
+            </a>
+        </div>
     </div>
 </div>
+
+<div class="container-fluid">
+    <form method="post" class="needs-validation" novalidate id="createProjectForm">
+        {% csrf_token %}
+        
+        {# Display form-wide errors #}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> Form Errors:</strong>
+            <ul class="mb-0 mt-2">
+                {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {# Display specific field errors at the top #}
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> Please correct the following errors:</strong>
+            <ul class="mb-0 mt-2">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <div class="row">
+            <!-- Basic Information -->
+            <div class="col-md-6">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="bi bi-info-circle-fill"></i> Basic Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for field in form %}
+                            {% if field.name in 'opportunity_id,project_type,project_name,builder_name,city' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    <i class="bi {% if field.name == 'opportunity_id' %}bi-hash{% elif field.name == 'project_type' %}bi-tag{% elif field.name == 'project_name' %}bi-briefcase{% elif field.name == 'builder_name' %}bi-building{% elif field.name == 'city' %}bi-geo-alt{% endif %} field-icon"></i>
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Information -->
+            <div class="col-md-6">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="bi bi-box-seam"></i> Product Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for field in form %}
+                            {% if field.name in 'product,product_subcategory,package_id,quantity' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    <i class="bi {% if field.name == 'product' %}bi-box{% elif field.name == 'product_subcategory' %}bi-diagram-3{% elif field.name == 'package_id' %}bi-upc{% elif field.name == 'quantity' %}bi-123{% endif %} field-icon"></i>
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Important Dates -->
+            <div class="col-md-6">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="bi bi-calendar-event"></i> Important Dates
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for field in form %}
+                            {% if field.name in 'purchase_date,sales_confirmation_date' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    <i class="bi {% if field.name == 'purchase_date' %}bi-cart-check{% else %}bi-check-circle{% endif %} field-icon"></i>
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team & Status Information -->
+            <div class="col-md-6">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="bi bi-people"></i> Team & Status Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for field in form %}
+                            {% if field.name in 'account_manager,current_status,status_change_comment' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    <i class="bi {% if field.name == 'account_manager' %}bi-person-badge{% elif field.name == 'current_status' %}bi-flag{% else %}bi-chat-left-text{% endif %} field-icon"></i>
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- DPM Assignment (Auto) -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-person-check field-icon"></i>
+                                Deputy Project Manager
+                            </label>
+                            <div class="form-control-plaintext">
+                                <span class="badge bg-info">{{ user.get_full_name|default:user.username }}</span>
+                                <small class="text-muted ms-2">(Automatically assigned)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-card">
+            <div class="form-actions">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            Fields marked with <span class="text-danger">*</span> are required
+                        </span>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-lg"></i> Create Project
+                        </button>
+                        <a href="{% url 'projects:project_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // Form Validation and Submit Handler
+    const FormHandler = {
+        form: null,
+        submitBtn: null,
+        
+        init() {
+            this.form = document.getElementById('createProjectForm');
+            this.submitBtn = document.getElementById('submitBtn');
+            
+            if (this.form) {
+                this.attachEventListeners();
+                this.initializeBootstrapValidation();
+            }
+        },
+        
+        attachEventListeners() {
+            // Handle form submission
+            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            
+            // Clear validation on input
+            const inputs = this.form.querySelectorAll('.form-control, .form-select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.classList.contains('is-invalid')) {
+                        input.classList.remove('is-invalid');
+                        const feedback = input.parentElement.querySelector('.invalid-feedback');
+                        if (feedback) {
+                            feedback.remove();
+                        }
+                    }
+                });
+            });
+        },
+        
+        initializeBootstrapValidation() {
+            // Bootstrap validation
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        },
+        
+        handleSubmit(e) {
+            // Add loading state
+            if (this.submitBtn) {
+                this.submitBtn.disabled = true;
+                this.submitBtn.classList.add('btn-loading');
+            }
+            
+            // Let the form submit naturally if valid
+            if (!this.form.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Remove loading state
+                if (this.submitBtn) {
+                    this.submitBtn.disabled = false;
+                    this.submitBtn.classList.remove('btn-loading');
+                }
+                
+                // Show first invalid field
+                const firstInvalid = this.form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+    };
+    
+    // Product-Subcategory Dependency
+    const ProductSubcategoryHandler = {
+        productSelect: null,
+        subcategorySelect: null,
+        
+        init() {
+            this.productSelect = document.querySelector('[name="product"]');
+            this.subcategorySelect = document.querySelector('[name="product_subcategory"]');
+            
+            if (this.productSelect && this.subcategorySelect) {
+                // This could be enhanced to filter subcategories based on product
+                // For now, just ensure the subcategory is optional
+                this.setupSubcategoryLogic();
+            }
+        },
+        
+        setupSubcategoryLogic() {
+            // Add visual cue that subcategory is optional
+            const subcategoryLabel = this.subcategorySelect.parentElement.querySelector('.form-label');
+            if (subcategoryLabel && !subcategoryLabel.textContent.includes('(Optional)')) {
+                const optionalSpan = document.createElement('span');
+                optionalSpan.className = 'text-muted ms-1';
+                optionalSpan.textContent = '(Optional)';
+                subcategoryLabel.appendChild(optionalSpan);
+            }
+        }
+    };
+    
+    // Date Validation
+    const DateValidator = {
+        purchaseDateInput: null,
+        salesDateInput: null,
+        
+        init() {
+            this.purchaseDateInput = document.querySelector('[name="purchase_date"]');
+            this.salesDateInput = document.querySelector('[name="sales_confirmation_date"]');
+            
+            if (this.purchaseDateInput && this.salesDateInput) {
+                this.attachEventListeners();
+            }
+        },
+        
+        attachEventListeners() {
+            // Validate that purchase date is not after sales date
+            this.purchaseDateInput.addEventListener('change', () => this.validateDates());
+            this.salesDateInput.addEventListener('change', () => this.validateDates());
+        },
+        
+        validateDates() {
+            const purchaseDate = new Date(this.purchaseDateInput.value);
+            const salesDate = new Date(this.salesDateInput.value);
+            
+            if (this.purchaseDateInput.value && this.salesDateInput.value) {
+                if (purchaseDate > salesDate) {
+                    this.purchaseDateInput.setCustomValidity('Purchase date cannot be after sales confirmation date');
+                    this.purchaseDateInput.classList.add('is-invalid');
+                    
+                    // Add custom error message
+                    let feedback = this.purchaseDateInput.parentElement.querySelector('.invalid-feedback');
+                    if (!feedback) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback d-block';
+                        this.purchaseDateInput.parentElement.appendChild(feedback);
+                    }
+                    feedback.textContent = 'Purchase date cannot be after sales confirmation date';
+                } else {
+                    this.purchaseDateInput.setCustomValidity('');
+                    this.purchaseDateInput.classList.remove('is-invalid');
+                    const feedback = this.purchaseDateInput.parentElement.querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.remove();
+                    }
+                }
+            }
+        }
+    };
+    
+    // Field Animation
+    const FieldAnimation = {
+        init() {
+            const cards = document.querySelectorAll('.form-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+    };
+    
+    // Tooltips
+    const TooltipHandler = {
+        init() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    };
+    
+    // Initialize all components when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        FormHandler.init();
+        ProductSubcategoryHandler.init();
+        DateValidator.init();
+        FieldAnimation.init();
+        TooltipHandler.init();
+    });
+})();
+</script>
 {% endblock %}
