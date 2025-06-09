@@ -303,49 +303,50 @@ class ProjectService:
                 - If successful: (True, task)
                 - If failed: (False, error_message)
         """
-        try:
-            project = Project.objects.get(id=project_id)
-            
-            # Validate the user is the project's DPM
-            if project.dpm != dpm:
-                logger.warning(f"User {dpm.id} attempted to create task for project {project_id} but is not the assigned DPM")
-                return False, "Only the assigned DPM can create tasks"
+        with transaction.atomic():
+            try:
+                project = Project.objects.get(id=project_id)
                 
-            # Ensure project has been set up
-            missing_config = []
-            if not project.project_incharge:
-                missing_config.append("Project Incharge")
-            if not project.expected_completion_date:
-                missing_config.append("Expected Completion Date")
+                # Validate the user is the project's DPM
+                if project.dpm != dpm:
+                    logger.warning(f"User {dpm.id} attempted to create task for project {project_id} but is not the assigned DPM")
+                    return False, "Only the assigned DPM can create tasks"
+                    
+                # Ensure project has been set up
+                missing_config = []
+                if not project.project_incharge:
+                    missing_config.append("Project Incharge")
+                if not project.expected_completion_date:
+                    missing_config.append("Expected Completion Date")
+                    
+                if missing_config:
+                    logger.warning(f"Attempted to create task for project {project_id} with incomplete configuration: {missing_config}")
+                    return False, f"Please complete project configuration first. Missing: {', '.join(missing_config)}"
                 
-            if missing_config:
-                logger.warning(f"Attempted to create task for project {project_id} with incomplete configuration: {missing_config}")
-                return False, f"Please complete project configuration first. Missing: {', '.join(missing_config)}"
-            
-            # Create task object directly from validated data
-            task = ProjectTask(
-                project=project,
-                product_task=task_data['product_task'],
-                task_type=task_data['task_type'],
-                estimated_time=task_data['estimated_time'],
-                created_by=dpm
-            )
-            
-            # Save the task (this will generate the task_id)
-            task.save()
-            
-            logger.info(f"Created new task {task.task_id} for project {project_id} by {dpm.username}")
-            return True, task
+                # Create task object directly from validated data
+                task = ProjectTask(
+                    project=project,
+                    product_task=task_data['product_task'],
+                    task_type=task_data['task_type'],
+                    estimated_time=task_data['estimated_time'],
+                    created_by=dpm
+                )
                 
-        except Project.DoesNotExist:
-            logger.warning(f"Project not found: {project_id}")
-            return False, "Project not found"
-        except ValidationError as e:
-            logger.warning(f"Validation error in create_project_task: {str(e)}")
-            return False, e.message_dict if hasattr(e, 'message_dict') else str(e)
-        except Exception as e:
-            logger.exception(f"Error creating project task: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+                # Save the task (this will generate the task_id)
+                task.save()
+                
+                logger.info(f"Created new task {task.task_id} for project {project_id} by {dpm.username}")
+                return True, task
+                    
+            except Project.DoesNotExist:
+                logger.warning(f"Project not found: {project_id}")
+                return False, "Project not found"
+            except ValidationError as e:
+                logger.warning(f"Validation error in create_project_task: {str(e)}")
+                return False, e.message_dict if hasattr(e, 'message_dict') else str(e)
+            except Exception as e:
+                logger.exception(f"Error creating project task: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
     @staticmethod
     def create_task_assignment(task_id, assignment_data, dpm):
@@ -362,44 +363,45 @@ class ProjectService:
                 - If successful: (True, assignment)
                 - If failed: (False, error_message)
         """
-        try:
-            task = ProjectTask.objects.select_related('project').get(id=task_id)
-            
-            # Validate the user is the project's DPM
-            if task.project.dpm != dpm:
-                logger.warning(f"User {dpm.id} attempted to create assignment for task {task_id} but is not the assigned DPM")
-                return False, "Only the project's DPM can create assignments"
-            
-            # Create assignment object from validated data
-            assignment = TaskAssignment(
-                task=task,
-                assigned_to=assignment_data['assigned_to'],
-                projected_hours=assignment_data['projected_hours'],
-                sub_task=assignment_data['sub_task'],
-                rework_type=assignment_data.get('rework_type'),
-                is_active=True,  # Always set to True for new assignments
-                expected_delivery_date=assignment_data['expected_delivery_date'],
-                assigned_by=dpm
-            )
-
-            # Run model validation
-            assignment.full_clean()
-            
-            # Save the assignment (this will generate the assignment_id)
-            assignment.save()
-            
-            logger.info(f"Created task assignment {assignment.assignment_id} for task {task_id} by {dpm.username}")
-            return True, assignment
+        with transaction.atomic():
+            try:
+                task = ProjectTask.objects.select_related('project').get(id=task_id)
                 
-        except ProjectTask.DoesNotExist:
-            logger.warning(f"Task not found: {task_id}")
-            return False, "Task not found"
-        except ValidationError as e:
-            logger.warning(f"Validation error in create_task_assignment: {str(e)}")
-            return False, e.message_dict if hasattr(e, 'message_dict') else str(e)
-        except Exception as e:
-            logger.exception(f"Error creating task assignment: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+                # Validate the user is the project's DPM
+                if task.project.dpm != dpm:
+                    logger.warning(f"User {dpm.id} attempted to create assignment for task {task_id} but is not the assigned DPM")
+                    return False, "Only the project's DPM can create assignments"
+                
+                # Create assignment object from validated data
+                assignment = TaskAssignment(
+                    task=task,
+                    assigned_to=assignment_data['assigned_to'],
+                    projected_hours=assignment_data['projected_hours'],
+                    sub_task=assignment_data['sub_task'],
+                    rework_type=assignment_data.get('rework_type'),
+                    is_active=True,  # Always set to True for new assignments
+                    expected_delivery_date=assignment_data['expected_delivery_date'],
+                    assigned_by=dpm
+                )
+
+                # Run model validation
+                assignment.full_clean()
+                
+                # Save the assignment (this will generate the assignment_id)
+                assignment.save()
+                
+                logger.info(f"Created task assignment {assignment.assignment_id} for task {task_id} by {dpm.username}")
+                return True, assignment
+                    
+            except ProjectTask.DoesNotExist:
+                logger.warning(f"Task not found: {task_id}")
+                return False, "Task not found"
+            except ValidationError as e:
+                logger.warning(f"Validation error in create_task_assignment: {str(e)}")
+                return False, e.message_dict if hasattr(e, 'message_dict') else str(e)
+            except Exception as e:
+                logger.exception(f"Error creating task assignment: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
 
     @staticmethod
@@ -417,50 +419,51 @@ class ProjectService:
                 - If successful: (True, assignment)
                 - If failed: (False, error_message)
         """
-        try:
-            assignment = TaskAssignment.objects.select_related(
-                'task__project'
-            ).get(id=assignment_id)
+        with transaction.atomic():
+            try:
+                assignment = TaskAssignment.objects.select_related(
+                    'task__project'
+                ).get(id=assignment_id)
             
-            # Validate DPM permission
-            if assignment.task.project.dpm != dpm:
-                logger.warning(f"User {dpm.id} attempted to update assignment {assignment_id} but is not the assigned DPM")
-                return False, "Only the project's DPM can update assignments"
+                # Validate DPM permission
+                if assignment.task.project.dpm != dpm:
+                    logger.warning(f"User {dpm.id} attempted to update assignment {assignment_id} but is not the assigned DPM")
+                    return False, "Only the project's DPM can update assignments"
+                
+                # Update assignment fields from validated data
+                if 'projected_hours' in assignment_data:
+                    assignment.projected_hours = assignment_data['projected_hours']
+                
+                if 'expected_delivery_date' in assignment_data:
+                    assignment.expected_delivery_date = assignment_data['expected_delivery_date']
+                
+                if 'error_count' in assignment_data:
+                    assignment.error_count = assignment_data['error_count']
+                
+                if 'error_description' in assignment_data:
+                    assignment.error_description = assignment_data['error_description']
+                
+                if 'quality_rating' in assignment_data:
+                    assignment.quality_rating = assignment_data['quality_rating']
+                
+                if 'is_active' in assignment_data:
+                    assignment.is_active = assignment_data['is_active']
+                
+                # Save the updated assignment
+                assignment.save()
+                
+                logger.info(f"Updated task assignment {assignment.assignment_id} by {dpm.username}")
+                return True, assignment
             
-            # Update assignment fields from validated data
-            if 'projected_hours' in assignment_data:
-                assignment.projected_hours = assignment_data['projected_hours']
-            
-            if 'expected_delivery_date' in assignment_data:
-                assignment.expected_delivery_date = assignment_data['expected_delivery_date']
-            
-            if 'error_count' in assignment_data:
-                assignment.error_count = assignment_data['error_count']
-            
-            if 'error_description' in assignment_data:
-                assignment.error_description = assignment_data['error_description']
-            
-            if 'quality_rating' in assignment_data:
-                assignment.quality_rating = assignment_data['quality_rating']
-            
-            if 'is_active' in assignment_data:
-                assignment.is_active = assignment_data['is_active']
-            
-            # Save the updated assignment
-            assignment.save()
-            
-            logger.info(f"Updated task assignment {assignment.assignment_id} by {dpm.username}")
-            return True, assignment
-            
-        except TaskAssignment.DoesNotExist:
-            logger.warning(f"Assignment not found: {assignment_id}")
-            return False, "Assignment not found"
-        except ValidationError as e:
-            logger.warning(f"Validation error in update_task_assignment: {str(e)}")
-            return False, str(e)
-        except Exception as e:
-            logger.exception(f"Error updating task assignment: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+            except TaskAssignment.DoesNotExist:
+                logger.warning(f"Assignment not found: {assignment_id}")
+                return False, "Assignment not found"
+            except ValidationError as e:
+                logger.warning(f"Validation error in update_task_assignment: {str(e)}")
+                return False, str(e)
+            except Exception as e:
+                logger.exception(f"Error updating task assignment: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
     
     @staticmethod
     def get_project_task(task_id, project_id=None):
@@ -603,64 +606,65 @@ class ProjectService:
         Updates a project's configuration (incharge, completion date, rating).
         Also updates any existing delivery records if rating changes.
         """
-        try:
-            project = Project.objects.get(id=project_id)
-            
-            # Validate the user is the project's DPM
-            if project.dpm != dpm:
-                logger.warning(f"User {dpm.id} attempted to update configuration for project {project_id} but is not the assigned DPM")
-                return False, "Only the assigned DPM can update project configuration"
-            
-            # Store old values for comparison
-            old_rating = project.delivery_performance_rating
-            old_incharge = project.project_incharge
-            
-            # Update project with validated data
-            project.project_incharge = config_data['project_incharge']
-            project.expected_completion_date = config_data['expected_completion_date']
-            
-            # Only update rating if provided
-            if config_data.get('delivery_performance_rating') is not None:
-                project.delivery_performance_rating = config_data['delivery_performance_rating']
-            
-            project.save()
-            
-            # If delivery rating changed, update any existing ProjectDelivery records
-            if old_rating != project.delivery_performance_rating:
-                from .models import ProjectDelivery
-                updated_count = ProjectDelivery.objects.filter(project=project).update(
-                    delivery_performance_rating=project.delivery_performance_rating
-                )
+        with transaction.atomic():
+            try:
+                project = Project.objects.get(id=project_id)
                 
-                if updated_count > 0:
-                    logger.info(f"Updated {updated_count} delivery records for project {project_id} with new rating {project.delivery_performance_rating}")
+                # Validate the user is the project's DPM
+                if project.dpm != dpm:
+                    logger.warning(f"User {dpm.id} attempted to update configuration for project {project_id} but is not the assigned DPM")
+                    return False, "Only the assigned DPM can update project configuration"
+                
+                # Store old values for comparison
+                old_rating = project.delivery_performance_rating
+                old_incharge = project.project_incharge
+                
+                # Update project with validated data
+                project.project_incharge = config_data['project_incharge']
+                project.expected_completion_date = config_data['expected_completion_date']
+                
+                # Only update rating if provided
+                if config_data.get('delivery_performance_rating') is not None:
+                    project.delivery_performance_rating = config_data['delivery_performance_rating']
+                
+                project.save()
+                
+                # If delivery rating changed, update any existing ProjectDelivery records
+                if old_rating != project.delivery_performance_rating:
+                    from .models import ProjectDelivery
+                    updated_count = ProjectDelivery.objects.filter(project=project).update(
+                        delivery_performance_rating=project.delivery_performance_rating
+                    )
                     
-                    # Recalculate metrics for all affected dates
-                    deliveries = ProjectDelivery.objects.filter(project=project)
-                    for delivery in deliveries:
-                        ReportingService.calculate_team_member_metrics(
-                            delivery.project_incharge,
-                            delivery.delivery_date
-                        )
-            
-            # If project incharge changed, update delivery records
-            if old_incharge != project.project_incharge and project.project_incharge:
-                ProjectDelivery.objects.filter(project=project).update(
-                    project_incharge=project.project_incharge
-                )
-            
-            logger.info(f"Updated project configuration for {project_id} by {dpm.username}")
-            return True, project
+                    if updated_count > 0:
+                        logger.info(f"Updated {updated_count} delivery records for project {project_id} with new rating {project.delivery_performance_rating}")
+                        
+                        # Recalculate metrics for all affected dates
+                        deliveries = ProjectDelivery.objects.filter(project=project)
+                        for delivery in deliveries:
+                            ReportingService.calculate_team_member_metrics(
+                                delivery.project_incharge,
+                                delivery.delivery_date
+                            )
                 
-        except Project.DoesNotExist:
-            logger.warning(f"Project not found: {project_id}")
-            return False, "Project not found"
-        except ValidationError as e:
-            logger.warning(f"Validation error in update_project_configuration: {str(e)}")
-            return False, str(e)
-        except Exception as e:
-            logger.exception(f"Error updating project configuration: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+                # If project incharge changed, update delivery records
+                if old_incharge != project.project_incharge and project.project_incharge:
+                    ProjectDelivery.objects.filter(project=project).update(
+                        project_incharge=project.project_incharge
+                    )
+                
+                logger.info(f"Updated project configuration for {project_id} by {dpm.username}")
+                return True, project
+                    
+            except Project.DoesNotExist:
+                logger.warning(f"Project not found: {project_id}")
+                return False, "Project not found"
+            except ValidationError as e:
+                logger.warning(f"Validation error in update_project_configuration: {str(e)}")
+                return False, str(e)
+            except Exception as e:
+                logger.exception(f"Error updating project configuration: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
     @staticmethod
     def get_dpm_projects_for_task_management(dpm):
@@ -817,125 +821,118 @@ class ProjectService:
     def start_timer(assignment_id, team_member):
         """
         Start a timer for a team member on a specific assignment.
-        
-        Args:
-            assignment_id: UUID of the assignment
-            team_member: User object of the team member
-            
-        Returns:
-            tuple: (success, result)
-                - If successful: (True, active_timer_object)
-                - If failed: (False, error_message)
+        FIXED: Added select_for_update to prevent race conditions.
         """
-        try:
-            # Check if team member already has an active timer
-            existing_timer = ActiveTimer.objects.filter(team_member=team_member).first()
-            if existing_timer:
-                return False, f"Cannot start timer! Task {existing_timer.assignment.assignment_id} is currently running. Please stop it first."
-            
-            # Get the assignment
-            assignment = TaskAssignment.objects.get(id=assignment_id)
-            
-            # Check if assignment is completed
-            if assignment.is_completed:
-                return False, f"Cannot start timer! Task {assignment.assignment_id} is marked as completed."
-            
-            # Verify team member is assigned to this task
-            if assignment.assigned_to != team_member:
-                return False, "You can only start timers for assignments assigned to you."
-            
-            # Create active timer
-            active_timer = ActiveTimer.objects.create(
-                assignment=assignment,
-                team_member=team_member,
-                started_at=timezone.now()
-            )
-            
-            # Log the action
-            TimerActionLog.objects.create(
-                assignment=assignment,
-                team_member=team_member,
-                action='START',
-                details=f"Started timer at {active_timer.started_at.strftime('%Y-%m-%d %H:%M:%S')}"
-            )
-            
-            logger.info(f"Timer started for {team_member.username} on {assignment.assignment_id}")
-            return True, active_timer
-            
-        except TaskAssignment.DoesNotExist:
-            logger.warning(f"Assignment not found: {assignment_id}")
-            return False, "Assignment not found"
-        except Exception as e:
-            logger.exception(f"Error starting timer: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                # FIXED: Use select_for_update to prevent race conditions
+                existing_timer = ActiveTimer.objects.select_for_update().filter(
+                    team_member=team_member
+                ).first()
+                
+                if existing_timer:
+                    return False, f"Cannot start timer! Task {existing_timer.assignment.assignment_id} is currently running. Please stop it first."
+                
+                # FIXED: Lock the assignment to prevent concurrent modifications
+                assignment = TaskAssignment.objects.select_for_update().get(id=assignment_id)
+                
+                # Check if assignment is completed
+                if assignment.is_completed:
+                    return False, f"Cannot start timer! Task {assignment.assignment_id} is marked as completed."
+                
+                # Verify team member is assigned to this task
+                if assignment.assigned_to != team_member:
+                    return False, "You can only start timers for assignments assigned to you."
+                
+                # Create active timer
+                active_timer = ActiveTimer.objects.create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    started_at=timezone.now()
+                )
+                
+                # Log the action
+                TimerActionLog.objects.create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    action='START',
+                    details=f"Started timer at {active_timer.started_at.strftime('%Y-%m-%d %H:%M:%S')}"
+                )
+                
+                logger.info(f"Timer started for {team_member.username} on {assignment.assignment_id}")
+                return True, active_timer
+                
+            except TaskAssignment.DoesNotExist:
+                logger.warning(f"Assignment not found: {assignment_id}")
+                return False, "Assignment not found"
+            except Exception as e:
+                logger.exception(f"Error starting timer: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
     
     @staticmethod
     def stop_timer(team_member, description=""):
         """
         Stop the active timer for a team member.
-        
-        Args:
-            team_member: User object of the team member
-            description: Optional description of work done
-            
-        Returns:
-            tuple: (success, result)
-                - If successful: (True, time_session_object)
-                - If failed: (False, error_message)
+        FIXED: Added select_for_update and minimum duration validation.
         """
-        try:
-            # Get active timer
-            active_timer = ActiveTimer.objects.filter(team_member=team_member).first()
-            if not active_timer:
-                return False, "No active timer found to stop."
-            
-            end_time = timezone.now()
-            start_time = active_timer.started_at
-            
-            # Calculate duration in minutes
-            duration_seconds = (end_time - start_time).total_seconds()
-            duration_minutes = int(duration_seconds // 60)
-            
-            # Determine the work date (use start time's date)
-            work_date = start_time.date()
-            
-            # Create time session
-            time_session = TimeSession.objects.create(
-                assignment=active_timer.assignment,
-                team_member=team_member,
-                started_at=start_time,
-                ended_at=end_time,
-                duration_minutes=duration_minutes,
-                date_worked=work_date,
-                description=description,
-                session_type='TIMER'
-            )
-            
-            # Update or create daily total
-            ProjectService._update_daily_total(
-                active_timer.assignment, 
-                team_member, 
-                work_date, 
-                duration_minutes
-            )
-            
-            # Log the action
-            TimerActionLog.objects.create(
-                assignment=active_timer.assignment,
-                team_member=team_member,
-                action='STOP',
-                details=f"Stopped timer at {end_time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {ProjectService._format_minutes(duration_minutes)}"
-            )
-            
-            # Delete the active timer
-            active_timer.delete()
-            
-            logger.info(f"Timer stopped for {team_member.username}, Duration: {duration_minutes} minutes")
-            return True, time_session
-            
-        except Exception as e:
-            logger.exception(f"Error stopping timer: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                # FIXED: Use select_for_update to prevent race conditions
+                active_timer = ActiveTimer.objects.select_for_update().filter(
+                    team_member=team_member
+                ).first()
+                
+                if not active_timer:
+                    return False, "No active timer found to stop."
+                
+                end_time = timezone.now()
+                start_time = active_timer.started_at
+                
+                # Calculate duration in minutes
+                duration_seconds = (end_time - start_time).total_seconds()
+                # FIXED: Ensure minimum 1 minute duration
+                duration_minutes = max(1, int(duration_seconds // 60))
+                
+                # Determine the work date (use start time's date)
+                work_date = start_time.date()
+                
+                # Create time session
+                time_session = TimeSession.objects.create(
+                    assignment=active_timer.assignment,
+                    team_member=team_member,
+                    started_at=start_time,
+                    ended_at=end_time,
+                    duration_minutes=duration_minutes,
+                    date_worked=work_date,
+                    description=description,
+                    session_type='TIMER'
+                )
+                
+                # FIXED: Use atomic daily total update
+                ProjectService._update_daily_total(
+                    active_timer.assignment, 
+                    team_member, 
+                    work_date, 
+                    duration_minutes
+                )
+                
+                # Log the action
+                TimerActionLog.objects.create(
+                    assignment=active_timer.assignment,
+                    team_member=team_member,
+                    action='STOP',
+                    details=f"Stopped timer at {end_time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {ProjectService._format_minutes(duration_minutes)}"
+                )
+                
+                # Delete the active timer
+                active_timer.delete()
+                
+                logger.info(f"Timer stopped for {team_member.username}, Duration: {duration_minutes} minutes")
+                return True, time_session
+                
+            except Exception as e:
+                logger.exception(f"Error stopping timer: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
     
     @staticmethod
     def add_manual_time(assignment_id, team_member, date_worked, hours, minutes, description=""):
@@ -955,51 +952,52 @@ class ProjectService:
                 - If successful: (True, time_session_object)
                 - If failed: (False, error_message)
         """
-        try:
-            # Get the assignment
-            assignment = TaskAssignment.objects.get(id=assignment_id)
-            
-            # Verify team member is assigned to this task
-            if assignment.assigned_to != team_member:
-                return False, "You can only add time for assignments assigned to you."
-            
-            # Calculate total minutes
-            total_minutes = (hours * 60) + minutes
-            if total_minutes <= 0:
-                return False, "Duration must be greater than 0 minutes."
-            
-            # Create time session
-            time_session = TimeSession.objects.create(
-                assignment=assignment,
-                team_member=team_member,
-                started_at=timezone.make_aware(datetime.combine(date_worked, datetime.min.time())),
-                ended_at=timezone.make_aware(datetime.combine(date_worked, datetime.min.time()) + timedelta(minutes=total_minutes)),
-                duration_minutes=total_minutes,
-                date_worked=date_worked,
-                description=description,
-                session_type='MANUAL'
-            )
-            
-            # Update daily total
-            ProjectService._update_daily_total(assignment, team_member, date_worked, total_minutes)
-            
-            # Log the action
-            TimerActionLog.objects.create(
-                assignment=assignment,
-                team_member=team_member,
-                action='MANUAL_ADD',
-                details=f"Added {ProjectService._format_minutes(total_minutes)} for {date_worked}, Description: {description}"
-            )
-            
-            logger.info(f"Manual time added for {team_member.username} on {assignment.assignment_id}: {total_minutes} minutes")
-            return True, time_session
-            
-        except TaskAssignment.DoesNotExist:
-            logger.warning(f"Assignment not found: {assignment_id}")
-            return False, "Assignment not found"
-        except Exception as e:
-            logger.exception(f"Error adding manual time: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                # Get the assignment
+                assignment = TaskAssignment.objects.get(id=assignment_id)
+                
+                # Verify team member is assigned to this task
+                if assignment.assigned_to != team_member:
+                    return False, "You can only add time for assignments assigned to you."
+                
+                # Calculate total minutes
+                total_minutes = (hours * 60) + minutes
+                if total_minutes <= 0:
+                    return False, "Duration must be greater than 0 minutes."
+                
+                # Create time session
+                time_session = TimeSession.objects.create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    started_at=timezone.make_aware(datetime.combine(date_worked, datetime.min.time())),
+                    ended_at=timezone.make_aware(datetime.combine(date_worked, datetime.min.time()) + timedelta(minutes=total_minutes)),
+                    duration_minutes=total_minutes,
+                    date_worked=date_worked,
+                    description=description,
+                    session_type='MANUAL'
+                )
+                
+                # Update daily total
+                ProjectService._update_daily_total(assignment, team_member, date_worked, total_minutes)
+                
+                # Log the action
+                TimerActionLog.objects.create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    action='MANUAL_ADD',
+                    details=f"Added {ProjectService._format_minutes(total_minutes)} for {date_worked}, Description: {description}"
+                )
+                
+                logger.info(f"Manual time added for {team_member.username} on {assignment.assignment_id}: {total_minutes} minutes")
+                return True, time_session
+                
+            except TaskAssignment.DoesNotExist:
+                logger.warning(f"Assignment not found: {assignment_id}")
+                return False, "Assignment not found"
+            except Exception as e:
+                logger.exception(f"Error adding manual time: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
     
     @staticmethod
     def complete_assignment(assignment_id, team_member):
@@ -1016,61 +1014,62 @@ class ProjectService:
                 - If successful: (True, assignment_object)
                 - If failed: (False, error_message)
         """
-        try:
-            assignment = TaskAssignment.objects.get(id=assignment_id)
-            
-            # Verify team member is assigned to this task
-            if assignment.assigned_to != team_member:
-                return False, "You can only complete assignments assigned to you."
-            
-            # Check if already completed
-            if assignment.is_completed:
-                return False, "This assignment is already marked as completed."
-            
-            # NEW: Check if any time has been logged for this assignment
-            total_worked_minutes = DailyTimeTotal.objects.filter(
-                assignment=assignment,
-                team_member=team_member
-            ).aggregate(total=Sum('total_minutes'))['total'] or 0
-            
-            if total_worked_minutes == 0:
-                return False, "Cannot complete assignment with zero hours worked. Please log some time before marking this assignment as completed."
-            
-            # Stop any active timer for this assignment
-            active_timer = ActiveTimer.objects.filter(
-                team_member=team_member,
-                assignment=assignment
-            ).first()
-            
-            if active_timer:
-                # Stop the timer first
-                success, result = ProjectService.stop_timer(team_member, "Completed assignment")
-                if not success:
-                    return False, f"Error stopping timer: {result}"
-            
-            # Mark as completed
-            assignment.is_completed = True
-            assignment.completion_date = timezone.now()
-            assignment.is_active = False  # Remove from active assignments
-            assignment.save()
-            
-            # Log the action
-            TimerActionLog.objects.create(
-                assignment=assignment,
-                team_member=team_member,
-                action='COMPLETE',
-                details=f"Assignment completed at {assignment.completion_date.strftime('%Y-%m-%d %H:%M:%S')}"
-            )
-            
-            logger.info(f"Assignment {assignment.assignment_id} completed by {team_member.username}")
-            return True, assignment
-            
-        except TaskAssignment.DoesNotExist:
-            logger.warning(f"Assignment not found: {assignment_id}")
-            return False, "Assignment not found"
-        except Exception as e:
-            logger.exception(f"Error completing assignment: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                assignment = TaskAssignment.objects.select_for_update().get(id=assignment_id)
+                
+                # Verify team member is assigned to this task
+                if assignment.assigned_to != team_member:
+                    return False, "You can only complete assignments assigned to you."
+                
+                # Check if already completed
+                if assignment.is_completed:
+                    return False, "This assignment is already marked as completed."
+                
+                # NEW: Check if any time has been logged for this assignment
+                total_worked_minutes = DailyTimeTotal.objects.filter(
+                    assignment=assignment,
+                    team_member=team_member
+                ).aggregate(total=Sum('total_minutes'))['total'] or 0
+                
+                if total_worked_minutes == 0:
+                    return False, "Cannot complete assignment with zero hours worked. Please log some time before marking this assignment as completed."
+                
+                # Stop any active timer for this assignment
+                active_timer = ActiveTimer.objects.filter(
+                    team_member=team_member,
+                    assignment=assignment
+                ).first()
+                
+                if active_timer:
+                    # Stop the timer first
+                    success, result = ProjectService.stop_timer(team_member, "Completed assignment")
+                    if not success:
+                        return False, f"Error stopping timer: {result}"
+                
+                # Mark as completed
+                assignment.is_completed = True
+                assignment.completion_date = timezone.now()
+                assignment.is_active = False  # Remove from active assignments
+                assignment.save()
+                
+                # Log the action
+                TimerActionLog.objects.create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    action='COMPLETE',
+                    details=f"Assignment completed at {assignment.completion_date.strftime('%Y-%m-%d %H:%M:%S')}"
+                )
+                
+                logger.info(f"Assignment {assignment.assignment_id} completed by {team_member.username}")
+                return True, assignment
+                
+            except TaskAssignment.DoesNotExist:
+                logger.warning(f"Assignment not found: {assignment_id}")
+                return False, "Assignment not found"
+            except Exception as e:
+                logger.exception(f"Error completing assignment: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
     
     @staticmethod
@@ -1079,53 +1078,54 @@ class ProjectService:
         Edit the duration of a timer session (not manual entries).
         Recalculates the daily total after editing.
         """
-        try:
-            # Get the session with validation
-            session = TimeSession.objects.select_related('assignment').get(
-                id=session_id,
-                team_member=team_member,
-                session_type='TIMER'  # Only allow editing timer sessions
-            )
-            
-            # Validate new duration
-            if new_duration_minutes <= 0:
-                return False, "Duration must be greater than 0 minutes"
-            
-            if new_duration_minutes > 1440:  # 24 hours
-                return False, "Duration cannot exceed 24 hours"
-            
-            # Store old duration for recalculation
-            old_duration = session.duration_minutes
-            
-            # Update session duration and mark as edited
-            session.duration_minutes = new_duration_minutes
-            session.is_edited = True  # NEW: Mark as edited
-            session.save()
-            
-            # Recalculate daily total
-            ProjectService._recalculate_daily_total(
-                session.assignment, 
-                team_member, 
-                session.date_worked
-            )
-            
-            # Log the action
-            TimerActionLog.objects.create(
-                assignment=session.assignment,
-                team_member=team_member,
-                action='EDIT_SESSION',
-                details=f"Edited session duration from {ProjectService._format_minutes(old_duration)} to {ProjectService._format_minutes(new_duration_minutes)}"
-            )
-            
-            logger.info(f"Session duration edited for {team_member.username}: {session_id}")
-            return True, session
-            
-        except TimeSession.DoesNotExist:
-            logger.warning(f"Timer session not found or not editable: {session_id}")
-            return False, "Timer session not found or you don't have permission to edit it"
-        except Exception as e:
-            logger.exception(f"Error editing session duration: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                # Get the session with validation
+                session = TimeSession.objects.select_related('assignment').get(
+                    id=session_id,
+                    team_member=team_member,
+                    session_type='TIMER'  # Only allow editing timer sessions
+                )
+                
+                # Validate new duration
+                if new_duration_minutes <= 0:
+                    return False, "Duration must be greater than 0 minutes"
+                
+                if new_duration_minutes > 1440:  # 24 hours
+                    return False, "Duration cannot exceed 24 hours"
+                
+                # Store old duration for recalculation
+                old_duration = session.duration_minutes
+                
+                # Update session duration and mark as edited
+                session.duration_minutes = new_duration_minutes
+                session.is_edited = True  # NEW: Mark as edited
+                session.save()
+                
+                # Recalculate daily total
+                ProjectService._recalculate_daily_total(
+                    session.assignment, 
+                    team_member, 
+                    session.date_worked
+                )
+                
+                # Log the action
+                TimerActionLog.objects.create(
+                    assignment=session.assignment,
+                    team_member=team_member,
+                    action='EDIT_SESSION',
+                    details=f"Edited session duration from {ProjectService._format_minutes(old_duration)} to {ProjectService._format_minutes(new_duration_minutes)}"
+                )
+                
+                logger.info(f"Session duration edited for {team_member.username}: {session_id}")
+                return True, session
+                
+            except TimeSession.DoesNotExist:
+                logger.warning(f"Timer session not found or not editable: {session_id}")
+                return False, "Timer session not found or you don't have permission to edit it"
+            except Exception as e:
+                logger.exception(f"Error editing session duration: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
     @staticmethod
     def _recalculate_daily_total(assignment, team_member, work_date):
@@ -1133,32 +1133,33 @@ class ProjectService:
         Recalculate daily total from all sessions for a specific date.
         This replaces manual editing and ensures consistency.
         """
-        try:
-            # Calculate total from all sessions for this date
-            total_minutes = TimeSession.objects.filter(
-                assignment=assignment,
-                team_member=team_member,
-                date_worked=work_date
-            ).aggregate(
-                total=Sum('duration_minutes')
-            )['total'] or 0
-            
-            # Update or create daily total
-            daily_total, created = DailyTimeTotal.objects.get_or_create(
-                assignment=assignment,
-                team_member=team_member,
-                date_worked=work_date,
-                defaults={'total_minutes': total_minutes}
-            )
-            
-            if not created:
-                daily_total.total_minutes = total_minutes
-                # Mark as not manually edited since we're recalculating from sessions
-                daily_total.is_manually_edited = False
-                daily_total.save()
+        with transaction.atomic():
+            try:
+                # Calculate total from all sessions for this date
+                total_minutes = TimeSession.objects.filter(
+                    assignment=assignment,
+                    team_member=team_member,
+                    date_worked=work_date
+                ).aggregate(
+                    total=Sum('duration_minutes')
+                )['total'] or 0
                 
-        except Exception as e:
-            logger.exception(f"Error recalculating daily total: {str(e)}")
+                # Update or create daily total
+                daily_total, created = DailyTimeTotal.objects.get_or_create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    date_worked=work_date,
+                    defaults={'total_minutes': total_minutes}
+                )
+                
+                if not created:
+                    daily_total.total_minutes = total_minutes
+                    # Mark as not manually edited since we're recalculating from sessions
+                    daily_total.is_manually_edited = False
+                    daily_total.save()
+                    
+            except Exception as e:
+                logger.exception(f"Error recalculating daily total: {str(e)}")
         
     @staticmethod
     def get_team_member_dashboard_data(team_member):
@@ -1240,18 +1241,37 @@ class ProjectService:
     # Helper methods (private)
     @staticmethod
     def _update_daily_total(assignment, team_member, work_date, additional_minutes):
-        """Update or create daily total by adding minutes."""
-        daily_total, created = DailyTimeTotal.objects.get_or_create(
-            assignment=assignment,
-            team_member=team_member,
-            date_worked=work_date,
-            defaults={'total_minutes': additional_minutes}
-        )
-        
-        if not created and not daily_total.is_manually_edited:
-            # Only auto-update if not manually edited
-            daily_total.total_minutes += additional_minutes
-            daily_total.save()
+        """Update or create daily total by adding minutes. SAFE from race conditions."""
+        with transaction.atomic():
+            try:
+                # First, try to get or create the daily total
+                daily_total, created = DailyTimeTotal.objects.get_or_create(
+                    assignment=assignment,
+                    team_member=team_member,
+                    date_worked=work_date,
+                    defaults={'total_minutes': additional_minutes}
+                )
+                
+                if not created and not daily_total.is_manually_edited:
+                    # Use F() expression for atomic update - prevents race conditions
+                    DailyTimeTotal.objects.filter(
+                        id=daily_total.id,
+                        is_manually_edited=False  # Double-check it wasn't manually edited
+                    ).update(
+                        total_minutes=F('total_minutes') + additional_minutes,
+                        last_updated=timezone.now()
+                    )
+                    
+            except Exception as e:
+                logger.exception(f"Error updating daily total atomically: {str(e)}")
+                # Fallback to non-atomic update if F() fails (rare edge case)
+                try:
+                    daily_total.refresh_from_db()
+                    if not daily_total.is_manually_edited:
+                        daily_total.total_minutes += additional_minutes
+                        daily_total.save()
+                except Exception as fallback_error:
+                    logger.exception(f"Fallback update also failed: {fallback_error}")
     
     @staticmethod
     def _format_minutes(total_minutes):
@@ -1482,51 +1502,52 @@ class ProjectService:
         Returns:
             tuple: (daily_roster_object, created_boolean)
         """
-        try:
-            # Determine default status based on day of week and holidays
-            day_of_week = date.weekday()  # Monday=0, Sunday=6
-            
-            # Check if it's a holiday first
-            from .models import Holiday
-            is_holiday = Holiday.objects.filter(
-                date=date,
-                location='Gurgaon',  # You can make this configurable later
-                is_active=True
-            ).exists()
-            
-            if is_holiday:
-                default_status = 'HOLIDAY'
-            elif day_of_week in [5, 6]:  # Saturday=5, Sunday=6
-                default_status = 'WEEK_OFF'
-            else:
-                default_status = 'PRESENT'
-            
-            # Calculate assignment hours from existing DailyTimeTotal
-            assignment_minutes = DailyTimeTotal.objects.filter(
-                team_member=team_member,
-                date_worked=date
-            ).aggregate(total=Sum('total_minutes'))['total'] or 0
-            
-            daily_roster, created = DailyRoster.objects.get_or_create(
-                team_member=team_member,
-                date=date,
-                defaults={
-                    'status': default_status,
-                    'assignment_hours': assignment_minutes,
-                    'is_auto_created': True
-                }
-            )
-            
-            # If existing record, sync assignment hours
-            if not created and daily_roster.assignment_hours != assignment_minutes:
-                daily_roster.assignment_hours = assignment_minutes
-                daily_roster.save()
-            
-            return daily_roster, created
-            
-        except Exception as e:
-            logger.exception(f"Error creating daily roster: {str(e)}")
-            return None, False
+        with transaction.atomic():
+            try:
+                # Determine default status based on day of week and holidays
+                day_of_week = date.weekday()  # Monday=0, Sunday=6
+                
+                # Check if it's a holiday first
+                from .models import Holiday
+                is_holiday = Holiday.objects.filter(
+                    date=date,
+                    location='Gurgaon',  # You can make this configurable later
+                    is_active=True
+                ).exists()
+                
+                if is_holiday:
+                    default_status = 'HOLIDAY'
+                elif day_of_week in [5, 6]:  # Saturday=5, Sunday=6
+                    default_status = 'WEEK_OFF'
+                else:
+                    default_status = 'PRESENT'
+                
+                # Calculate assignment hours from existing DailyTimeTotal
+                assignment_minutes = DailyTimeTotal.objects.filter(
+                    team_member=team_member,
+                    date_worked=date
+                ).aggregate(total=Sum('total_minutes'))['total'] or 0
+                
+                daily_roster, created = DailyRoster.objects.get_or_create(
+                    team_member=team_member,
+                    date=date,
+                    defaults={
+                        'status': default_status,
+                        'assignment_hours': assignment_minutes,
+                        'is_auto_created': True
+                    }
+                )
+                
+                # If existing record, sync assignment hours
+                if not created and daily_roster.assignment_hours != assignment_minutes:
+                    daily_roster.assignment_hours = assignment_minutes
+                    daily_roster.save()
+                
+                return daily_roster, created
+                
+            except Exception as e:
+                logger.exception(f"Error creating daily roster: {str(e)}")
+                return None, False
     @staticmethod
     def get_monthly_roster(team_member, year, month):
         """
@@ -1618,26 +1639,27 @@ class ProjectService:
                 - If successful: (True, roster_object)
                 - If failed: (False, error_message)
         """
-        try:
-            roster, created = ProjectService.get_or_create_daily_roster(team_member, date)
-            
-            if not roster:
-                return False, "Could not create roster entry"
-            
-            # Update fields
-            roster.status = new_status
-            roster.misc_hours = misc_hours
-            roster.misc_description = misc_description
-            roster.notes = notes
-            roster.is_auto_created = False  # Mark as manually edited
-            roster.save()
-            
-            logger.info(f"Updated roster for {team_member.username} on {date}: {new_status}")
-            return True, roster
-            
-        except Exception as e:
-            logger.exception(f"Error updating roster status: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                roster, created = ProjectService.get_or_create_daily_roster(team_member, date)
+                
+                if not roster:
+                    return False, "Could not create roster entry"
+                
+                # Update fields
+                roster.status = new_status
+                roster.misc_hours = misc_hours
+                roster.misc_description = misc_description
+                roster.notes = notes
+                roster.is_auto_created = False  # Mark as manually edited
+                roster.save()
+                
+                logger.info(f"Updated roster for {team_member.username} on {date}: {new_status}")
+                return True, roster
+                
+            except Exception as e:
+                logger.exception(f"Error updating roster status: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
         
 
     @staticmethod
@@ -1645,6 +1667,7 @@ class ProjectService:
         """
         Add miscellaneous hours to a team member's daily roster.
         These are HR activities (meetings, training, admin) not related to task work.
+        UPDATED: Now safe from race conditions using atomic updates.
         
         Args:
             team_member: User object
@@ -1658,46 +1681,56 @@ class ProjectService:
                 - If successful: (True, roster_object)
                 - If failed: (False, error_message)
         """
-        try:
-            # Calculate total minutes
-            total_minutes = (duration_hours * 60) + duration_minutes
-            
-            if total_minutes <= 0:
-                return False, "Duration must be at least 1 minute"
-            
-            if total_minutes > 1440:  # 24 hours
-                return False, "Duration cannot exceed 24 hours"
-            
-            # Get or create daily roster
-            roster, created = ProjectService.get_or_create_daily_roster(team_member, work_date)
-            
-            if not roster:
-                return False, "Could not create roster entry"
-            
-            # Add to existing misc hours (don't overwrite)
-            roster.misc_hours += total_minutes
-            
-            # Append to misc description
-            formatted_duration = ProjectService._format_minutes(total_minutes)
-            new_activity = f"{activity} ({formatted_duration})"
-            
-            if roster.misc_description:
-                roster.misc_description += f"; {new_activity}"
-            else:
-                roster.misc_description = new_activity
-            
-            roster.is_auto_created = False  # Mark as manually edited
-            roster.save()
-            
-            # NO LOGGING - Misc hours are HR activities, not timer/task activities
-            # We don't need to audit log HR data entry like we do timer operations
-            
-            logger.info(f"Misc hours added for {team_member.username} on {work_date}: {total_minutes} minutes")
-            return True, roster
-            
-        except Exception as e:
-            logger.exception(f"Error adding misc hours: {str(e)}")
-            return False, f"An error occurred: {str(e)}"
+        with transaction.atomic():
+            try:
+                # Calculate total minutes
+                total_minutes = (duration_hours * 60) + duration_minutes
+                
+                if total_minutes <= 0:
+                    return False, "Duration must be at least 1 minute"
+                
+                if total_minutes > 1440:  # 24 hours
+                    return False, "Duration cannot exceed 24 hours"
+                
+                # Get or create daily roster
+                roster, created = ProjectService.get_or_create_daily_roster(team_member, work_date)
+                
+                if not roster:
+                    return False, "Could not create roster entry"
+                
+                # Format the activity description
+                formatted_duration = ProjectService._format_minutes(total_minutes)
+                new_activity = f"{activity} ({formatted_duration})"
+                
+                # SAFE: Use atomic updates with F() expressions to prevent race conditions
+                from django.db.models import F, Case, When, Value
+                from django.db.models.functions import Concat
+                
+                # Atomic update of misc_hours and description
+                updated_rows = DailyRoster.objects.filter(id=roster.id).update(
+                    misc_hours=F('misc_hours') + total_minutes,
+                    misc_description=Case(
+                        # If description is empty or null, use new activity
+                        When(misc_description='', then=Value(new_activity)),
+                        When(misc_description__isnull=True, then=Value(new_activity)),
+                        # Otherwise, append to existing description
+                        default=Concat('misc_description', Value(f'; {new_activity}'))
+                    ),
+                    is_auto_created=False  # Mark as manually edited
+                )
+                
+                if updated_rows == 0:
+                    return False, "Failed to update roster - it may have been deleted"
+                
+                # Refresh the roster object to get updated values for return
+                roster.refresh_from_db()
+                
+                logger.info(f"Misc hours added for {team_member.username} on {work_date}: {total_minutes} minutes")
+                return True, roster
+                
+            except Exception as e:
+                logger.exception(f"Error adding misc hours: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
 
     @staticmethod
@@ -1825,127 +1858,128 @@ class ReportingService:
         """
         Calculate and store daily metrics for a team member.
         """
-        from decimal import Decimal, InvalidOperation
-        import math
-        
-        # Get or create metrics record
-        metrics, created = TeamMemberMetrics.objects.get_or_create(
-            team_member=team_member,
-            date=date
-        )
-        
-        # 1. Calculate Productivity & Quality (completed assignments)
-        completed_assignments = TaskAssignment.objects.filter(
-            assigned_to=team_member,
-            is_completed=True,
-            completion_date__date=date
-        )
-        
-        total_projected = 0
-        total_worked = 0
-        quality_sum = Decimal('0')
-        quality_count = 0
-        
-        for assignment in completed_assignments:
-            total_projected += assignment.projected_hours or 0
+        with transaction.atomic():
+            from decimal import Decimal, InvalidOperation
+            import math
             
-            # Get actual worked hours
-            worked_minutes = DailyTimeTotal.objects.filter(
-                assignment=assignment,
-                team_member=team_member
-            ).aggregate(total=Sum('total_minutes'))['total'] or 0
-            
-            total_worked += worked_minutes
-            
-            # Quality metrics
-            if assignment.quality_rating:
-                quality_sum += Decimal(str(assignment.quality_rating))
-                quality_count += 1
-        
-        # 2. Calculate Utilization
-        daily_roster = DailyRoster.objects.filter(
-            team_member=team_member,
-            date=date
-        ).first()
-        
-        if daily_roster and daily_roster.status == 'PRESENT':
-            available_minutes = 480  # 8 hours
-            worked_today = DailyTimeTotal.objects.filter(
+            # Get or create metrics record
+            metrics, created = TeamMemberMetrics.objects.get_or_create(
                 team_member=team_member,
-                date_worked=date
-            ).aggregate(total=Sum('total_minutes'))['total'] or 0
+                date=date
+            )
             
-            # Add misc hours
-            worked_today += daily_roster.misc_hours
+            # 1. Calculate Productivity & Quality (completed assignments)
+            completed_assignments = TaskAssignment.objects.filter(
+                assigned_to=team_member,
+                is_completed=True,
+                completion_date__date=date
+            )
             
-            metrics.available_minutes = available_minutes
-            # Safely calculate utilization
-            if available_minutes > 0:
-                utilization = Decimal(str(worked_today)) / Decimal(str(available_minutes)) * 100
-                # Cap at 999.99 (max for 5,2 decimal field)
-                metrics.utilization_score = min(utilization, Decimal('999.99'))
+            total_projected = 0
+            total_worked = 0
+            quality_sum = Decimal('0')
+            quality_count = 0
+            
+            for assignment in completed_assignments:
+                total_projected += assignment.projected_hours or 0
+                
+                # Get actual worked hours
+                worked_minutes = DailyTimeTotal.objects.filter(
+                    assignment=assignment,
+                    team_member=team_member
+                ).aggregate(total=Sum('total_minutes'))['total'] or 0
+                
+                total_worked += worked_minutes
+                
+                # Quality metrics
+                if assignment.quality_rating:
+                    quality_sum += Decimal(str(assignment.quality_rating))
+                    quality_count += 1
+            
+            # 2. Calculate Utilization
+            daily_roster = DailyRoster.objects.filter(
+                team_member=team_member,
+                date=date
+            ).first()
+            
+            if daily_roster and daily_roster.status == 'PRESENT':
+                available_minutes = 480  # 8 hours
+                worked_today = DailyTimeTotal.objects.filter(
+                    team_member=team_member,
+                    date_worked=date
+                ).aggregate(total=Sum('total_minutes'))['total'] or 0
+                
+                # Add misc hours
+                worked_today += daily_roster.misc_hours
+                
+                metrics.available_minutes = available_minutes
+                # Safely calculate utilization
+                if available_minutes > 0:
+                    utilization = Decimal(str(worked_today)) / Decimal(str(available_minutes)) * 100
+                    # Cap at 999.99 (max for 5,2 decimal field)
+                    metrics.utilization_score = min(utilization, Decimal('999.99'))
+                else:
+                    metrics.utilization_score = Decimal('0')
             else:
-                metrics.utilization_score = Decimal('0')
-        else:
-            metrics.utilization_score = None
-        
-        # 3. Calculate Delivery Performance
-        delivered_projects = ProjectDelivery.objects.filter(
-            project_incharge=team_member,
-            delivery_date=date
-        )
-        
-        delivery_sum = Decimal('0')
-        delivery_count = 0
-        
-        for delivery in delivered_projects:
-            if delivery.delivery_performance_rating is not None and delivery.delivery_performance_rating > 0:
-                delivery_sum += Decimal(str(delivery.delivery_performance_rating))
-                delivery_count += 1
-        
-        # Update all metrics with safe calculations
-        metrics.total_projected_minutes = total_projected
-        metrics.total_worked_minutes = total_worked
-        
-        # Safely calculate productivity
-        if total_worked > 0:
-            productivity = Decimal(str(total_projected)) / Decimal(str(total_worked)) * 100
-            # Cap at 999.99 (max for 5,2 decimal field)
-            metrics.productivity_score = min(productivity, Decimal('999.99'))
-        else:
-            metrics.productivity_score = None
-        
-        metrics.assignments_completed = completed_assignments.count()
-        metrics.total_quality_points = quality_sum
-        
-        # Safely calculate average quality
-        if quality_count > 0:
-            avg_quality = quality_sum / Decimal(str(quality_count))
-            # Ensure it's within 1-5 range
-            metrics.average_quality_rating = min(max(avg_quality, Decimal('1')), Decimal('5'))
-        else:
-            metrics.average_quality_rating = None
-        
-        metrics.projects_delivered = delivered_projects.count()  # Total projects delivered
-        metrics.total_delivery_rating_points = delivery_sum
-        
-        # Safely calculate average delivery rating
-        if delivery_count > 0:
-            avg_delivery = delivery_sum / Decimal(str(delivery_count))
-            # Ensure it's within 1-5 range
-            metrics.average_delivery_rating = min(max(avg_delivery, Decimal('1')), Decimal('5'))
-        else:
-            metrics.average_delivery_rating = None
-        
-        try:
-            metrics.save()
-        except InvalidOperation as e:
-            logger.error(f"Invalid decimal operation for {team_member.username} on {date}: {str(e)}")
-            # Log the values for debugging
-            logger.error(f"Values - Productivity: {metrics.productivity_score}, Utilization: {metrics.utilization_score}")
-            raise
-        
-        return metrics
+                metrics.utilization_score = None
+            
+            # 3. Calculate Delivery Performance
+            delivered_projects = ProjectDelivery.objects.filter(
+                project_incharge=team_member,
+                delivery_date=date
+            )
+            
+            delivery_sum = Decimal('0')
+            delivery_count = 0
+            
+            for delivery in delivered_projects:
+                if delivery.delivery_performance_rating is not None and delivery.delivery_performance_rating > 0:
+                    delivery_sum += Decimal(str(delivery.delivery_performance_rating))
+                    delivery_count += 1
+            
+            # Update all metrics with safe calculations
+            metrics.total_projected_minutes = total_projected
+            metrics.total_worked_minutes = total_worked
+            
+            # Safely calculate productivity
+            if total_worked > 0:
+                productivity = Decimal(str(total_projected)) / Decimal(str(total_worked)) * 100
+                # Cap at 999.99 (max for 5,2 decimal field)
+                metrics.productivity_score = min(productivity, Decimal('999.99'))
+            else:
+                metrics.productivity_score = None
+            
+            metrics.assignments_completed = completed_assignments.count()
+            metrics.total_quality_points = quality_sum
+            
+            # Safely calculate average quality
+            if quality_count > 0:
+                avg_quality = quality_sum / Decimal(str(quality_count))
+                # Ensure it's within 1-5 range
+                metrics.average_quality_rating = min(max(avg_quality, Decimal('1')), Decimal('5'))
+            else:
+                metrics.average_quality_rating = None
+            
+            metrics.projects_delivered = delivered_projects.count()  # Total projects delivered
+            metrics.total_delivery_rating_points = delivery_sum
+            
+            # Safely calculate average delivery rating
+            if delivery_count > 0:
+                avg_delivery = delivery_sum / Decimal(str(delivery_count))
+                # Ensure it's within 1-5 range
+                metrics.average_delivery_rating = min(max(avg_delivery, Decimal('1')), Decimal('5'))
+            else:
+                metrics.average_delivery_rating = None
+            
+            try:
+                metrics.save()
+            except InvalidOperation as e:
+                logger.error(f"Invalid decimal operation for {team_member.username} on {date}: {str(e)}")
+                # Log the values for debugging
+                logger.error(f"Values - Productivity: {metrics.productivity_score}, Utilization: {metrics.utilization_score}")
+                raise
+            
+            return metrics
     
     @staticmethod
     def track_project_delivery(project, delivery_date=None):
@@ -1953,14 +1987,15 @@ class ReportingService:
         Track when a project reaches final delivery status.
         This should be called when project status changes to "Final Delivery".
         """
-        if not delivery_date:
-            delivery_date = date.today()
-        
-        # Check if already tracked
-        existing = ProjectDelivery.objects.filter(
-            project=project,
-            delivery_date=delivery_date
-        ).first()
+        with transaction.atomic():
+            if not delivery_date:
+                delivery_date = date.today()
+            
+            # Check if already tracked
+            existing = ProjectDelivery.objects.filter(
+                project=project,
+                delivery_date=delivery_date
+            ).first()
         
         if existing:
             # Update the rating if it changed
@@ -2054,10 +2089,11 @@ class ReportingService:
         Calculate and store daily metrics for a project.
         Handles delivery performance rating when status changes to Final Delivery.
         """
-        metrics, created = ProjectMetrics.objects.get_or_create(
-            project=project,
-            date=date
-        )
+        with transaction.atomic():
+            metrics, created = ProjectMetrics.objects.get_or_create(
+                project=project,
+                date=date
+            )
         
         # Update basic info
         metrics.project_incharge = project.project_incharge

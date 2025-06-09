@@ -279,7 +279,7 @@ class Project(models.Model):
         Generates the next available HS_ID in sequence (A1, A2,...A999, B1, etc.)
         """
         # Get the last project with an HS_ID
-        last_project = cls.objects.order_by('-hs_id').first()
+        last_project = cls.objects.select_for_update().order_by('-hs_id').first()
         
         if not last_project or not last_project.hs_id:
             return 'A1'  # Start with A1 if no projects exist

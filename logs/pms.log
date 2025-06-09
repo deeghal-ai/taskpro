@@ -4881,3 +4881,178 @@ INFO 2025-06-09 13:44:49,583 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee2
 INFO 2025-06-09 13:45:05,263 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 40807
 INFO 2025-06-09 13:45:08,010 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 28961
 INFO 2025-06-09 13:46:04,681 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 28950
+INFO 2025-06-09 13:54:42,948 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:20:58,185 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:20:59,220 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:21:09,126 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:21:09,820 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:21:20,966 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:21:21,806 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:21:32,124 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:21:32,791 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:21:42,766 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:21:43,448 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:21:53,431 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:21:54,339 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:22:06,726 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:22:07,411 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:22:31,698 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:22:32,349 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:22:45,678 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:22:46,316 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:22:55,212 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:22:55,843 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:23:04,777 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:23:05,462 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:23:14,307 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:23:14,964 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:23:24,972 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:23:25,588 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:23:34,561 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:23:35,268 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:23:48,678 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:23:49,378 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:23:58,373 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:23:59,124 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:24:09,363 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:24:10,103 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:33:32,288 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 15:33:33,002 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 15:34:15,066 services Timer started for praveen on ASID_000042
+INFO 2025-06-09 15:34:15,116 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:34:15,315 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60913
+INFO 2025-06-09 15:34:22,625 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-09 15:34:22,645 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:34:22,728 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 57801
+INFO 2025-06-09 15:34:26,367 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 50055
+INFO 2025-06-09 15:48:58,289 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-09 15:48:58,401 basehttp "GET /projects/ HTTP/1.1" 200 44191
+INFO 2025-06-09 15:50:48,018 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 28950
+INFO 2025-06-09 15:50:59,625 services Updated project configuration for 798aed07-36ce-4a6a-83d0-ee26da9b73d1 by sunny
+INFO 2025-06-09 15:50:59,641 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-configuration/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:50:59,658 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 29253
+INFO 2025-06-09 15:51:13,517 services Created new task TID_00028 for project 798aed07-36ce-4a6a-83d0-ee26da9b73d1 by sunny
+INFO 2025-06-09 15:51:13,530 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/create-task/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:51:13,598 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 31340
+INFO 2025-06-09 15:51:18,628 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/ HTTP/1.1" 200 26157
+INFO 2025-06-09 15:51:35,880 services Created task assignment ASID_000047 for task 6031f9d9-157d-4f78-9404-b7ec58346778 by sunny
+INFO 2025-06-09 15:51:35,896 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/create-assignment/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:51:35,912 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/ HTTP/1.1" 200 33392
+INFO 2025-06-09 15:51:46,954 services Updated task assignment ASID_000047 by sunny
+INFO 2025-06-09 15:51:46,967 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/update-assignment/946b8a1d-6e60-4c6a-ab84-34d9870453ae/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:51:46,983 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/ HTTP/1.1" 200 33392
+INFO 2025-06-09 15:51:52,667 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63781
+INFO 2025-06-09 15:51:54,515 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63781
+INFO 2025-06-09 15:51:59,897 basehttp "GET /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 200 27048
+INFO 2025-06-09 15:52:03,181 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63781
+INFO 2025-06-09 15:52:05,671 services Timer started for praveen on ASID_000047
+INFO 2025-06-09 15:52:05,704 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:52:05,771 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 67132
+INFO 2025-06-09 15:52:14,181 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-09 15:52:14,198 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:52:14,231 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 64086
+INFO 2025-06-09 15:52:19,429 basehttp "GET /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 200 31035
+INFO 2025-06-09 15:52:25,664 services Session duration edited for praveen: fbd536a6-fcaa-4b89-8617-9765c43df4b6
+INFO 2025-06-09 15:52:25,671 basehttp "POST /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:52:25,687 basehttp "GET /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 200 31622
+INFO 2025-06-09 15:52:30,007 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63781
+INFO 2025-06-09 15:52:37,615 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/ HTTP/1.1" 200 33094
+INFO 2025-06-09 15:52:43,129 basehttp "GET /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 200 31322
+INFO 2025-06-09 15:52:46,270 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63781
+INFO 2025-06-09 15:52:50,517 signals Updated metrics for praveen on assignment completion
+INFO 2025-06-09 15:52:50,517 services Assignment ASID_000047 completed by praveen
+INFO 2025-06-09 15:52:50,534 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:52:50,568 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60418
+INFO 2025-06-09 15:52:54,729 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/ HTTP/1.1" 200 31430
+INFO 2025-06-09 15:53:02,824 signals Updated metrics for praveen on assignment completion
+INFO 2025-06-09 15:53:02,824 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/rate-assignment/946b8a1d-6e60-4c6a-ab84-34d9870453ae/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:53:02,841 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6031f9d9-157d-4f78-9404-b7ec58346778/ HTTP/1.1" 200 32281
+INFO 2025-06-09 15:53:08,719 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60242
+INFO 2025-06-09 15:53:11,116 basehttp "GET /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 200 25543
+INFO 2025-06-09 15:53:14,640 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60242
+INFO 2025-06-09 15:53:35,836 basehttp "GET /projects/ HTTP/1.1" 200 44191
+INFO 2025-06-09 15:53:41,389 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 31052
+ERROR 2025-06-09 15:53:55,347 services Error updating project configuration: cannot access local variable 'ProjectDelivery' where it is not associated with a value
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 652, in update_project_configuration
+    ProjectDelivery.objects.filter(project=project).update(
+    ^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'ProjectDelivery' where it is not associated with a value
+INFO 2025-06-09 15:53:55,371 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-configuration/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:53:55,401 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 31432
+INFO 2025-06-09 15:54:07,157 services Created new task TID_00029 for project 798aed07-36ce-4a6a-83d0-ee26da9b73d1 by sunny
+INFO 2025-06-09 15:54:07,173 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/create-task/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:54:07,188 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33446
+INFO 2025-06-09 15:54:11,660 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 40796
+INFO 2025-06-09 15:54:37,316 services Created task assignment ASID_000048 for task 6c2fce98-9670-4260-97d1-5a1fc8f74a0b by sunny
+INFO 2025-06-09 15:54:37,329 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/create-assignment/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:54:37,379 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 48299
+INFO 2025-06-09 15:55:12,184 services Created task assignment ASID_000049 for task 6c2fce98-9670-4260-97d1-5a1fc8f74a0b by sunny
+INFO 2025-06-09 15:55:12,204 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/create-assignment/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:55:12,283 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 55502
+INFO 2025-06-09 15:55:52,519 services Updated task assignment ASID_000049 by sunny
+INFO 2025-06-09 15:55:52,535 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/update-assignment/b7e1770a-4902-4f6a-a177-2f4c8ad0b09d/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:55:52,584 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 55502
+INFO 2025-06-09 15:56:01,044 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 66559
+INFO 2025-06-09 15:56:06,610 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 27080
+INFO 2025-06-09 15:56:10,329 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 66559
+INFO 2025-06-09 15:56:12,648 services Timer started for praveen on ASID_000048
+INFO 2025-06-09 15:56:12,662 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:56:12,683 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 69926
+INFO 2025-06-09 15:56:19,247 services Timer stopped for praveen, Duration: 0 minutes
+INFO 2025-06-09 15:56:19,263 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:56:19,281 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 66864
+INFO 2025-06-09 15:56:22,332 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 31067
+INFO 2025-06-09 15:56:28,038 services Session duration edited for praveen: 014effac-b403-4a8b-b580-69e8b66968e1
+INFO 2025-06-09 15:56:28,055 basehttp "POST /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:56:28,069 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 31654
+INFO 2025-06-09 15:56:31,435 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 66559
+INFO 2025-06-09 15:56:34,070 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 55204
+INFO 2025-06-09 15:56:45,225 signals Updated metrics for praveen on assignment completion
+INFO 2025-06-09 15:56:45,225 services Assignment ASID_000048 completed by praveen
+INFO 2025-06-09 15:56:45,257 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:56:45,324 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63196
+INFO 2025-06-09 15:56:47,421 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 53284
+INFO 2025-06-09 15:57:00,512 signals Updated metrics for praveen on assignment completion
+INFO 2025-06-09 15:57:00,512 basehttp "POST /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/rate-assignment/266f1461-e65f-46f6-bdf6-44a70da4b490/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:57:00,529 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/6c2fce98-9670-4260-97d1-5a1fc8f74a0b/ HTTP/1.1" 200 54135
+INFO 2025-06-09 15:57:06,957 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63020
+INFO 2025-06-09 15:57:11,220 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-09 15:59:01,828 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63020
+INFO 2025-06-09 15:59:02,943 basehttp "GET /projects/roster/ HTTP/1.1" 200 62922
+INFO 2025-06-09 15:59:09,190 services Updated roster for praveen on 2025-06-19: LEAVE
+INFO 2025-06-09 15:59:09,207 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:59:09,255 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63217
+INFO 2025-06-09 15:59:26,067 services Misc hours added for praveen on 2025-06-09: 60 minutes
+INFO 2025-06-09 15:59:26,090 basehttp "POST /projects/roster/2025/6/ HTTP/1.1" 302 0
+INFO 2025-06-09 15:59:26,276 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63476
+INFO 2025-06-09 15:59:51,198 basehttp "GET /admin/ HTTP/1.1" 200 4506
+INFO 2025-06-09 15:59:51,997 basehttp "GET /static/admin/css/base.css HTTP/1.1" 200 21544
+INFO 2025-06-09 15:59:52,003 basehttp "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-06-09 15:59:52,036 basehttp "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2682
+INFO 2025-06-09 15:59:52,085 basehttp "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-06-09 15:59:52,102 basehttp "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-06-09 15:59:52,102 basehttp "GET /static/admin/css/responsive.css HTTP/1.1" 200 17905
+INFO 2025-06-09 15:59:52,117 basehttp "GET /static/admin/js/theme.js HTTP/1.1" 200 1943
+INFO 2025-06-09 15:59:57,018 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-09 15:59:57,032 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63020
+INFO 2025-06-09 16:48:01,260 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:48:02,438 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:48:40,469 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:48:41,187 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:49:48,049 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:49:48,840 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:50:37,888 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:50:38,685 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:51:48,891 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:51:49,887 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:53:13,885 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:53:14,658 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:55:18,549 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:55:19,608 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:55:27,290 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:55:27,952 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 16:59:09,262 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-09 16:59:09,961 autoreload Watching for file changes with StatReloader
+INFO 2025-06-09 17:00:38,295 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-09 17:00:39,096 autoreload Watching for file changes with StatReloader
