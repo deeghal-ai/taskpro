@@ -274,6 +274,36 @@ class Project(models.Model):
             models.Index(fields=['opportunity_id']),
         ]
 
+    @property
+    def is_delivered(self):
+        """
+        Check if project is in delivered state.
+        A project is considered delivered when its status is "Final Delivery".
+        """
+        if not self.current_status:
+            return False
+        
+        status_name = self.current_status.name.lower()
+        return 'final' in status_name and 'delivery' in status_name
+
+    @property
+    def is_pipeline(self):
+        """
+        Check if project is in pipeline state.
+        A project is in pipeline if it's not delivered yet.
+        Special case: "Approval after deemed consumed" moves it back to pipeline.
+        """
+        if not self.current_status:
+            return True  # New projects without status are considered pipeline
+        
+        # Check for special status that moves project back to pipeline
+        status_name = self.current_status.name.lower()
+        if 'approval' in status_name and 'deemed' in status_name and 'consumed' in status_name:
+            return True
+        
+        # Otherwise, pipeline means not delivered
+        return not self.is_delivered
+
     @classmethod
     def generate_hs_id(cls):
         """

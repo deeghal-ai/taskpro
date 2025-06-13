@@ -194,7 +194,7 @@ class ProjectService:
                 return False, f"An error occurred: {str(e)}"
         
     @staticmethod
-    def get_project_list(search_query=None, status=None, product=None, region=None, city=None, dpm=None, page=1, items_per_page=10):
+    def get_project_list(search_query=None, status=None, product=None, region=None, city=None, dpm=None, page=1, items_per_page=10, project_type='pipeline'):
         """
         Retrieves a filtered, searched, and paginated list of projects.
         
@@ -207,6 +207,7 @@ class ProjectService:
             dpm: DPM user ID to filter by
             page: Page number for pagination
             items_per_page: Number of items to show per page
+            project_type: 'pipeline' (default), 'delivered', or 'all'
                 
         Returns:
             tuple: (success, result)
@@ -222,6 +223,29 @@ class ProjectService:
                 'city__region',
                 'dpm'
             ).order_by('-created_at')
+
+            # Apply project type filter
+            if project_type == 'pipeline':
+                # Get all status IDs that indicate "Final Delivery"
+                final_delivery_statuses = ProjectStatusOption.objects.filter(
+                    Q(name__icontains='final') & Q(name__icontains='delivery')
+                ).values_list('id', flat=True)
+                
+                # Exclude projects with Final Delivery status
+                if final_delivery_statuses:
+                    queryset = queryset.exclude(current_status_id__in=final_delivery_statuses)
+                    
+            elif project_type == 'delivered':
+                # Get only projects with "Final Delivery" status
+                final_delivery_statuses = ProjectStatusOption.objects.filter(
+                    Q(name__icontains='final') & Q(name__icontains='delivery')
+                ).values_list('id', flat=True)
+                
+                if final_delivery_statuses:
+                    queryset = queryset.filter(current_status_id__in=final_delivery_statuses)
+                else:
+                    # No final delivery statuses defined, return empty queryset
+                    queryset = queryset.none()
 
             # Apply search if provided
             if search_query:
@@ -254,15 +278,16 @@ class ProjectService:
                 'product': product,
                 'region': region,
                 'city': city,
-                'dpm': dpm
+                'dpm': dpm,
+                'project_type': project_type
             }
 
-            logger.debug(f"Retrieved filtered project list with {paginator.count} total projects")
+            logger.debug(f"Retrieved filtered project list ({project_type}) with {paginator.count} total projects")
             return True, (page_obj, filters_applied)
         except Exception as e:
             logger.exception(f"Error retrieving project list: {str(e)}")
             return False, f"An error occurred while retrieving projects: {str(e)}"
-
+        
     @staticmethod
     def get_filter_options():
         """

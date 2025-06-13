@@ -5103,3 +5103,166 @@ INFO 2025-06-13 23:05:07,179 basehttp "GET /projects/daily-roster/?date=2025-05-
 INFO 2025-06-13 23:05:12,036 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 70318
 INFO 2025-06-13 23:05:14,277 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 32151
 INFO 2025-06-13 23:05:17,379 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63027
+INFO 2025-06-13 23:44:27,316 autoreload Watching for file changes with StatReloader
+INFO 2025-06-13 23:44:42,207 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-13 23:44:42,450 basehttp "GET /projects/ HTTP/1.1" 200 44191
+INFO 2025-06-13 23:44:47,635 basehttp "GET /projects/create/ HTTP/1.1" 200 43456
+INFO 2025-06-13 23:44:50,381 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-13 23:44:50,437 basehttp "GET /projects/ HTTP/1.1" 200 44191
+INFO 2025-06-13 23:45:31,003 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34627
+INFO 2025-06-13 23:45:32,713 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1422
+INFO 2025-06-13 23:45:50,340 basehttp "GET /admin/ HTTP/1.1" 200 17565
+INFO 2025-06-13 23:45:50,837 basehttp "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-06-13 23:45:58,672 basehttp "GET /admin/projects/projectstatusoption/ HTTP/1.1" 200 36488
+INFO 2025-06-13 23:45:58,834 basehttp "GET /static/admin/css/forms.css HTTP/1.1" 200 9090
+INFO 2025-06-13 23:45:58,850 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-06-13 23:45:58,875 basehttp "GET /static/admin/css/widgets.css HTTP/1.1" 200 11800
+INFO 2025-06-13 23:45:58,907 basehttp "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+INFO 2025-06-13 23:46:06,356 basehttp "GET /admin/projects/projectstatusoption/add/ HTTP/1.1" 200 18722
+INFO 2025-06-13 23:46:06,552 basehttp "GET /static/admin/js/collapse.js HTTP/1.1" 200 1803
+INFO 2025-06-13 23:46:06,552 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-06-13 23:46:06,552 basehttp "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+INFO 2025-06-13 23:46:06,609 basehttp "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+INFO 2025-06-13 23:48:43,427 basehttp "POST /admin/projects/projectstatusoption/add/ HTTP/1.1" 302 0
+INFO 2025-06-13 23:48:43,508 basehttp "GET /admin/projects/projectstatusoption/ HTTP/1.1" 200 37833
+INFO 2025-06-13 23:48:43,761 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-06-13 23:48:43,881 basehttp "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+INFO 2025-06-13 23:49:06,594 basehttp "POST /admin/projects/projectstatusoption/ HTTP/1.1" 302 0
+INFO 2025-06-13 23:49:06,692 basehttp "GET /admin/projects/projectstatusoption/ HTTP/1.1" 200 37673
+INFO 2025-06-13 23:49:06,749 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-06-13 23:49:18,650 basehttp "POST /admin/projects/projectstatusoption/ HTTP/1.1" 302 0
+INFO 2025-06-13 23:49:18,795 basehttp "GET /admin/projects/projectstatusoption/ HTTP/1.1" 200 37671
+INFO 2025-06-13 23:49:18,859 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-06-13 23:49:26,541 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-13 23:49:26,621 basehttp "GET /projects/ HTTP/1.1" 200 44317
+INFO 2025-06-13 23:49:29,813 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-13 23:49:31,409 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1512
+INFO 2025-06-14 00:10:44,514 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-14 00:10:46,998 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:12:23,707 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 00:12:25,514 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:13:07,045 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 00:13:08,226 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:13:19,201 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 00:13:20,548 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:14:35,580 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py changed, reloading.
+INFO 2025-06-14 00:14:37,461 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:14:59,604 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py changed, reloading.
+INFO 2025-06-14 00:15:01,484 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:15:32,990 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\urls.py changed, reloading.
+INFO 2025-06-14 00:15:34,122 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:20:01,861 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\signals.py changed, reloading.
+INFO 2025-06-14 00:20:03,532 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:20:11,178 basehttp "GET /projects/ HTTP/1.1" 200 42931
+INFO 2025-06-14 00:20:24,683 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20684
+INFO 2025-06-14 00:20:38,166 basehttp "GET /projects/ HTTP/1.1" 200 42931
+INFO 2025-06-14 00:20:40,080 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20684
+INFO 2025-06-14 00:20:43,073 basehttp "GET /projects/create/ HTTP/1.1" 200 43582
+INFO 2025-06-14 00:20:45,703 basehttp "GET /projects/ HTTP/1.1" 200 42931
+INFO 2025-06-14 00:20:48,286 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20684
+INFO 2025-06-14 00:21:00,615 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/ HTTP/1.1" 200 29805
+INFO 2025-06-14 00:21:02,537 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/update-status/ HTTP/1.1" 200 1512
+INFO 2025-06-14 00:21:09,863 signals Project A8 transitioning from DELIVERED to PIPELINE
+INFO 2025-06-14 00:21:09,887 signals Project A8 moved back to PIPELINE state
+INFO 2025-06-14 00:21:09,887 services Updated status for project aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d to Approval after deemed consumed by sunny
+INFO 2025-06-14 00:21:09,919 basehttp "POST /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/update-status/ HTTP/1.1" 200 116
+INFO 2025-06-14 00:21:11,484 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/ HTTP/1.1" 200 30681
+INFO 2025-06-14 00:21:14,093 basehttp "GET /projects/ HTTP/1.1" 200 44593
+INFO 2025-06-14 00:21:20,522 basehttp "GET /projects/delivered/ HTTP/1.1" 200 19459
+INFO 2025-06-14 00:21:56,948 basehttp "GET /projects/delivered/ HTTP/1.1" 200 19303
+INFO 2025-06-14 00:21:59,350 basehttp "GET /projects/ HTTP/1.1" 200 44593
+INFO 2025-06-14 00:22:01,935 basehttp "GET /projects/delivered/ HTTP/1.1" 200 19303
+INFO 2025-06-14 00:22:05,453 basehttp "GET /projects/ HTTP/1.1" 200 44593
+INFO 2025-06-14 00:22:13,437 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 28992
+INFO 2025-06-14 00:22:16,223 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/update-status/ HTTP/1.1" 200 1512
+INFO 2025-06-14 00:22:21,715 services Updated status for project a67a7c91-3bb2-4d83-88a6-f0f3cbd02576 to 2nd Rework Received by sunny
+INFO 2025-06-14 00:22:21,740 basehttp "POST /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/update-status/ HTTP/1.1" 200 105
+INFO 2025-06-14 00:22:23,303 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 29827
+INFO 2025-06-14 00:22:23,943 basehttp "GET /projects/ HTTP/1.1" 200 44594
+INFO 2025-06-14 00:22:27,732 basehttp "GET /projects/delivered/ HTTP/1.1" 200 19303
+INFO 2025-06-14 00:22:29,372 basehttp "GET /projects/ HTTP/1.1" 200 44594
+INFO 2025-06-14 00:22:34,029 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 29827
+INFO 2025-06-14 00:22:36,895 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/update-status/ HTTP/1.1" 200 1512
+INFO 2025-06-14 00:22:43,302 signals Project A4 transitioning from PIPELINE to DELIVERED
+ERROR 2025-06-14 00:22:43,327 signals Error tracking delivery: property 'days_variance' of 'ProjectDelivery' object has no setter
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\signals.py", line 26, in track_status_changes
+    ReportingService.track_project_delivery(
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 2017, in track_project_delivery
+    delivery = ProjectDelivery.objects.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\query.py", line 679, in create
+    obj.save(force_insert=True, using=self.db)
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py", line 1317, in save
+    self.days_variance = (self.actual_completion_date - self.expected_completion_date).days
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: property 'days_variance' of 'ProjectDelivery' object has no setter
+INFO 2025-06-14 00:22:43,351 services Updated status for project a67a7c91-3bb2-4d83-88a6-f0f3cbd02576 to Final Delivery by sunny
+INFO 2025-06-14 00:22:43,375 basehttp "POST /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/update-status/ HTTP/1.1" 200 100
+INFO 2025-06-14 00:22:44,927 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 30645
+INFO 2025-06-14 00:22:48,113 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:22:57,051 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:23:01,260 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 30645
+INFO 2025-06-14 00:23:07,819 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/manage/ HTTP/1.1" 200 50122
+INFO 2025-06-14 00:23:18,863 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:23:21,227 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:23:23,889 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:23:43,509 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:23:56,857 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:24:00,693 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:24:33,408 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:24:48,045 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:24:50,126 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:24:55,563 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:24:57,821 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 30645
+INFO 2025-06-14 00:25:04,734 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:25:06,220 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:25:10,541 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:25:13,321 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:25:15,513 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:25:17,707 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:25:19,463 basehttp "GET /projects/ HTTP/1.1" 200 42934
+INFO 2025-06-14 00:28:16,283 basehttp "GET /projects/ HTTP/1.1" 200 42857
+INFO 2025-06-14 00:28:48,657 basehttp "GET /projects/ HTTP/1.1" 200 42894
+INFO 2025-06-14 00:29:00,319 basehttp "GET /projects/ HTTP/1.1" 200 42787
+INFO 2025-06-14 00:29:05,797 basehttp "GET /projects/ HTTP/1.1" 200 42787
+INFO 2025-06-14 00:29:43,416 basehttp "GET /projects/ HTTP/1.1" 200 42745
+INFO 2025-06-14 00:33:16,537 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:33:18,770 basehttp "GET /projects/ HTTP/1.1" 200 42745
+INFO 2025-06-14 00:34:06,795 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:34:52,435 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20527
+INFO 2025-06-14 00:36:04,017 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:36:17,953 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:36:56,529 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21019
+INFO 2025-06-14 00:37:04,667 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33147
+INFO 2025-06-14 00:38:05,549 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 31968
+INFO 2025-06-14 00:38:10,384 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33147
+INFO 2025-06-14 00:43:19,883 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21019
+INFO 2025-06-14 00:43:22,916 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:43:25,282 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21019
+INFO 2025-06-14 00:43:28,508 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:43:29,980 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21019
+INFO 2025-06-14 00:43:34,574 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33147
+INFO 2025-06-14 00:43:40,406 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21019
+INFO 2025-06-14 00:43:55,291 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:04,793 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:09,261 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:11,059 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:12,940 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:16,813 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:18,326 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:23,379 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:25,540 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:31,708 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:33,740 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:38,391 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:40,465 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:44,741 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:46,188 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:50,276 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:52,261 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:44:55,212 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 00:44:57,239 basehttp "GET /projects/ HTTP/1.1" 200 42884

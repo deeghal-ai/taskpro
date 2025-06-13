@@ -168,7 +168,7 @@ def update_project_status(request, project_id):
 @login_required
 def project_list(request):
     """
-    Displays a filterable list of all projects.
+    Displays a filterable list of pipeline projects (not yet delivered).
     """
     # Get filter parameters from request
     search_query = request.GET.get('search', '')
@@ -179,7 +179,7 @@ def project_list(request):
     dpm = request.GET.get('dpm', '')
     page = request.GET.get('page', 1)
 
-    # Get projects using service
+    # Get pipeline projects using service (exclude Final Delivery status)
     success, result = ProjectService.get_project_list(
         search_query=search_query,
         status=status,
@@ -187,7 +187,8 @@ def project_list(request):
         region=region,
         city=city,
         dpm=dpm,
-        page=page
+        page=page,
+        project_type='pipeline'  # Only get pipeline projects
     )
     
     if not success:
@@ -221,11 +222,77 @@ def project_list(request):
         'projects': projects,
         'filter_form': filter_form,
         'filters_applied': filters_applied,
-        'filter_options': filter_options,  # Make sure this is included
-        'title': 'Project List'
+        'filter_options': filter_options,
+        'title': 'Pipeline Projects',
+        'is_pipeline': True  # Add flag to identify page type
     }
     
     return render(request, 'projects/project_list.html', context)
+
+
+@login_required
+def delivered_projects(request):
+    """
+    Displays a filterable list of delivered projects (Final Delivery status).
+    """
+    # Get filter parameters from request
+    search_query = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    product = request.GET.get('product', '')
+    region = request.GET.get('region', '')
+    city = request.GET.get('city', '')
+    dpm = request.GET.get('dpm', '')
+    page = request.GET.get('page', 1)
+
+    # Get delivered projects using service
+    success, result = ProjectService.get_project_list(
+        search_query=search_query,
+        status=status,
+        product=product,
+        region=region,
+        city=city,
+        dpm=dpm,
+        page=page,
+        project_type='delivered'  # Only get delivered projects
+    )
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('home')
+    
+    projects, filters_applied = result
+
+    # Get filter options
+    success, filter_options_result = ProjectService.get_filter_options()
+    if not success:
+        messages.warning(request, filter_options_result)
+        filter_options = {
+            'statuses': [],
+            'products': [],
+            'cities': [],
+            'regions': [],
+            'dpms': []
+        }
+    else:
+        filter_options = filter_options_result
+    
+    # Create filter form with current values
+    filter_form = ProjectFilterForm(initial=filters_applied)
+    
+    # Update city queryset based on selected region
+    if region:
+        filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
+
+    context = {
+        'projects': projects,
+        'filter_form': filter_form,
+        'filters_applied': filters_applied,
+        'filter_options': filter_options,
+        'title': 'Delivered Projects',
+        'is_delivered': True  # Add flag to identify page type
+    }
+    
+    return render(request, 'projects/delivered_projects.html', context)
 
 
 def get_cities(request):

@@ -206,6 +206,11 @@
         background: var(--light-bg);
         border: 1px solid var(--border-color);
         color: #495057;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 40px;
     }
     
     /* Product Badge */
@@ -388,15 +393,24 @@
 <div class="page-header">
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h4>
-                    <i class="bi bi-folder2-open"></i> 3D Projects
-                </h4>
-                <!--<p class="mb-0 opacity-75">Manage and track all your projects in one place</p>-->
+            <h3>
+                <i class="bi bi-folder2"></i> 
+                {% if is_pipeline %}
+                    Pipeline Projects
+                {% else %}
+                    Projects
+                {% endif %}
+            </h3>
+            <div class="d-flex gap-2">
+                {% if is_pipeline %}
+                    <a href="{% url 'projects:delivered_projects' %}" class="btn btn-secondary">
+                        <i class="bi bi-check-circle"></i> View Delivered Projects
+                    </a>
+                {% endif %}
+                <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> New Project
+                </a>
             </div>
-            <a href="{% url 'projects:create_project' %}" class="btn btn-outline-light btn-sm">
-                <i class="bi bi-plus-circle"></i> Create Project
-            </a>
         </div>
     </div>
 </div>
@@ -541,7 +555,12 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5>
-                    <i class="bi bi-list-ul"></i> Projects
+                    <i class="bi bi-list-ul"></i> 
+                    {% if is_pipeline %}
+                        Pipeline Projects
+                    {% else %}
+                        Projects
+                    {% endif %}
                     <small class="text-muted ms-2">({{ projects.paginator.count }} total)</small>
                 </h5>
                 <div>
@@ -575,7 +594,7 @@
                                 <div class="fw-semibold">{{ project.project_name }}</div>
                                 <small class="text-muted">{{ project.city }}</small>
                             </td>
-                            <td>{{ project.opportunity_id }}</td>
+                            <td>{{ project.opportunity_id|slice:"26:" }}</td>
                             <td>{{ project.builder_name }}</td>
                             <td>
                                 <span class="status-badge">{{ project.current_status.name }}</span>
