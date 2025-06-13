@@ -887,12 +887,20 @@ class ProjectService:
                 
                 end_time = timezone.now()
                 start_time = active_timer.started_at
-                
-                # Calculate duration in minutes
+
+                # Calculate duration in seconds
                 duration_seconds = (end_time - start_time).total_seconds()
-                # FIXED: Ensure minimum 1 minute duration
-                duration_minutes = max(1, int(duration_seconds // 60))
+
+                # NEW: Prevent stopping if less than 1 minute has been recorded
+                if duration_seconds < 60:
+                    logger.warning(f"Attempt to stop timer for {team_member.username} with less than 1 minute recorded. Duration: {duration_seconds} seconds")
+                    return False, "Timer must be run for at least 1 minute before stopping."
                 
+                # Calculate duration in minutes, ensuring minimum 1 minute for recording
+                duration_minutes = int(duration_seconds // 60)
+                if duration_minutes < 1:
+                    duration_minutes = 1 # Ensure at least 1 minute is recorded if it's been over 60 seconds but less than 2 minutes.
+
                 # Determine the work date (use start time's date)
                 work_date = start_time.date()
                 
