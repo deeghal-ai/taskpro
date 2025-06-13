@@ -5093,3 +5093,13 @@ INFO 2025-06-13 17:55:22,143 basehttp "GET /projects/assignments/266f1461-e65f-4
 INFO 2025-06-13 17:59:08,726 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 12486
 INFO 2025-06-13 21:39:30,169 basehttp "GET / HTTP/1.1" 302 0
 INFO 2025-06-13 21:39:30,298 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63027
+INFO 2025-06-13 23:04:30,253 autoreload Watching for file changes with StatReloader
+INFO 2025-06-13 23:04:34,970 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63027
+INFO 2025-06-13 23:04:36,596 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 24650
+INFO 2025-06-13 23:04:42,370 basehttp "GET /projects/daily-roster/?date=&week_view=on HTTP/1.1" 200 24667
+INFO 2025-06-13 23:04:48,195 basehttp "GET /projects/daily-roster/?date=2025-06-02&week_view=on HTTP/1.1" 200 29937
+INFO 2025-06-13 23:05:00,340 basehttp "GET /projects/daily-roster/?date=2025-06-02 HTTP/1.1" 200 20885
+INFO 2025-06-13 23:05:07,179 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 32151
+INFO 2025-06-13 23:05:12,036 basehttp "GET /projects/daily-roster/?date=2025-05-27&week_view=on HTTP/1.1" 200 70318
+INFO 2025-06-13 23:05:14,277 basehttp "GET /projects/daily-roster/?date=2025-05-27 HTTP/1.1" 200 32151
+INFO 2025-06-13 23:05:17,379 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 63027

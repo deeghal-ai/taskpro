@@ -1510,52 +1510,26 @@ class ProjectService:
         Returns:
             tuple: (daily_roster_object, created_boolean)
         """
-        with transaction.atomic():
-            try:
-                # Determine default status based on day of week and holidays
-                day_of_week = date.weekday()  # Monday=0, Sunday=6
-                
-                # Check if it's a holiday first
-                from .models import Holiday
-                is_holiday = Holiday.objects.filter(
-                    date=date,
-                    location='Gurgaon',  # You can make this configurable later
-                    is_active=True
-                ).exists()
-                
-                if is_holiday:
-                    default_status = 'HOLIDAY'
-                elif day_of_week in [5, 6]:  # Saturday=5, Sunday=6
-                    default_status = 'WEEK_OFF'
-                else:
-                    default_status = 'PRESENT'
-                
-                # Calculate assignment hours from existing DailyTimeTotal
-                assignment_minutes = DailyTimeTotal.objects.filter(
-                    team_member=team_member,
-                    date_worked=date
-                ).aggregate(total=Sum('total_minutes'))['total'] or 0
-                
-                daily_roster, created = DailyRoster.objects.get_or_create(
-                    team_member=team_member,
-                    date=date,
-                    defaults={
-                        'status': default_status,
-                        'assignment_hours': assignment_minutes,
-                        'is_auto_created': True
-                    }
-                )
-                
-                # If existing record, sync assignment hours
-                if not created and daily_roster.assignment_hours != assignment_minutes:
-                    daily_roster.assignment_hours = assignment_minutes
-                    daily_roster.save()
-                
-                return daily_roster, created
-                
-            except Exception as e:
-                logger.exception(f"Error creating daily roster: {str(e)}")
-                return None, False
+        day_of_week = date.weekday()
+        from .models import Holiday
+        is_holiday = Holiday.objects.filter(date=date, location='Gurgaon', is_active=True).exists()
+        
+        if is_holiday:
+            default_status = 'HOLIDAY'
+        elif day_of_week in [5, 6]:
+            default_status = 'WEEK_OFF'
+        else:
+            default_status = 'PRESENT'
+        
+        # Let Django handle the database errors
+        return DailyRoster.objects.get_or_create(
+            team_member=team_member,
+            date=date,
+            defaults={
+                'status': default_status,
+                'is_auto_created': True
+            }
+        )
     @staticmethod
     def get_monthly_roster(team_member, year, month):
         """
@@ -1651,8 +1625,6 @@ class ProjectService:
             try:
                 roster, created = ProjectService.get_or_create_daily_roster(team_member, date)
                 
-                if not roster:
-                    return False, "Could not create roster entry"
                 
                 # Update fields
                 roster.status = new_status
@@ -1703,8 +1675,6 @@ class ProjectService:
                 # Get or create daily roster
                 roster, created = ProjectService.get_or_create_daily_roster(team_member, work_date)
                 
-                if not roster:
-                    return False, "Could not create roster entry"
                 
                 # Format the activity description
                 formatted_duration = ProjectService._format_minutes(total_minutes)

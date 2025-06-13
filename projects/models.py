@@ -6,6 +6,7 @@ from accounts.models import User
 from locations.models import City
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.db.models import Sum
 
 class ProductSubcategory(models.Model):
     """
@@ -916,10 +917,12 @@ class TimerActionLog(models.Model):
     def __str__(self):
         return f"{self.assignment.assignment_id} - {self.action} - {self.timestamp}"
 
+# In your models.py - Replace the DailyRoster class with this simplified version
+
 class DailyRoster(models.Model):
     """
     Daily roster tracking for team members.
-    Combines assignment hours with working status for comprehensive time tracking.
+    SIMPLIFIED: Calculate assignment hours dynamically, no sync needed.
     """
     id = models.UUIDField(
         primary_key=True,
@@ -951,11 +954,9 @@ class DailyRoster(models.Model):
         help_text="Working status for this date"
     )
     
-    # Hours (calculated from existing system + manual misc)
-    assignment_hours = models.PositiveIntegerField(
-        default=0,
-        help_text="Total assignment hours worked (auto-calculated from DailyTimeTotal)"
-    )
+    # REMOVED: assignment_hours field - calculate dynamically instead
+    
+    # Keep only actual user-entered data
     misc_hours = models.PositiveIntegerField(
         default=0,
         help_text="Miscellaneous hours worked (manual entry)"
@@ -992,6 +993,14 @@ class DailyRoster(models.Model):
         return f"{self.team_member.username} - {self.date} - {self.get_status_display()}"
     
     @property
+    def assignment_hours(self):
+        """Calculate assignment hours dynamically from DailyTimeTotal"""
+        return DailyTimeTotal.objects.filter(
+            team_member=self.team_member,
+            date_worked=self.date
+        ).aggregate(total=Sum('total_minutes'))['total'] or 0
+    
+    @property
     def total_hours(self):
         """Total hours worked (assignment + misc)"""
         return self.assignment_hours + self.misc_hours
@@ -1015,24 +1024,6 @@ class DailyRoster(models.Model):
         minutes = self.misc_hours % 60
         return f"{hours:02d}:{minutes:02d}"
     
-    def save(self, *args, **kwargs):
-        """Override save to handle auto-population of assignment hours"""
-        # If this is a new record or assignment_hours is 0, try to auto-populate
-        if not self.pk or self.assignment_hours == 0:
-            self.sync_assignment_hours()
-        super().save(*args, **kwargs)
-    
-    def sync_assignment_hours(self):
-        """Sync assignment hours from DailyTimeTotal records"""
-        from django.db.models import Sum
-        total_minutes = DailyTimeTotal.objects.filter(
-            team_member=self.team_member,
-            date_worked=self.date
-        ).aggregate(total=Sum('total_minutes'))['total'] or 0
-        
-        self.assignment_hours = total_minutes
-
-
 
 
 class Holiday(models.Model):
@@ -1273,9 +1264,6 @@ class ProjectDelivery(models.Model):
     hs_id = models.CharField(max_length=10)
     expected_completion_date = models.DateField(null=True, blank=True)
     actual_completion_date = models.DateField()
-    days_variance = models.IntegerField(
-        help_text="Negative means delivered early, positive means late"
-    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -1285,6 +1273,13 @@ class ProjectDelivery(models.Model):
             models.Index(fields=['project_incharge', 'delivery_date']),
             models.Index(fields=['delivery_date']),
         ]
+
+    @property
+    def days_variance(self):
+        """Calculate days variance dynamically"""
+        if self.expected_completion_date and self.actual_completion_date:
+            return (self.actual_completion_date - self.expected_completion_date).days
+        return 0
     
     def save(self, *args, **kwargs):
         # Calculate days variance
