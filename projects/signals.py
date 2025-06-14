@@ -1,4 +1,4 @@
-# Update projects/signals.py
+# Update projects/signals.py - Much simpler without stored metrics!
 
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=ProjectStatusHistory)
 def track_status_changes(sender, instance, created, **kwargs):
     """
-    Track when a project status changes, handling both Final Delivery 
-    and return to pipeline status.
+    Track when a project status changes - simplified version.
+    Just track delivery events, no complex metrics calculation.
     """
     if not created:
         return
@@ -22,48 +22,26 @@ def track_status_changes(sender, instance, created, **kwargs):
     # Check if this is a "Final Delivery" status
     if 'final' in status_name and 'delivery' in status_name:
         try:
-            # Track the delivery
+            # Just track the delivery event - no metrics calculation needed!
             ReportingService.track_project_delivery(
                 instance.project,
                 instance.changed_at.date()
             )
             logger.info(f"Tracked final delivery for project {instance.project.hs_id}")
-            
-            # Log the transition
-            logger.info(f"Project {instance.project.hs_id} moved to DELIVERED state")
         except Exception as e:
             logger.exception(f"Error tracking delivery: {str(e)}")
     
     # Check if this is "Approval after deemed consumed" - returns to pipeline
     elif 'approval' in status_name and 'deemed' in status_name and 'consumed' in status_name:
-        try:
-            # Log the transition back to pipeline
-            logger.info(f"Project {instance.project.hs_id} moved back to PIPELINE state")
-            
-            # You might want to remove or update delivery records here
-            # depending on your business logic
-        except Exception as e:
-            logger.exception(f"Error handling pipeline return: {str(e)}")
+        logger.info(f"Project {instance.project.hs_id} moved back to PIPELINE state")
 
-@receiver(post_save, sender=TaskAssignment)
-def update_metrics_on_completion(sender, instance, created, **kwargs):
-    """
-    Update metrics when an assignment is completed.
-    """
-    if not created and instance.is_completed and instance.completion_date:
-        try:
-            ReportingService.calculate_team_member_metrics(
-                instance.assigned_to,
-                instance.completion_date.date()
-            )
-            logger.info(f"Updated metrics for {instance.assigned_to.username} on assignment completion")
-        except Exception as e:
-            logger.exception(f"Error updating metrics: {str(e)}")
+# Removed the complex assignment completion signal - no longer needed!
+# Metrics are now calculated on-demand when reports are viewed
 
 @receiver(pre_save, sender=Project)
 def log_project_state_transition(sender, instance, **kwargs):
     """
-    Log when a project transitions between pipeline and delivered states.
+    Simple logging of project state transitions - no metrics calculation.
     """
     if instance.pk:  # Only for existing projects
         try:

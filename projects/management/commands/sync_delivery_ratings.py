@@ -1,7 +1,6 @@
 # projects/management/commands/sync_delivery_ratings.py
 from django.core.management.base import BaseCommand
 from projects.models import Project, ProjectDelivery
-from projects.services import ReportingService
 
 class Command(BaseCommand):
     help = 'Sync delivery performance ratings from projects to delivery records'
@@ -13,7 +12,6 @@ class Command(BaseCommand):
         ).distinct()
         
         updated_count = 0
-        recalculated_dates = set()
         
         for project in projects_with_deliveries:
             if project.delivery_performance_rating:
@@ -24,13 +22,12 @@ class Command(BaseCommand):
                     delivery_performance_rating=project.delivery_performance_rating
                 )
                 
-                # Store the delivery info before updating
+                # Log what we're updating
                 for delivery in deliveries_to_update:
                     self.stdout.write(
                         f"Updating delivery for project {project.hs_id}: "
                         f"{delivery.delivery_performance_rating} -> {project.delivery_performance_rating}"
                     )
-                    recalculated_dates.add((delivery.project_incharge, delivery.delivery_date))
                 
                 # Perform the update
                 updated = deliveries_to_update.update(
@@ -46,14 +43,15 @@ class Command(BaseCommand):
                         )
                     )
         
-        # Recalculate metrics for all affected dates
-        self.stdout.write("\nRecalculating metrics...")
-        for incharge, date in recalculated_dates:
-            ReportingService.calculate_team_member_metrics(incharge, date)
-            self.stdout.write(f"✓ Recalculated metrics for {incharge.username} on {date}")
-        
         self.stdout.write(
             self.style.SUCCESS(
                 f"\nCompleted! Total delivery records updated: {updated_count}"
+            )
+        )
+        
+        self.stdout.write(
+            self.style.WARNING(
+                "\nNote: Metrics are now calculated on-demand when reports are viewed, "
+                "so no manual metric recalculation is needed!"
             )
         )

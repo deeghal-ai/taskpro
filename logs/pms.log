@@ -5948,3 +5948,84 @@ INFO 2025-06-14 14:57:59,834 basehttp "GET /projects/ HTTP/1.1" 200 47867
 INFO 2025-06-14 14:59:14,656 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
 INFO 2025-06-14 14:59:17,802 basehttp "GET /projects/ HTTP/1.1" 200 47867
 INFO 2025-06-14 14:59:25,050 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 15:01:58,836 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:01:59,364 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 15:02:05,081 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
+INFO 2025-06-14 15:02:10,976 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 15:02:16,474 basehttp "GET /projects/api/cities/?region=9d480f3c-b8cc-4a36-bf7d-feca35e1797f HTTP/1.1" 200 130
+INFO 2025-06-14 15:02:17,722 basehttp "GET /projects/?search=&status=&product=&region=9d480f3c-b8cc-4a36-bf7d-feca35e1797f&city=&dpm= HTTP/1.1" 200 40685
+INFO 2025-06-14 15:02:22,550 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 15:02:27,596 basehttp "GET /projects/api/cities/?region=9d480f3c-b8cc-4a36-bf7d-feca35e1797f HTTP/1.1" 200 130
+INFO 2025-06-14 15:02:44,814 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 15:09:42,085 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 15:09:42,836 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:10:23,657 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-14 15:10:24,388 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:10:43,524 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\signals.py changed, reloading.
+INFO 2025-06-14 15:10:44,184 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:19:51,330 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-14 15:19:51,965 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:26:43,335 autoreload Watching for file changes with StatReloader
+ERROR 2025-06-14 15:26:47,171 log Internal Server Error: /projects/reports/team-overview/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py", line 84, in team_overview_report
+    overview_data = ReportingService.get_team_overview(start_date, end_date)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 2157, in get_team_overview
+    metrics = ReportingService.get_team_member_metrics(member, start_date, end_date)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 2120, in get_team_member_metrics
+    on_time_count = deliveries.filter(days_variance__lte=0).count()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1613, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1645, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1495, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1307, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1772, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'days_variance' into field. Choices are: actual_completion_date, created_at, delivery_date, delivery_performance_rating, expected_completion_date, hs_id, id, project, project_id, project_incharge, project_incharge_id, project_name
+ERROR 2025-06-14 15:26:47,171 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 500 123892
+INFO 2025-06-14 15:28:11,796 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 15:28:12,540 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:28:29,505 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-14 15:28:30,228 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:28:54,283 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:30:55,966 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 15:30:56,627 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:30:56,821 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-14 15:30:57,468 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 15:31:00,445 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10543
+INFO 2025-06-14 15:31:03,409 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 12827
+INFO 2025-06-14 15:31:30,913 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 200 14077
+INFO 2025-06-14 15:31:58,767 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 15:31:58,803 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 15:32:02,818 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 200 14077
+INFO 2025-06-14 15:32:09,844 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-14 15:32:27,892 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 11642
+INFO 2025-06-14 15:35:00,601 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 9377
+INFO 2025-06-14 15:35:40,398 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10504
+INFO 2025-06-14 15:35:43,299 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 10562

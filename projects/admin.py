@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ProductSubcategory, Product, ProjectStatusOption, Project, ProjectStatusHistory, ProductTask, ProjectTask, TaskAssignment
-from .models import ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, DailyRoster, Holiday
+from .models import ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, DailyRoster, Holiday, ProjectDelivery
 
 
 @admin.register(ProductSubcategory)
@@ -437,3 +437,33 @@ class HolidayAdmin(admin.ModelAdmin):
     list_filter = ('year', 'location', 'is_active')
     search_fields = ('name', 'location')
     ordering = ('date',)
+
+@admin.register(ProjectDelivery)
+class ProjectDeliveryAdmin(admin.ModelAdmin):
+    """Admin interface for tracking project deliveries and performance ratings."""
+    list_display = (
+        'hs_id',
+        'project_name',
+        'project_incharge', 
+        'delivery_date',
+        'delivery_performance_rating',
+        'days_variance',
+        'actual_completion_date'
+    )
+    list_filter = (
+        'delivery_date',
+        'delivery_performance_rating',
+        'project_incharge'
+    )
+    search_fields = (
+        'hs_id',
+        'project_name',
+        'project_incharge__username',
+        'project_incharge__first_name',
+        'project_incharge__last_name'
+    )
+    readonly_fields = ('created_at', 'days_variance')
+    ordering = ('-delivery_date',)
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('project', 'project_incharge')

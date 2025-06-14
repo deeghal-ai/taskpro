@@ -68,34 +68,7 @@
     </div>
 </div>
 
-<!-- Charts -->
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Daily Productivity Trend</h5>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="productivityChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Daily Utilization Trend</h5>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="utilizationChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Charts section removed - keeping reports simple and focused on summary metrics -->
 
 <!-- Delivery History (if any) -->
 {% if report.delivery_history %}
@@ -152,60 +125,5 @@
 {% endblock %}
 
 {% block report_scripts %}
-<script>
-    // Chart data from Django
-    const chartData = {{ report.charts_data|safe }};
-    
-    // Productivity Chart
-    const productivityCtx = document.getElementById('productivityChart').getContext('2d');
-    new Chart(productivityCtx, {
-        type: 'line',
-        data: {
-            labels: chartData.dates,
-            datasets: [{
-                label: 'Productivity %',
-                data: chartData.productivity,
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 150
-                }
-            }
-        }
-    });
-    
-    // Utilization Chart
-    const utilizationCtx = document.getElementById('utilizationChart').getContext('2d');
-    new Chart(utilizationCtx, {
-        type: 'line',
-        data: {
-            labels: chartData.dates,
-            datasets: [{
-                label: 'Utilization %',
-                data: chartData.utilization,
-                borderColor: '#198754',
-                backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100
-                }
-            }
-        }
-    });
-</script>
+<!-- Chart scripts removed - keeping reports simple and focused on summary metrics -->
 {% endblock %}

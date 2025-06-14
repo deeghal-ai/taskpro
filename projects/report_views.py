@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum, Count, Q
 from accounts.models import User
-from .models import TeamMemberMetrics, ProjectDelivery
+from .models import ProjectDelivery
 from .services import ReportingService
 from datetime import date, timedelta
 import json
@@ -13,7 +13,7 @@ from django.shortcuts import render, get_object_or_404, redirect  # Add redirect
 
 @login_required
 def team_member_report(request, team_member_id=None):
-    """View for team member productivity report"""
+    """View for team member productivity report - now using on-demand calculations"""
     # Default to current user if team member
     if not team_member_id and request.user.role == 'TEAM_MEMBER':
         team_member = request.user
@@ -29,16 +29,31 @@ def team_member_report(request, team_member_id=None):
     if isinstance(start_date, str):
         start_date = date.fromisoformat(start_date)
     
-    # Calculate metrics for any missing dates
-    current_date = start_date
-    while current_date <= end_date:
-        ReportingService.calculate_team_member_metrics(team_member, current_date)
-        current_date += timedelta(days=1)
+    # Get report data (now calculated on-demand!)
+    metrics = ReportingService.get_team_member_metrics(team_member, start_date, end_date)
     
-    # Get report data
-    report_data = ReportingService.get_team_member_report(
-        team_member, start_date, end_date
-    )
+    # Get delivery history for details
+    delivery_history = ProjectDelivery.objects.filter(
+        project_incharge=team_member,
+        delivery_date__range=[start_date, end_date]
+    ).order_by('-delivery_date')
+    
+    # Prepare context in the format expected by template
+    report_data = {
+        'period': metrics['period'],
+        'delivery_history': delivery_history,
+        'summary': {
+            'average_productivity': metrics['productivity']['score'],
+            'average_utilization': metrics['utilization']['score'],
+            'average_quality_rating': metrics['quality']['average_rating'],
+            'average_delivery_rating': metrics['delivery']['average_rating'],
+            'total_assignments_completed': metrics['quality']['total_assignments'],
+            'total_projects_delivered': metrics['delivery']['total_projects'],
+            'on_time_delivery_rate': metrics['delivery']['on_time_rate'],
+            'total_hours_projected': metrics['productivity']['projected_hours'],
+            'total_hours_worked': metrics['productivity']['worked_hours'],
+        }
+    }
     
     context = {
         'team_member': team_member,
@@ -52,7 +67,7 @@ def team_member_report(request, team_member_id=None):
 
 @login_required
 def team_overview_report(request):
-    """Overview report for all team members (DPM view)"""
+    """Overview report for all team members (DPM view) - now using on-demand calculations"""
     if request.user.role != 'DPM':
         return redirect('projects:team_member_report')
     
@@ -65,37 +80,26 @@ def team_overview_report(request):
     if isinstance(start_date, str):
         start_date = date.fromisoformat(start_date)
     
-    # Get all team members
-    team_members = User.objects.filter(role='TEAM_MEMBER')
+    # Get overview data (much simpler now!)
+    overview_data = ReportingService.get_team_overview(start_date, end_date)
     
-    # Build overview data
-    overview_data = []
-    for member in team_members:
-        metrics = TeamMemberMetrics.objects.filter(
-            team_member=member,
-            date__range=[start_date, end_date]
-        ).aggregate(
-            avg_productivity=Avg('productivity_score'),
-            avg_utilization=Avg('utilization_score'),
-            avg_quality=Avg('average_quality_rating'),
-            avg_delivery=Avg('average_delivery_rating'),
-            total_assignments=Sum('assignments_completed'),
-            total_projects=Sum('projects_delivered')
-        )
-        
-        overview_data.append({
-            'team_member': member,
-            'metrics': metrics
+    # Transform data format to match template expectations
+    formatted_overview = []
+    for item in overview_data:
+        formatted_overview.append({
+            'team_member': item['team_member'],
+            'metrics': {
+                'avg_productivity': item['metrics']['productivity']['score'],
+                'avg_utilization': item['metrics']['utilization']['score'],
+                'avg_quality': item['metrics']['quality']['average_rating'],
+                'avg_delivery': item['metrics']['delivery']['average_rating'],
+                'total_assignments': item['metrics']['quality']['total_assignments'],
+                'total_projects': item['metrics']['delivery']['total_projects']
+            }
         })
     
-    # Sort by productivity
-    overview_data.sort(
-        key=lambda x: x['metrics']['avg_productivity'] or 0, 
-        reverse=True
-    )
-    
     context = {
-        'overview_data': overview_data,
+        'overview_data': formatted_overview,
         'start_date': start_date,
         'end_date': end_date,
         'title': 'Team Overview Report'
@@ -105,7 +109,7 @@ def team_overview_report(request):
 
 @login_required
 def delivery_performance_report(request):
-    """Delivery performance report for project incharges"""
+    """Delivery performance report for project incharges - simplified"""
     if request.user.role != 'DPM':
         return redirect('home')
     
@@ -118,7 +122,7 @@ def delivery_performance_report(request):
     if isinstance(start_date, str):
         start_date = date.fromisoformat(start_date)
     
-    # Get delivery data
+    # Get delivery data - much simpler without complex stored metrics
     deliveries = ProjectDelivery.objects.filter(
         delivery_date__range=[start_date, end_date]
     ).select_related('project', 'project_incharge')
@@ -139,7 +143,9 @@ def delivery_performance_report(request):
         incharge_data[incharge]['deliveries'].append(delivery)
         incharge_data[incharge]['total'] += 1
         
-        if delivery.days_variance <= 0:
+        # Calculate on-time using the actual database fields, not the property
+        if (delivery.expected_completion_date and 
+            delivery.actual_completion_date <= delivery.expected_completion_date):
             incharge_data[incharge]['on_time'] += 1
         
         if delivery.delivery_performance_rating:
