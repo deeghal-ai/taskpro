@@ -1049,6 +1049,43 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
     return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
 
+
+@login_required
+def my_projects(request):
+    """
+    Display all projects where the current user is the project in-charge.
+    This is a read-only view for team members.
+    """
+    # Check if user is a team member
+    if request.user.role != 'TEAM_MEMBER':
+        messages.warning(request, "This view is only available for team members.")
+        return redirect('home')
+    
+    # Get projects where user is project in-charge
+    success, result = ProjectService.get_team_member_projects(request.user)
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('projects:team_member_dashboard')
+    
+    projects_data = result
+    
+    # Separate pipeline and delivered projects
+    pipeline_projects = [p for p in projects_data if p['stats']['is_pipeline']]
+    delivered_projects = [p for p in projects_data if p['stats']['is_delivered']]
+    
+    context = {
+        'projects_data': projects_data,
+        'pipeline_projects': pipeline_projects,
+        'delivered_projects': delivered_projects,
+        'title': 'My Projects',
+        'total_projects': len(projects_data),
+        'is_read_only': True  # Flag to ensure read-only display
+    }
+    
+    return render(request, 'projects/my_projects.html', context)
+
+
 @login_required
 def delivery_performance_report(request):
     """

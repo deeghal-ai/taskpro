@@ -2,7 +2,7 @@
 import logging
 from django.core.exceptions import ValidationError
 from .models import Project, DailyRoster, ProjectStatusHistory, ProjectStatusOption, ProductTask, ProjectTask, TaskAssignment, Product, ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, ProjectMetrics, ProjectDelivery, TeamMemberMetrics
-from django.db.models import Sum, Q, Subquery, OuterRef, F
+from django.db.models import Sum, Q, Subquery, OuterRef, F, Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
@@ -1850,6 +1850,107 @@ class ProjectService:
         except Exception as e:
             logger.exception(f"Error calculating days remaining: {str(e)}")
             return "Unknown"
+        
+    @staticmethod
+    def get_team_member_projects(team_member):
+        """
+        Retrieves all projects where the team member is the project in-charge.
+        Includes tasks and assignments for each project.
+        
+        Args:
+            team_member: User object of the team member
+                
+        Returns:
+            tuple: (success, result)
+                - If successful: (True, projects_data)
+                - If failed: (False, error_message)
+        """
+        try:
+            # Get all projects where this team member is the project in-charge
+            projects = Project.objects.filter(
+                project_incharge=team_member
+            ).select_related(
+                'product',
+                'city',
+                'dpm',
+                'current_status'
+            ).prefetch_related(
+                Prefetch(
+                    'tasks',
+                    queryset=ProjectTask.objects.select_related('product_task').prefetch_related(
+                        Prefetch(
+                            'assignments',
+                            queryset=TaskAssignment.objects.select_related(
+                                'assigned_to'
+                            ).order_by('-assigned_date')
+                        )
+                    )
+                )
+            ).order_by('-created_at')
+            
+            # Process each project to add summary statistics
+            projects_data = []
+            for project in projects:
+                # Calculate project-level task statistics
+                total_tasks_in_project = project.tasks.count()
+                completed_tasks_in_project = 0
+                total_assignments_in_project = 0
+                my_assignments_in_project = 0
+                my_completed_assignments_in_project = 0
+
+                # Prepare tasks with per-task statistics
+                processed_tasks = []
+                for task in project.tasks.all():
+                    task_total_assignments = task.assignments.count()
+                    task_completed_assignments = task.assignments.filter(is_completed=True).count()
+
+                    # Determine if the task itself is completed (all its assignments are completed)
+                    task_is_completed = (task_total_assignments > 0 and task_completed_assignments == task_total_assignments)
+                    if task_is_completed:
+                        completed_tasks_in_project += 1
+
+                    # Accumulate project-level assignment counts
+                    total_assignments_in_project += task_total_assignments
+                    for assignment in task.assignments.all():
+                        if assignment.assigned_to == team_member:
+                            my_assignments_in_project += 1
+                            if assignment.is_completed:
+                                my_completed_assignments_in_project += 1
+
+                    # Add calculated stats to the task object for template use
+                    # We can dynamically add attributes to the task object before passing it
+                    task.calculated_total_assignments = task_total_assignments
+                    task.calculated_completed_assignments = task_completed_assignments
+                    task.calculated_is_completed = task_is_completed # This flag will be used in template
+
+                    processed_tasks.append(task) # Re-add the task with new attributes
+
+                # Calculate project-level completion percentage
+                completion_percentage = (completed_tasks_in_project / total_tasks_in_project * 100) if total_tasks_in_project > 0 else 0
+
+                project_info = {
+                    'project': project,
+                    'stats': {
+                        'total_tasks': total_tasks_in_project,
+                        'completed_tasks': completed_tasks_in_project,
+                        'completion_percentage': round(completion_percentage, 1),
+                        'total_assignments': total_assignments_in_project,
+                        'my_assignments': my_assignments_in_project,
+                        'my_completed_assignments': my_completed_assignments_in_project,
+                        'is_delivered': project.is_delivered,
+                        'is_pipeline': project.is_pipeline
+                    },
+                    'processed_tasks': processed_tasks # Add the processed tasks list
+                }
+
+                projects_data.append(project_info)
+            
+            logger.debug(f"Retrieved {len(projects_data)} projects for team member {team_member.id}")
+            return True, projects_data
+            
+        except Exception as e:
+            logger.exception(f"Error retrieving team member projects: {str(e)}")
+            return False, f"An error occurred: {str(e)}"
 
 class ReportingService:
     """
@@ -2033,6 +2134,9 @@ class ReportingService:
         
         logger.info(f"Tracked delivery for project {project.hs_id} with rating {delivery.delivery_performance_rating}")
         return delivery
+
+
+
     
     @staticmethod
     def get_team_member_report(team_member, start_date, end_date):

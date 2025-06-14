@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    /* Statistics Cards */
+    .stats-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-card .stats-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.8;
+    }
+
+    .stats-card .stats-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .stats-card .stats-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Project Cards */
+    .project-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .project-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-header {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .project-header h5 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .project-body {
+        padding: 1.5rem;
+    }
+
+    /* Project Info Grid */
+    .project-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .progress {
+        height: 1.5rem;
+        background: #e9ecef;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: width 0.6s ease;
+    }
+
+    /* Task Table */
+    .task-table {
+        margin-top: 1rem;
+    }
+
+    .table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #dee2e6;
+        color: #6c757d;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 0.75rem;
+    }
+
+    /* Assignment Badge */
+    .assignment-badge {
+        display: inline-block;
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-delivered {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .status-pipeline {
+        background: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+    }
+
+    /* Team Member List */
+    .team-member-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 0.25rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .team-member-item i {
+        color: #6c757d;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    /* Section Headers */
+    .section-header {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .section-header h4 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .project-info {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-row {
+            margin-bottom: 1rem;
+        }
+
+        .table {
+            font-size: 0.875rem;
+        }
+    }
+
+    /* No hover effect for read-only */
+    .read-only-indicator {
+        display: inline-block;
+        background: #f8f9fa;
+        color: #6c757d;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>
+                <i class="bi bi-folder2-open"></i> My Projects
+            </h4>
+            <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+
+    {% if pipeline_projects %}
+    <!-- Pipeline Projects Section -->
+    <div class="section-header">
+        <h4>
+            <i class="bi bi-arrow-repeat text-info"></i> Pipeline Projects
+            <span class="badge bg-info ms-2">{{ pipeline_projects|length }}</span>
+        </h4>
+    </div>
+
+    {% for project_data in pipeline_projects %}
+    <div class="project-card">
+        <div class="project-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>
+                    <span class="text-primary">{{ project_data.project.hs_id }}</span>
+                    {{ project_data.project.project_name }}
+                </h5>
+            </div>
+        </div>
+        <div class="project-body">
+            <!-- Project Info -->
+            <div class="project-info">
+                <div class="info-item">
+                    <span class="info-label">Product</span>
+                    <span class="info-value">{{ project_data.project.product.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">DPM</span>
+                    <span class="info-value">{{ project_data.project.dpm.get_full_name|default:project_data.project.dpm.username }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Current Status</span>
+                    <span class="info-value">{{ project_data.project.current_status.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">City</span>
+                    <span class="info-value">{{ project_data.project.city.name }}</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="d-flex justify-content-between mb-1">
+                    <small class="text-muted">Project Progress</small>
+                    <small class="text-muted">{{ project_data.stats.completed_tasks }}/{{ project_data.stats.total_tasks }} tasks</small>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ project_data.stats.completion_percentage }}%"
+                         aria-valuenow="{{ project_data.stats.completion_percentage }}" 
+                         aria-valuemin="0" aria-valuemax="100">
+                        {{ project_data.stats.completion_percentage }}%
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Table -->
+            {% if project_data.processed_tasks %}
+            <div class="task-table">
+                <h6 class="mb-3">
+                    <i class="bi bi-list-check"></i> Tasks & Assignments
+                    <small class="text-muted ms-2">({{ project_data.stats.my_assignments }} assigned to me)</small>
+                </h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Task ID</th>
+                                <th>Task Name</th>
+                                <th>Assignments</th>
+                                <th>Team Members</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in project_data.processed_tasks %}
+                            <tr>
+                                <td><span class="fw-bold">{{ task.task_id }}</span></td>
+                                <td>{{ task.product_task.name }}</td>
+                                <td>
+                                    <span class="assignment-badge">
+                                        {{ task.calculated_total_assignments }} assignments
+                                    </span>
+                                </td>
+                                <td>
+                                    {% for assignment in task.assignments.all %}
+                                        <small class="d-block">
+                                            <i class="bi bi-person"></i> 
+                                            {{ assignment.assigned_to.get_full_name|default:assignment.assigned_to.username }}
+                                            {% if assignment.assigned_to == user %}
+                                                <span class="badge bg-primary ms-1">Me</span>
+                                            {% endif %}
+                                            {% if assignment.is_completed %}
+                                                <i class="bi bi-check-circle text-success ms-1"></i>
+                                            {% endif %}
+                                        </small>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if task.calculated_total_assignments > 0 %}
+                                        {% if task.calculated_is_completed %}
+                                            <span class="status-badge status-completed">Completed</span>
+                                        {% else %}
+                                            <span class="status-badge status-active">Active</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">No assignments</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No tasks created yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if delivered_projects %}
+    <!-- Delivered Projects Section -->
+    <div class="section-header">
+        <h4>
+            <i class="bi bi-check-circle text-success"></i> Delivered Projects
+            <span class="badge bg-success ms-2">{{ delivered_projects|length }}</span>
+        </h4>
+    </div>
+
+    {% for project_data in delivered_projects %}
+    <div class="project-card">
+        <div class="project-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>
+                    <span class="text-success">{{ project_data.project.hs_id }}</span>
+                    {{ project_data.project.project_name }}
+                </h5>
+                <span class="status-badge status-delivered">Delivered</span>
+            </div>
+        </div>
+        <div class="project-body">
+            <!-- Project Info -->
+            <div class="project-info">
+                <div class="info-item">
+                    <span class="info-label">Product</span>
+                    <span class="info-value">{{ project_data.project.product.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">DPM</span>
+                    <span class="info-value">{{ project_data.project.dpm.get_full_name|default:project_data.project.dpm.username }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Delivery Rating</span>
+                    <span class="info-value">
+                        {% if project_data.project.delivery_performance_rating %}
+                            {{ project_data.project.delivery_performance_rating }}/5
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                            <span class="text-muted">Not rated</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Completion Date</span>
+                    <span class="info-value">
+                        {% if project_data.project.expected_completion_date %}
+                            {{ project_data.project.expected_completion_date|date:"M d, Y" }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="alert alert-success mt-3">
+                <h6 class="alert-heading mb-2">
+                    <i class="bi bi-check-circle"></i> Project Summary
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Total Tasks</small>
+                        <strong>{{ project_data.stats.total_tasks }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">My Assignments</small>
+                        <strong>{{ project_data.stats.my_assignments }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Completed by Me</small>
+                        <strong>{{ project_data.stats.my_completed_assignments }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Completion</small>
+                        <strong>{{ project_data.stats.completion_percentage }}%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if not projects_data %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-folder2-open"></i>
+        </div>
+        <h5>No Projects Found</h5>
+        <p class="text-muted">You are not assigned as Project In-charge for any projects yet.</p>
+        <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary mt-3">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}

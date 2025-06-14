@@ -5266,3 +5266,493 @@ INFO 2025-06-14 00:44:50,276 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20
 INFO 2025-06-14 00:44:52,261 basehttp "GET /projects/ HTTP/1.1" 200 42884
 INFO 2025-06-14 00:44:55,212 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
 INFO 2025-06-14 00:44:57,239 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 00:54:59,040 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:55:09,819 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+ERROR 2025-06-14 00:55:26,091 log Internal Server Error: /projects/my-projects/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 1065, in my_projects
+    success, result = ProjectService.get_team_member_projects(request.user)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ProjectService' has no attribute 'get_team_member_projects'. Did you mean: 'get_team_member_assignments'?
+ERROR 2025-06-14 00:55:26,107 basehttp "GET /projects/my-projects/ HTTP/1.1" 500 70055
+INFO 2025-06-14 00:57:51,834 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:57:57,116 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+ERROR 2025-06-14 00:57:59,329 log Internal Server Error: /projects/my-projects/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 1065, in my_projects
+    success, result = ProjectService.get_team_member_projects(request.user)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ProjectService' has no attribute 'get_team_member_projects'. Did you mean: 'get_team_member_assignments'?
+ERROR 2025-06-14 00:57:59,345 basehttp "GET /projects/my-projects/ HTTP/1.1" 500 70055
+INFO 2025-06-14 00:59:21,093 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 00:59:26,216 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 00:59:28,730 basehttp "GET /projects/roster/ HTTP/1.1" 200 63425
+INFO 2025-06-14 00:59:33,745 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 00:59:35,564 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 20886
+INFO 2025-06-14 00:59:37,469 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+ERROR 2025-06-14 00:59:39,155 log Internal Server Error: /projects/my-projects/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 1065, in my_projects
+    success, result = ProjectService.get_team_member_projects(request.user)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ProjectService' has no attribute 'get_team_member_projects'. Did you mean: 'get_team_member_assignments'?
+ERROR 2025-06-14 00:59:39,171 basehttp "GET /projects/my-projects/ HTTP/1.1" 500 70055
+INFO 2025-06-14 01:03:24,634 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:03:32,929 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+ERROR 2025-06-14 01:03:55,262 log Internal Server Error: /projects/my-projects/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 1065, in my_projects
+    success, result = ProjectService.get_team_member_projects(request.user)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ProjectService' has no attribute 'get_team_member_projects'. Did you mean: 'get_team_member_assignments'?
+ERROR 2025-06-14 01:03:55,282 basehttp "GET /projects/my-projects/ HTTP/1.1" 500 70055
+INFO 2025-06-14 01:06:16,907 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 01:06:18,196 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:06:23,875 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:06:33,986 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+ERROR 2025-06-14 01:06:36,283 log Internal Server Error: /projects/my-projects/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 1065, in my_projects
+    success, result = ProjectService.get_team_member_projects(request.user)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ProjectService' has no attribute 'get_team_member_projects'. Did you mean: 'get_team_member_assignments'?
+ERROR 2025-06-14 01:06:36,299 basehttp "GET /projects/my-projects/ HTTP/1.1" 500 70055
+INFO 2025-06-14 01:07:50,334 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 01:07:51,497 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:08:14,070 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 01:08:16,025 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:08:24,747 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 01:08:26,064 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:08:31,612 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37164
+INFO 2025-06-14 01:13:24,177 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 01:13:25,138 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 01:13:28,719 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37164
+INFO 2025-06-14 01:13:51,295 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37164
+INFO 2025-06-14 01:14:07,873 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:16:55,225 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:16:57,234 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:02,416 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:07,235 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:09,262 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:11,708 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:13,320 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:15,853 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:17,292 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:20,571 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:25,637 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:27,582 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:47,246 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:51,877 basehttp "GET /projects/roster/ HTTP/1.1" 200 63425
+INFO 2025-06-14 01:17:54,186 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:55,340 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 20886
+INFO 2025-06-14 01:17:56,693 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:17:57,977 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:17:59,486 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:18:04,511 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 52916
+INFO 2025-06-14 01:18:08,564 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:18:10,361 basehttp "GET /projects/daily-roster/ HTTP/1.1" 200 20886
+INFO 2025-06-14 01:18:12,030 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 01:18:13,520 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 01:18:15,139 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 09:37:41,812 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 09:37:50,760 basehttp "GET /projects/ HTTP/1.1" 200 42884
+WARNING 2025-06-14 09:37:53,239 log Not Found: /favicon.ico
+WARNING 2025-06-14 09:37:53,241 basehttp "GET /favicon.ico HTTP/1.1" 404 2438
+INFO 2025-06-14 09:37:54,548 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 21019
+INFO 2025-06-14 09:40:27,053 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+ERROR 2025-06-14 09:43:19,257 log Internal Server Error: /projects/tasks/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 634, in dpm_task_dashboard
+    return render(request, 'projects/dpm_task_dashboard.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 481, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 479, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 597, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 693, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 603, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'regroup'
+ERROR 2025-06-14 09:43:19,273 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 500 243702
+ERROR 2025-06-14 09:47:12,260 log Internal Server Error: /projects/tasks/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 634, in dpm_task_dashboard
+    return render(request, 'projects/dpm_task_dashboard.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 1490, in do_with
+    extra_context = token_kwargs(remaining_bits, parser, support_legacy=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 1111, in token_kwargs
+    kwargs[key] = parser.compile_filter(value)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 597, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 698, in __init__
+    raise TemplateSyntaxError(
+django.template.exceptions.TemplateSyntaxError: Could not parse the remainder: '(project_incharge__isnull=True).values('project_incharge').distinct.count' from 'projects.exclude(project_incharge__isnull=True).values('project_incharge').distinct.count'
+ERROR 2025-06-14 09:47:12,268 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 500 253759
+ERROR 2025-06-14 09:47:23,176 log Internal Server Error: /projects/tasks/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py", line 634, in dpm_task_dashboard
+    return render(request, 'projects/dpm_task_dashboard.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\defaulttags.py", line 1490, in do_with
+    extra_context = token_kwargs(remaining_bits, parser, support_legacy=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 1111, in token_kwargs
+    kwargs[key] = parser.compile_filter(value)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 597, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\template\base.py", line 698, in __init__
+    raise TemplateSyntaxError(
+django.template.exceptions.TemplateSyntaxError: Could not parse the remainder: '(project_incharge__isnull=True).values('project_incharge').distinct.count' from 'projects.exclude(project_incharge__isnull=True).values('project_incharge').distinct.count'
+ERROR 2025-06-14 09:47:23,206 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 500 253622
+INFO 2025-06-14 09:50:00,523 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39480
+INFO 2025-06-14 09:50:15,881 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 09:50:18,351 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39480
+INFO 2025-06-14 09:50:47,202 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39348
+INFO 2025-06-14 09:51:01,348 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 09:51:03,108 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39348
+INFO 2025-06-14 09:53:11,709 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 09:55:31,088 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39488
+INFO 2025-06-14 09:55:40,508 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 09:55:42,646 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39488
+INFO 2025-06-14 09:55:44,411 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 09:55:45,815 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39488
+INFO 2025-06-14 09:55:47,864 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 09:55:57,017 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39488
+INFO 2025-06-14 09:58:15,155 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39493
+INFO 2025-06-14 09:58:19,614 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39493
+INFO 2025-06-14 09:58:20,917 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39493
+INFO 2025-06-14 09:58:23,098 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39493
+INFO 2025-06-14 09:58:24,904 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 09:59:44,496 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39507
+INFO 2025-06-14 10:01:16,656 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 37940
+INFO 2025-06-14 10:01:29,829 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 37808
+INFO 2025-06-14 10:02:14,493 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 10:02:22,982 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 10:02:28,363 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 10:02:32,351 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 37808
+INFO 2025-06-14 10:03:45,746 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 10:03:48,157 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 10:04:38,349 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39329
+INFO 2025-06-14 10:04:40,228 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 10:04:43,285 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39329
+INFO 2025-06-14 10:04:45,143 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/ HTTP/1.1" 200 30670
+INFO 2025-06-14 10:04:50,103 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 10:04:50,176 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 10:04:53,010 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 39329
+INFO 2025-06-14 10:06:21,741 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 38468
+INFO 2025-06-14 10:07:22,922 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 10:07:22,944 basehttp "GET /accounts/login/ HTTP/1.1" 200 2866
+INFO 2025-06-14 10:07:36,011 basehttp "POST /accounts/login/ HTTP/1.1" 302 0
+INFO 2025-06-14 10:07:36,034 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 10:07:36,177 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:07:39,725 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 10:08:54,491 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37110
+INFO 2025-06-14 10:09:45,454 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37110
+INFO 2025-06-14 10:09:48,005 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37110
+INFO 2025-06-14 10:09:49,500 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37110
+INFO 2025-06-14 10:09:51,052 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37110
+INFO 2025-06-14 10:10:16,291 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 10:11:57,596 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 10:12:02,612 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:12:14,058 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37097
+INFO 2025-06-14 10:12:17,814 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 10:13:50,334 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37112
+INFO 2025-06-14 10:14:19,404 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 37112
+INFO 2025-06-14 10:15:09,089 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 35523
+INFO 2025-06-14 10:17:06,424 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 35517
+INFO 2025-06-14 10:37:05,716 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 10:37:07,816 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 10:39:30,522 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 10:39:31,505 autoreload Watching for file changes with StatReloader
+ERROR 2025-06-14 10:39:35,829 services Error retrieving team member projects: cannot access local variable 'task_completed' where it is not associated with a value
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 1922, in get_team_member_projects
+    if task_completed:
+       ^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'task_completed' where it is not associated with a value
+INFO 2025-06-14 10:39:35,879 basehttp "GET /projects/my-projects/ HTTP/1.1" 302 0
+INFO 2025-06-14 10:39:36,096 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60847
+ERROR 2025-06-14 10:39:43,841 services Error retrieving team member projects: cannot access local variable 'task_completed' where it is not associated with a value
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 1922, in get_team_member_projects
+    if task_completed:
+       ^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'task_completed' where it is not associated with a value
+INFO 2025-06-14 10:39:43,841 basehttp "GET /projects/my-projects/ HTTP/1.1" 302 0
+INFO 2025-06-14 10:39:43,942 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60847
+ERROR 2025-06-14 10:39:46,189 services Error retrieving team member projects: cannot access local variable 'task_completed' where it is not associated with a value
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 1922, in get_team_member_projects
+    if task_completed:
+       ^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'task_completed' where it is not associated with a value
+INFO 2025-06-14 10:39:46,190 basehttp "GET /projects/my-projects/ HTTP/1.1" 302 0
+INFO 2025-06-14 10:39:46,273 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60847
+INFO 2025-06-14 10:40:51,324 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 10:40:52,397 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 10:41:44,121 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 10:41:45,004 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 10:41:47,837 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:41:49,672 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 35517
+INFO 2025-06-14 10:48:06,912 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:48:17,608 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 52916
+INFO 2025-06-14 10:48:21,227 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:48:22,732 basehttp "GET /projects/assignments/9be64d49-844f-43e7-b10d-d5a53fcdaccb/timesheet/ HTTP/1.1" 200 33559
+INFO 2025-06-14 10:48:25,936 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:48:29,305 basehttp "GET /projects/assignments/253529ee-f166-434b-8951-2527030b9eb9/timesheet/ HTTP/1.1" 200 43426
+INFO 2025-06-14 10:48:32,242 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:48:34,702 basehttp "GET /projects/assignments/d04d7774-2247-4e3a-bf75-965611c7c855/timesheet/ HTTP/1.1" 200 27078
+INFO 2025-06-14 10:48:40,914 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:48:42,407 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 35517
+INFO 2025-06-14 10:49:11,355 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:49:22,018 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-14 10:49:26,793 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:49:29,442 basehttp "GET /projects/assignments/946b8a1d-6e60-4c6a-ab84-34d9870453ae/timesheet/ HTTP/1.1" 200 25543
+INFO 2025-06-14 10:52:47,683 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 10:52:53,057 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 10:52:58,904 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 10:53:01,081 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 35517
+INFO 2025-06-14 10:53:13,623 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/manage/ HTTP/1.1" 200 33147
+INFO 2025-06-14 10:53:18,455 basehttp "GET /projects/aedaa6b4-0d60-4cdd-8ebd-8fbbb9c3879d/tasks/17c8c644-811c-47af-b902-55c4cbd5e0a8/ HTTP/1.1" 200 31968
+INFO 2025-06-14 10:54:05,826 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 35517
+INFO 2025-06-14 10:56:22,462 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 10:56:23,582 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:00:09,609 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:00:11,096 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:00:19,322 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34783
+INFO 2025-06-14 11:02:27,606 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
+INFO 2025-06-14 11:02:58,006 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 11:03:02,070 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
+INFO 2025-06-14 11:04:09,599 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468

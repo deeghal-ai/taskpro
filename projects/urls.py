@@ -42,6 +42,7 @@ urlpatterns = [
     ),
     # Team member URLs
     path('tasks/my-assignments/', views.team_member_dashboard, name='team_member_dashboard'),
+    path('my-projects/', views.my_projects, name='my_projects'), 
     path('assignments/<uuid:assignment_id>/timesheet/', views.assignment_timesheet, name='assignment_timesheet'),
     path('daily-roster/', views.daily_roster, name='daily_roster'),
     path('roster/', views.monthly_roster, name='roster'), 
