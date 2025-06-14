@@ -5885,3 +5885,66 @@ INFO 2025-06-14 14:22:36,594 basehttp "GET /projects/tasks/completed-assignments
 INFO 2025-06-14 14:22:50,402 basehttp "GET /projects/tasks/completed-assignments/?start_date=2025-05-15&end_date=2025-06-14 HTTP/1.1" 200 58746
 INFO 2025-06-14 14:23:27,888 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 58430
 INFO 2025-06-14 14:23:42,426 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:25:07,180 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 14:25:13,248 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
+INFO 2025-06-14 14:25:32,848 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:25:43,806 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
+INFO 2025-06-14 14:26:05,141 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:26:08,256 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 58430
+INFO 2025-06-14 14:26:37,729 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:28:55,250 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-14 14:28:56,764 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-14 14:28:57,931 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-14 14:29:01,921 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 58516
+INFO 2025-06-14 14:30:46,727 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-14 14:30:56,145 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 58516
+INFO 2025-06-14 14:30:59,464 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-14 14:31:48,701 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 14:31:50,855 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 14:31:58,719 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/ HTTP/1.1" 200 30645
+INFO 2025-06-14 14:32:02,780 basehttp "GET /projects/a67a7c91-3bb2-4d83-88a6-f0f3cbd02576/manage/ HTTP/1.1" 200 50122
+INFO 2025-06-14 14:32:08,592 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 35744
+INFO 2025-06-14 14:34:51,360 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 14:35:05,358 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 14:35:08,113 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 14:35:11,931 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 35744
+INFO 2025-06-14 14:39:34,515 basehttp "GET /projects/ HTTP/1.1" 200 46266
+INFO 2025-06-14 14:40:25,901 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 14:40:29,045 basehttp "GET /projects/ HTTP/1.1" 200 46266
+INFO 2025-06-14 14:40:30,718 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 14:40:59,952 basehttp "GET /projects/ HTTP/1.1" 200 46266
+INFO 2025-06-14 14:41:13,325 basehttp "GET /projects/fd130d00-dd3c-47ae-b621-131d877824cd/ HTTP/1.1" 200 34831
+INFO 2025-06-14 14:41:15,483 basehttp "GET /projects/fd130d00-dd3c-47ae-b621-131d877824cd/update-status/ HTTP/1.1" 200 1512
+INFO 2025-06-14 14:41:22,752 signals Project A6 transitioning from PIPELINE to DELIVERED
+ERROR 2025-06-14 14:41:22,773 signals Error tracking delivery: property 'days_variance' of 'ProjectDelivery' object has no setter
+Traceback (most recent call last):
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\signals.py", line 26, in track_status_changes
+    ReportingService.track_project_delivery(
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py", line 2207, in track_project_delivery
+    delivery = ProjectDelivery.objects.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Deeghal Bhaumik\anaconda3\Lib\site-packages\django\db\models\query.py", line 679, in create
+    obj.save(force_insert=True, using=self.db)
+  File "C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py", line 1317, in save
+    self.days_variance = (self.actual_completion_date - self.expected_completion_date).days
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: property 'days_variance' of 'ProjectDelivery' object has no setter
+INFO 2025-06-14 14:41:22,794 services Updated status for project fd130d00-dd3c-47ae-b621-131d877824cd to Final Delivery by sunny
+INFO 2025-06-14 14:41:22,819 basehttp "POST /projects/fd130d00-dd3c-47ae-b621-131d877824cd/update-status/ HTTP/1.1" 200 100
+INFO 2025-06-14 14:41:24,389 basehttp "GET /projects/fd130d00-dd3c-47ae-b621-131d877824cd/ HTTP/1.1" 200 35655
+INFO 2025-06-14 14:41:26,001 basehttp "GET /projects/ HTTP/1.1" 200 44649
+INFO 2025-06-14 14:41:29,764 basehttp "GET /projects/delivered/ HTTP/1.1" 200 22106
+INFO 2025-06-14 14:43:45,129 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25516
+INFO 2025-06-14 14:43:49,016 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25516
+INFO 2025-06-14 14:46:01,425 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
+INFO 2025-06-14 14:46:12,786 basehttp "GET /projects/ HTTP/1.1" 200 44649
+INFO 2025-06-14 14:51:25,606 basehttp "GET /projects/ HTTP/1.1" 200 51713
+INFO 2025-06-14 14:57:30,789 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 14:57:57,468 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 14:57:59,834 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 14:59:14,656 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
+INFO 2025-06-14 14:59:17,802 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 14:59:25,050 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154

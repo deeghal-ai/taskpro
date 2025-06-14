@@ -213,8 +213,11 @@
                 <form method="get" class="filter-form">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">Search</label>
-                            <input type="text" name="search" class="form-control" 
+                            <label class="form-label">
+                                <i class="bi bi-search"></i>
+                                Search
+                            </label>
+                            <input type="text" name="search" id="id_search" class="form-control" 
                                    placeholder="Project name, Opportunity ID, or Builder"
                                    value="{{ filters_applied.search_query }}">
                         </div>
@@ -453,6 +456,94 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Instant Search Handler
+    const InstantSearch = {
+        searchInput: null,
+        table: null,
+        
+        init() {
+            this.searchInput = document.getElementById('id_search');
+            this.table = document.querySelector('.projects-card table');
+            
+            if (this.searchInput && this.table) {
+                this.attachEventListeners();
+            }
+        },
+        
+        attachEventListeners() {
+            // Add instant search on keyup
+            this.searchInput.addEventListener('keyup', () => {
+                this.filterTable();
+            });
+            
+            // Also filter on input event for better responsiveness
+            this.searchInput.addEventListener('input', () => {
+                this.filterTable();
+            });
+        },
+        
+        filterTable() {
+            const searchTerm = this.searchInput.value.toLowerCase().trim();
+            const tbody = this.table.querySelector('tbody');
+            const rows = tbody.querySelectorAll('tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                // Skip empty state row
+                if (row.querySelector('.empty-state')) {
+                    return;
+                }
+                
+                const text = row.textContent.toLowerCase();
+                const isVisible = searchTerm === '' || text.includes(searchTerm);
+                
+                row.style.display = isVisible ? '' : 'none';
+                if (isVisible) {
+                    visibleCount++;
+                }
+            });
+            
+            // Update the visible count in header
+            this.updateVisibleCount(visibleCount);
+            
+            // Show/hide empty state if no results
+            this.toggleEmptyState(visibleCount === 0 && searchTerm !== '');
+        },
+        
+        updateVisibleCount(count) {
+            const countElement = document.querySelector('.projects-card .card-header small');
+            if (countElement) {
+                const totalCount = countElement.textContent.match(/\d+/)[0];
+                if (this.searchInput.value.trim()) {
+                    countElement.innerHTML = `(${count} of ${totalCount} shown)`;
+                } else {
+                    countElement.innerHTML = `(${totalCount} total)`;
+                }
+            }
+        },
+        
+        toggleEmptyState(show) {
+            const tbody = this.table.querySelector('tbody');
+            let emptyRow = tbody.querySelector('.instant-search-empty');
+            
+            if (show && !emptyRow) {
+                // Create empty state row for instant search
+                emptyRow = document.createElement('tr');
+                emptyRow.className = 'instant-search-empty';
+                emptyRow.innerHTML = `
+                    <td colspan="10" class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <h5>No matching delivered projects found</h5>
+                        <p>No delivered projects match your search term. Try different keywords or clear the search.</p>
+                    </td>
+                `;
+                tbody.appendChild(emptyRow);
+            } else if (!show && emptyRow) {
+                emptyRow.remove();
+            }
+        }
+    };
+
     // Dynamic city loading based on region
     const regionSelect = document.getElementById('regionSelect');
     const citySelect = document.getElementById('citySelect');
@@ -493,6 +584,9 @@ document.addEventListener('DOMContentLoaded', function() {
         chevron.classList.remove('bi-chevron-up');
         chevron.classList.add('bi-chevron-down');
     });
+    
+    // Initialize instant search
+    InstantSearch.init();
 });
 </script>
 {% endblock %}
