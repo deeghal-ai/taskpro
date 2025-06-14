@@ -757,6 +757,78 @@ def team_member_dashboard(request):
 
 
 @login_required
+def completed_assignments_list(request):
+    """
+    Display completed assignments for the current team member with optional date filtering.
+    """
+    if request.user.role != 'TEAM_MEMBER':
+        messages.error(request, "This page is only accessible by team members")
+        return redirect('projects:project_list')
+    
+    # Get date range parameters from request
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    # Parse dates if provided
+    start_date = None
+    end_date = None
+    date_filter_active = False
+    
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            date_filter_active = True
+        except ValueError:
+            messages.warning(request, "Invalid start date format")
+    
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            date_filter_active = True
+        except ValueError:
+            messages.warning(request, "Invalid end date format")
+    
+    # Validate date range
+    if start_date and end_date and start_date > end_date:
+        messages.error(request, "Start date cannot be after end date")
+        start_date = end_date = None
+        date_filter_active = False
+    
+    # Get completed assignments with date filtering
+    success, result = ProjectService.get_team_member_all_completed_assignments(
+        request.user, start_date, end_date
+    )
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('projects:team_member_dashboard')
+    
+    completed_assignments = result
+    
+    # Prepare filter display text
+    filter_text = "All Time"
+    if date_filter_active:
+        if start_date and end_date:
+            filter_text = f"{start_date.strftime('%b %d, %Y')} - {end_date.strftime('%b %d, %Y')}"
+        elif start_date:
+            filter_text = f"From {start_date.strftime('%b %d, %Y')}"
+        elif end_date:
+            filter_text = f"Until {end_date.strftime('%b %d, %Y')}"
+    
+    context = {
+        'completed_assignments': completed_assignments,
+        'title': 'Completed Assignments',
+        'total_count': len(completed_assignments),
+        'start_date': start_date_str or '',
+        'end_date': end_date_str or '',
+        'filter_text': filter_text,
+        'date_filter_active': date_filter_active
+    }
+    
+    return render(request, 'projects/completed_assignments_list.html', context)
+
+
+@login_required
 def assignment_timesheet(request, assignment_id):
     """View detailed timesheet for a specific assignment."""
     if request.user.role != 'TEAM_MEMBER':

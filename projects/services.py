@@ -1284,6 +1284,82 @@ class ProjectService:
             logger.exception(f"Error getting dashboard data: {str(e)}")
             return False, f"An error occurred: {str(e)}"
     
+    @staticmethod
+    def get_team_member_all_completed_assignments(team_member, start_date=None, end_date=None):
+        """
+        Get completed assignments for a team member with optional date range filtering.
+        Returns assignments ordered by completion date (most recent first).
+        
+        Args:
+            team_member: User object
+            start_date: Optional start date for filtering (inclusive)
+            end_date: Optional end date for filtering (inclusive)
+        """
+        try:
+            # Build base query
+            query = TaskAssignment.objects.filter(
+                assigned_to=team_member,
+                is_completed=True
+            )
+            
+            # Apply date range filtering if provided
+            if start_date:
+                query = query.filter(completion_date__gte=start_date)
+            if end_date:
+                query = query.filter(completion_date__lte=end_date)
+            
+            # Get completed assignments with related data
+            completed_assignments = query.select_related(
+                'task__project',           # For project info
+                'task__project__product',  # For product name
+                'task__product_task'       # For task name
+            ).order_by('-completion_date')  # Most recent first
+            
+            # Add total working hours to each assignment
+            for assignment in completed_assignments:
+                assignment.total_working_hours = ProjectService._get_assignment_total_hours(assignment)
+            
+            # Calculate average quality rating for context
+            rated_assignments = [a for a in completed_assignments if a.quality_rating]
+            if rated_assignments:
+                avg_quality = sum(a.quality_rating for a in rated_assignments) / len(rated_assignments)
+                # Add average quality as an attribute for template use
+                completed_assignments.avg_quality_rating = round(avg_quality, 1)
+                completed_assignments.rated_count = len(rated_assignments)
+            else:
+                completed_assignments.avg_quality_rating = None
+                completed_assignments.rated_count = 0
+            
+            # Calculate average productivity (projected/worked * 100)
+            productivity_values = []
+            for assignment in completed_assignments:
+                # Get projected minutes
+                projected_minutes = assignment.projected_hours or 0
+                
+                # Get worked minutes from daily totals
+                from django.db.models import Sum
+                worked_minutes = DailyTimeTotal.objects.filter(
+                    assignment=assignment
+                ).aggregate(total=Sum('total_minutes'))['total'] or 0
+                
+                if worked_minutes > 0 and projected_minutes > 0:
+                    productivity = (projected_minutes / worked_minutes) * 100
+                    # Cap at reasonable maximum (999%)
+                    productivity_values.append(min(productivity, 999))
+            
+            if productivity_values:
+                completed_assignments.avg_productivity = round(sum(productivity_values) / len(productivity_values), 1)
+                completed_assignments.productive_assignments_count = len(productivity_values)
+            else:
+                completed_assignments.avg_productivity = None
+                completed_assignments.productive_assignments_count = 0
+            
+            return True, completed_assignments
+            
+        except Exception as e:
+            logger.exception(f"Error getting all completed assignments: {str(e)}")
+            return False, f"An error occurred: {str(e)}"
+    
     # Helper methods (private)
     @staticmethod
     def _update_daily_total(assignment, team_member, work_date, additional_minutes):

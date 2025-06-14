@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Visual Design System - Copied from team_member_dashboard.html */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+    
+    /* Enhanced Cards with Hover Effects */
+    .summary-card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .card {
+        border: none;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* Button Enhancements */
+    .btn {
+        transition: all var(--transition-speed) ease;
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
+    
+    /* Table Enhancements */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table tbody tr {
+        transition: background-color var(--transition-speed) ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: var(--light-bg);
+    }
+    
+    /* Badge Improvements */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.8rem;
+    }
+    
+    /* Empty State Styling */
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+    
+    /* Modal Enhancements */
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-header.bg-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    }
+    
+    .modal-header.bg-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+    }
+    
+    /* Improved Form Controls */
+    .form-control:focus,
+    .form-select:focus,
+    .form-check-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Animation for New Time Entries */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .new-entry {
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    /* Responsive Improvements */
+    @media (max-width: 768px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Enhanced Header Summary Section - Matching Dashboard Style -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card summary-card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="bi bi-check-circle-fill"></i> Completed Assignments
+                            </h4>
+                            <small class="text-light opacity-75">{{ filter_text }}</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-light btn-sm {% if date_filter_active %}btn-warning{% endif %}" data-bs-toggle="modal" data-bs-target="#dateFilterModal">
+                                <i class="bi bi-funnel{% if date_filter_active %}-fill{% endif %}"></i> 
+                                {% if date_filter_active %}Filter Active{% else %}Filter by Date{% endif %}
+                            </button>
+                            <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-outline-light">
+                                <i class="bi bi-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Total Completed Count -->
+                        <div class="col-md-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-check-circle display-4 text-success"></i>
+                                    </div>
+                                    <h5 class="card-title text-muted mb-1">Total Completed</h5>
+                                    <h3 class="mb-0 text-success">{{ total_count }}</h3>
+                                    <p class="text-muted mb-0 small">Assignments</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Summary -->
+                        <div class="col-md-3">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-star-fill display-4 text-warning"></i>
+                                    </div>
+                                    <h5 class="card-title text-muted mb-1">Average Quality</h5>
+                                    <h3 class="mb-0 text-warning">
+                                        {% if completed_assignments.avg_quality_rating %}
+                                            <span title="Based on {{ completed_assignments.rated_count }} rated assignments">{{ completed_assignments.avg_quality_rating }}</span>
+                                        {% else %}
+                                            <span title="No rated assignments yet">--</span>
+                                        {% endif %}
+                                    </h3>
+                                    <p class="text-muted mb-0 small">Rating</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Average Productivity -->
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <div class="mb-2">
+                                        <i class="bi bi-speedometer2 display-4 text-info"></i>
+                                    </div>
+                                    <h5 class="card-title text-muted mb-1">Average Productivity</h5>
+                                    <h3 class="mb-0 text-info">
+                                        {% if completed_assignments.avg_productivity %}
+                                            <span title="Based on {{ completed_assignments.productive_assignments_count }} assignments with time data">{{ completed_assignments.avg_productivity }}%</span>
+                                        {% else %}
+                                            <span title="No productivity data available">--</span>
+                                        {% endif %}
+                                    </h3>
+                                    <p class="text-muted mb-0 small">
+                                        {% if completed_assignments.avg_productivity %}
+                                            Projected vs Worked
+                                        {% else %}
+                                            No data yet
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Completed Assignments List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-check-circle text-success"></i> Completed Assignments
+                        <small class="text-muted ms-2">{% if date_filter_active %}({{ filter_text }}){% else %}(All Time){% endif %}</small>
+                        <span class="badge bg-success ms-2">{{ total_count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if completed_assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Assignment</th>
+                                        <th>Project</th>
+                                        <th>Product</th>
+                                        <th>Task</th>
+                                        <th>Sub-Task</th>
+                                        <th>Completed</th>
+                                        <th>Hours</th>
+                                        <th>Quality</th>
+                                        <th class="text-center">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in completed_assignments %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div>
+                                                <span class="fw-bold">{{ assignment.assignment_id }}</span>
+                                            </div>
+                                            <small class="text-muted">{{ assignment.task.task_id }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ assignment.task.project.project_name }}</div>
+                                            <small class="text-muted">{{ assignment.task.project.hs_id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ assignment.task.project.product.name }}</span>
+                                        </td>
+                                        <td>{{ assignment.task.product_task.name }}</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;" 
+                                                 title="{{ assignment.sub_task }}"
+                                                 data-bs-toggle="tooltip"
+                                                 data-bs-placement="top">
+                                                {{ assignment.sub_task }}
+                                            </div>
+                                        </td>
+                                        <td>{{ assignment.completion_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <small class="text-muted">Projected:</small> {{ assignment.get_formatted_hours }}<br>
+                                            <small class="text-muted">Worked:</small> <strong>{{ assignment.total_working_hours }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if assignment.quality_rating %}
+                                                <span class="badge bg-primary">
+                                                    <i class="bi bi-star-fill"></i> {{ assignment.quality_rating|floatformat:1 }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">Not rated</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'projects:assignment_timesheet' assignment.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                            <h4 class="text-muted mb-2">No Completed Assignments</h4>
+                            <p class="text-muted mb-0">You haven't completed any assignments yet.</p>
+                            <div class="mt-3">
+                                <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary">
+                                    <i class="bi bi-arrow-left"></i> Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Filter Modal -->
+<div class="modal fade" id="dateFilterModal" tabindex="-1" aria-labelledby="dateFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="dateFilterModalLabel">
+                    <i class="bi bi-funnel"></i> Filter by Date Range
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="GET" action="{% url 'projects:completed_assignments_list' %}">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                            <div class="form-text">Leave empty for no start date limit</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                            <div class="form-text">Leave empty for no end date limit</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Quick Filters</label>
+                        <div class="btn-group-vertical d-grid gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-filter" data-days="30">Last 30 Days</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-filter" data-days="90">Last 3 Months</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-filter" data-days="180">Last 6 Months</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm quick-filter" data-days="365">Last Year</button>
+                        </div>
+                    </div>
+                    
+                    {% if date_filter_active %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Current Filter:</strong> {{ filter_text }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'projects:completed_assignments_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Clear Filter
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Apply Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize tooltips and date filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Quick filter buttons
+    const quickFilterButtons = document.querySelectorAll('.quick-filter');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    quickFilterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const days = parseInt(this.getAttribute('data-days'));
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+            
+            // Format dates as YYYY-MM-DD
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            startDateInput.value = formatDate(startDate);
+            endDateInput.value = formatDate(endDate);
+            
+            // Highlight the selected button
+            quickFilterButtons.forEach(btn => btn.classList.remove('btn-primary'));
+            quickFilterButtons.forEach(btn => btn.classList.add('btn-outline-secondary'));
+            this.classList.remove('btn-outline-secondary');
+            this.classList.add('btn-primary');
+        });
+    });
+    
+    // Clear button functionality in date inputs
+    const clearDateButtons = function() {
+        if (startDateInput.value === '' && endDateInput.value === '') {
+            quickFilterButtons.forEach(btn => btn.classList.remove('btn-primary'));
+            quickFilterButtons.forEach(btn => btn.classList.add('btn-outline-secondary'));
+        }
+    };
+    
+    startDateInput.addEventListener('change', clearDateButtons);
+    endDateInput.addEventListener('change', clearDateButtons);
+});
+</script>
+{% endblock %} 

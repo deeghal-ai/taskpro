@@ -5813,3 +5813,75 @@ INFO 2025-06-14 13:02:07,173 basehttp "GET /projects/tasks/my-assignments/ HTTP/
 INFO 2025-06-14 13:02:08,481 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
 INFO 2025-06-14 13:02:24,164 basehttp "GET / HTTP/1.1" 302 0
 INFO 2025-06-14 13:02:24,217 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 13:26:49,627 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 13:26:54,058 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:26:56,438 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 49653
+INFO 2025-06-14 13:27:08,255 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-14 13:27:11,063 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:27:15,441 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 49653
+INFO 2025-06-14 13:28:17,540 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:32:41,901 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 13:32:44,842 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 13:36:19,568 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 13:36:21,384 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 13:36:24,655 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:36:27,391 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53943
+INFO 2025-06-14 13:36:44,940 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:36:49,366 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53943
+INFO 2025-06-14 13:36:51,641 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:36:56,596 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53943
+INFO 2025-06-14 13:37:00,114 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
+INFO 2025-06-14 13:37:02,708 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:37:08,103 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53943
+INFO 2025-06-14 13:38:33,655 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 52561
+INFO 2025-06-14 13:39:55,250 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:40:00,820 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 52561
+INFO 2025-06-14 13:40:25,793 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-14 13:40:39,663 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:40:42,815 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 52561
+INFO 2025-06-14 13:40:52,664 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-14 13:42:34,493 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 13:42:36,468 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 13:51:55,239 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 13:51:56,077 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 13:52:02,304 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 13:52:09,565 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53682
+INFO 2025-06-14 13:53:52,446 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-14 13:53:55,195 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 14:02:37,816 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53682
+INFO 2025-06-14 14:02:45,508 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 14:02:49,805 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53682
+INFO 2025-06-14 14:02:57,899 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-14 14:03:12,919 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60818
+INFO 2025-06-14 14:04:20,618 services Timer started for praveen on ASID_000042
+INFO 2025-06-14 14:04:20,635 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-14 14:04:20,702 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 64235
+WARNING 2025-06-14 14:04:28,408 services Attempt to stop timer for praveen with less than 1 minute recorded. Duration: 7.792326 seconds
+INFO 2025-06-14 14:04:28,408 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-14 14:04:28,426 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 64249
+INFO 2025-06-14 14:06:52,376 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 64108
+INFO 2025-06-14 14:06:56,820 services Timer stopped for praveen, Duration: 2 minutes
+INFO 2025-06-14 14:06:56,837 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-14 14:06:56,852 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 61303
+INFO 2025-06-14 14:07:02,616 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 56757
+INFO 2025-06-14 14:08:32,157 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53367
+INFO 2025-06-14 14:08:55,073 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:09:00,971 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53367
+INFO 2025-06-14 14:10:02,899 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:10:13,823 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53367
+INFO 2025-06-14 14:10:31,309 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
+INFO 2025-06-14 14:11:32,408 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 53367
+INFO 2025-06-14 14:18:29,518 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 14:18:30,878 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 14:18:47,548 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py changed, reloading.
+INFO 2025-06-14 14:18:48,796 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 14:21:08,345 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\views.py changed, reloading.
+INFO 2025-06-14 14:21:09,462 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 14:21:21,765 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 58430
+INFO 2025-06-14 14:21:41,257 basehttp "GET /projects/tasks/completed-assignments/?start_date=2025-05-15&end_date=2025-06-14 HTTP/1.1" 200 58746
+INFO 2025-06-14 14:21:55,793 basehttp "GET /projects/tasks/completed-assignments/?start_date=2025-05-28&end_date=2025-06-14 HTTP/1.1" 200 50895
+INFO 2025-06-14 14:22:15,463 basehttp "GET /projects/tasks/completed-assignments/?start_date=2025-07-07&end_date=2025-06-14 HTTP/1.1" 200 58750
+INFO 2025-06-14 14:22:36,594 basehttp "GET /projects/tasks/completed-assignments/?start_date=2025-06-01&end_date=2025-06-14 HTTP/1.1" 200 29317
+INFO 2025-06-14 14:22:50,402 basehttp "GET /projects/tasks/completed-assignments/?start_date=2025-05-15&end_date=2025-06-14 HTTP/1.1" 200 58746
+INFO 2025-06-14 14:23:27,888 basehttp "GET /projects/tasks/completed-assignments/ HTTP/1.1" 200 58430
+INFO 2025-06-14 14:23:42,426 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62260
