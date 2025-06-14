@@ -692,12 +692,13 @@ class ProjectService:
                 return False, f"An error occurred: {str(e)}"
 
     @staticmethod
-    def get_dpm_projects_for_task_management(dpm):
+    def get_dpm_projects_for_task_management(dpm, pipeline_only=True):
         """
         Retrieves all projects for a DPM formatted for task management view.
         
         Args:
             dpm: The DPM user
+            pipeline_only: If True, only return pipeline projects (exclude Final Delivery)
                 
         Returns:
             tuple: (success, result)
@@ -722,16 +723,28 @@ class ProjectService:
                 )
             ).select_related(
                 'product',
-                'project_incharge'
+                'project_incharge',
+                'current_status'
             ).order_by('-created_at')
             
-            logger.debug(f"Retrieved {projects.count()} projects for DPM {dpm.id}")
+            # Filter for pipeline projects only if requested
+            if pipeline_only:
+                # Get all status IDs that indicate "Final Delivery"
+                final_delivery_statuses = ProjectStatusOption.objects.filter(
+                    Q(name__icontains='final') & Q(name__icontains='delivery')
+                ).values_list('id', flat=True)
+                
+                # Exclude projects with Final Delivery status
+                if final_delivery_statuses:
+                    projects = projects.exclude(current_status_id__in=final_delivery_statuses)
+            
+            logger.debug(f"Retrieved {projects.count()} {'pipeline' if pipeline_only else ''} projects for DPM {dpm.id}")
             return True, projects
         
         except Exception as e:
             logger.exception(f"Error retrieving DPM projects: {str(e)}")
             return False, f"An error occurred: {str(e)}"
-        
+            
     @staticmethod
     def get_team_member_assignments(team_member):
         """

@@ -5756,3 +5756,60 @@ INFO 2025-06-14 11:02:27,606 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 
 INFO 2025-06-14 11:02:58,006 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
 INFO 2025-06-14 11:03:02,070 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
 INFO 2025-06-14 11:04:09,599 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 11:08:37,240 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:08:37,916 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 38468
+INFO 2025-06-14 11:08:44,023 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:08:46,323 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 11:08:54,265 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:08:59,532 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 11:09:01,527 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:09:05,857 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 11:09:07,805 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:09:39,131 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 11:09:42,357 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/update-status/ HTTP/1.1" 200 1512
+INFO 2025-06-14 11:09:51,888 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:13:03,360 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:13:04,341 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:20:33,654 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:20:36,042 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:20:55,945 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:20:57,093 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:25:29,679 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:25:30,816 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:26:16,815 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:26:17,852 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:26:21,709 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:26:22,629 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:26:34,394 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:26:35,846 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:26:41,428 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 13725
+INFO 2025-06-14 11:27:18,556 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:27:19,741 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:27:35,664 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:27:36,645 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:27:41,667 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:27:42,737 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:27:46,771 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:27:47,882 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:27:49,481 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 38468
+INFO 2025-06-14 11:32:49,109 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:32:58,963 basehttp "GET /projects/delivered/ HTTP/1.1" 200 20501
+INFO 2025-06-14 11:33:02,072 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:36:16,340 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-14 11:36:17,609 autoreload Watching for file changes with StatReloader
+INFO 2025-06-14 11:36:20,312 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 11:36:22,109 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 35744
+INFO 2025-06-14 11:37:25,973 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 11:37:30,924 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/18ce0cbf-e243-4db7-bb34-b2da6557bf48/ HTTP/1.1" 200 26161
+INFO 2025-06-14 11:37:33,636 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 11:37:38,818 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 35744
+INFO 2025-06-14 11:37:46,207 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 11:37:48,358 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 35744
+INFO 2025-06-14 11:37:50,655 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 11:37:55,801 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 11:37:57,702 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 35744
+INFO 2025-06-14 11:49:55,468 basehttp "GET /projects/ HTTP/1.1" 200 42884
+INFO 2025-06-14 13:02:07,173 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
+INFO 2025-06-14 13:02:08,481 basehttp "GET /projects/my-projects/ HTTP/1.1" 200 34558
+INFO 2025-06-14 13:02:24,164 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 13:02:24,217 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 60468
