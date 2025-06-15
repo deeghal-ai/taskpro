@@ -654,9 +654,11 @@ class ProjectService:
                 
                 project.save()
                 
+                # Import ProjectDelivery for potential use
+                from .models import ProjectDelivery
+                
                 # If delivery rating changed, update any existing ProjectDelivery records
                 if old_rating != project.delivery_performance_rating:
-                    from .models import ProjectDelivery
                     updated_count = ProjectDelivery.objects.filter(project=project).update(
                         delivery_performance_rating=project.delivery_performance_rating
                     )
