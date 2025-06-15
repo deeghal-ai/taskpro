@@ -55,4 +55,4 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Logging for production
-LOGGING['handlers']['file']['filename'] = '/home/yourusername/logs/pms.log' 
+LOGGING['handlers']['file']['filename'] = '/home/deeghalbhaumik/logs/pms.log' 
