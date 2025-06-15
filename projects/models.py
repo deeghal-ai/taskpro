@@ -1,5 +1,5 @@
 # projects/models.py
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
 from accounts.models import User
@@ -309,25 +309,37 @@ class Project(models.Model):
         """
         Generates the next available HS_ID in sequence (A1, A2,...A999, B1, etc.)
         """
-        # Get the last project with an HS_ID
-        last_project = cls.objects.select_for_update().order_by('-hs_id').first()
+        # Get all projects with HS_IDs, including the current project being saved
+        projects = cls.objects.filter(hs_id__isnull=False).exclude(hs_id='').order_by('hs_id')
         
-        if not last_project or not last_project.hs_id:
+        if not projects.exists():
             return 'A1'  # Start with A1 if no projects exist
-            
-        # Parse the last HS_ID
-        letter = last_project.hs_id[0]
-        number = int(last_project.hs_id[1:])
         
-        # If number reaches 999, move to next letter
-        if number >= 999:
-            # Get next letter (A -> B, B -> C, etc.)
-            letter = chr(ord(letter) + 1)
-            number = 1
+        # Find the highest HS_ID by parsing all of them
+        max_letter = 'A'
+        max_number = 0
+        
+        for project in projects:
+            if project.hs_id:
+                try:
+                    letter = project.hs_id[0]
+                    number = int(project.hs_id[1:])
+                    
+                    # Compare letter first, then number
+                    if letter > max_letter or (letter == max_letter and number > max_number):
+                        max_letter = letter
+                        max_number = number
+                except (ValueError, IndexError):
+                    # Skip invalid HS_IDs
+                    continue
+        
+        # Generate next HS_ID
+        if max_number >= 999:
+            # Move to next letter
+            next_letter = chr(ord(max_letter) + 1)
+            return f'{next_letter}1'
         else:
-            number += 1
-            
-        return f'{letter}{number}'
+            return f'{max_letter}{max_number + 1}'
 
     def __str__(self):
         return f"{self.project_name} ({self.opportunity_id})"
@@ -340,52 +352,54 @@ class Project(models.Model):
         - Default TAT from product
         - Status change tracking
         """
-
-        # Add validation for project_incharge
-        if self.project_incharge and self.project_incharge.role != 'TEAM_MEMBER':
-            raise ValidationError("Project Incharge must be a team member")
-        
-        # Generate HS_ID for new projects
-        if not self.pk and not self.hs_id:  # Only for new projects without an HS_ID
+        # Generate HS_ID for new projects BEFORE the transaction
+        # Check if this is a new project (not yet in database)
+        is_new_project = self._state.adding
+        if is_new_project and not self.hs_id:
             self.hs_id = self.generate_hs_id()
+        
+        with transaction.atomic():
+            # Add validation for project_incharge
+            if self.project_incharge and self.project_incharge.role != 'TEAM_MEMBER':
+                raise ValidationError("Project Incharge must be a team member")
 
-        if self.pk is not None:
-            try:
-                old_project = Project.objects.get(pk=self.pk)
-                is_status_change = old_project.current_status != self.current_status
-            except Project.DoesNotExist:
+            if not is_new_project:
+                try:
+                    old_project = Project.objects.get(pk=self.pk)
+                    is_status_change = old_project.current_status != self.current_status
+                except Project.DoesNotExist:
+                    is_status_change = True
+            else:
                 is_status_change = True
-        else:
-            is_status_change = True
 
-        # Your existing TAT handling
-        if not self.expected_tat and self.product:
-            self.expected_tat = self.product.expected_tat
-        
-        # Validate DPM role
-        if self.dpm and self.dpm.role != 'DPM':
-            raise ValueError("DPM must have the DPM role")
-        
-        # Call the parent save method
-        super().save(*args, **kwargs)
-        
-        # Your existing status history creation
-        if is_status_change and self.current_status:
-            from django.contrib.auth import get_user_model
-            User = get_user_model()
+            # Your existing TAT handling
+            if not self.expected_tat and self.product:
+                self.expected_tat = self.product.expected_tat
             
-            current_user = getattr(self, '_current_user', None)
-            if not current_user:
-                current_user = self.dpm
+            # Validate DPM role
+            if self.dpm and self.dpm.role != 'DPM':
+                raise ValueError("DPM must have the DPM role")
             
-            ProjectStatusHistory.objects.create(
-                project=self,
-                status=self.current_status,
-                category_one_snapshot=self.current_status.category_one,
-                category_two_snapshot=self.current_status.category_two,
-                changed_by=current_user,
-                comments=getattr(self, '_status_change_comment', '')
-            )
+            # Call the parent save method
+            super().save(*args, **kwargs)
+            
+            # Your existing status history creation
+            if is_status_change and self.current_status:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                
+                current_user = getattr(self, '_current_user', None)
+                if not current_user:
+                    current_user = self.dpm
+                
+                ProjectStatusHistory.objects.create(
+                    project=self,
+                    status=self.current_status,
+                    category_one_snapshot=self.current_status.category_one,
+                    category_two_snapshot=self.current_status.category_two,
+                    changed_by=current_user,
+                    comments=getattr(self, '_status_change_comment', '')
+                )
 
 
 class ProjectStatusHistory(models.Model):

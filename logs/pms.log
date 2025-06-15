@@ -6206,3 +6206,106 @@ INFO 2025-06-15 13:50:32,642 basehttp "GET /projects/reports/team-overview/ HTTP
 INFO 2025-06-15 13:51:06,179 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34524
 INFO 2025-06-15 13:51:30,381 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34270
 INFO 2025-06-15 13:52:25,253 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34036
+INFO 2025-06-15 14:18:32,006 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 14:21:54,251 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34036
+INFO 2025-06-15 14:22:36,105 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 14:28:39,715 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 14:30:06,992 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 14:30:17,237 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34036
+INFO 2025-06-15 14:30:22,443 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-15 14:30:23,912 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-15 15:11:06,903 signals Project  transitioning from PIPELINE to DELIVERED
+INFO 2025-06-15 15:11:06,908 signals Tracked final delivery for project 
+INFO 2025-06-15 15:11:07,486 signals Project  transitioning from PIPELINE to DELIVERED
+INFO 2025-06-15 15:11:07,500 signals Tracked final delivery for project 
+INFO 2025-06-15 15:11:09,212 services Created new project: 7466e0ea-055e-4b0d-a775-049048fe2dca - Test Project by dpm
+INFO 2025-06-15 15:11:09,757 services Created new project: e0a8c59a-7ec5-4232-89a8-1ab7a4b0382f - Test Project by dpm
+INFO 2025-06-15 15:11:10,341 services Project with ID 273e5670-a616-4764-bcb1-ba128ede9989 not found
+INFO 2025-06-15 15:11:10,906 services Created new project: 77a3e0b5-64a8-4366-aa07-365d8555f25d - Test Project by dpm
+INFO 2025-06-15 15:11:11,467 services Created new project: 2790e354-5282-4d8b-833a-8c6f5584e1f5 - Test Project by dpm
+INFO 2025-06-15 15:11:12,019 services Created new project: e248840b-8e4d-49f3-958f-1f67e2551eec - Test Project by dpm
+INFO 2025-06-15 15:11:12,019 services Updated status for project e248840b-8e4d-49f3-958f-1f67e2551eec to New Status by dpm
+INFO 2025-06-15 15:11:18,068 services Created new project: c3103ba5-e777-4167-9de2-0f277bd7963e - New Test Project by dpm
+INFO 2025-06-15 15:12:30,152 signals Project  transitioning from PIPELINE to DELIVERED
+INFO 2025-06-15 15:12:30,152 signals Tracked final delivery for project 
+INFO 2025-06-15 15:12:30,618 signals Project  transitioning from PIPELINE to DELIVERED
+INFO 2025-06-15 15:12:30,618 signals Tracked final delivery for project 
+INFO 2025-06-15 15:12:32,110 services Created new project: 3b27e62c-d6b5-4b5b-9d26-101a5c5dbed1 - Test Project by dpm
+INFO 2025-06-15 15:12:32,566 services Created new project: ff739f1f-c563-44f1-9a3b-16457bf8fa14 - Test Project by dpm
+INFO 2025-06-15 15:12:33,016 services Project with ID 98238937-a637-45f2-a31e-56148ae5bfd2 not found
+INFO 2025-06-15 15:12:33,453 services Created new project: 05f8710d-6333-493d-a90b-5a2aa4a8561e - Test Project by dpm
+INFO 2025-06-15 15:12:33,887 services Created new project: d476845f-8085-4fd9-91c1-5b511eb1a293 - Test Project by dpm
+INFO 2025-06-15 15:12:34,367 services Created new project: 7ae48316-55d3-49e3-b3e8-29a812b5e0d4 - Test Project by dpm
+INFO 2025-06-15 15:12:34,372 services Updated status for project 7ae48316-55d3-49e3-b3e8-29a812b5e0d4 to New Status by dpm
+INFO 2025-06-15 15:12:39,390 services Created new project: e17af923-ff09-4a1c-8af2-a9bc6b41b875 - New Test Project by dpm
+INFO 2025-06-15 15:16:30,379 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:16:30,412 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:16:31,218 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:16:33,572 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:16:33,768 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:16:34,324 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:17:08,922 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:17:09,260 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:17:09,287 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:17:11,244 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:17:11,676 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:17:11,691 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:21:34,878 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:21:34,911 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:21:35,978 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:21:36,986 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:21:37,024 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:21:37,601 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:21:58,839 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:21:58,868 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:21:59,201 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:22:00,749 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:22:00,822 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:22:01,065 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:22:26,295 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:22:26,494 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:22:26,510 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:22:27,477 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:22:27,815 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:22:27,878 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:24:29,351 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:24:29,481 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:24:29,872 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:24:31,448 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:24:31,558 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:24:31,948 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:29:31,536 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:29:31,926 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:29:31,967 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:29:32,882 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:29:33,351 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:29:33,351 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:31:54,525 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:31:55,078 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:31:55,132 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:31:56,583 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:31:57,067 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:31:57,104 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:38,633 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:39,118 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:39,763 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:40,249 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:40,617 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:41,081 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:42,614 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:42,793 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:43,135 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:44,582 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:44,965 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:45,632 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:46,815 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:47,201 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:47,702 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\models.py changed, reloading.
+INFO 2025-06-15 15:34:48,259 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:48,556 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 15:34:48,986 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 16:01:13,383 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-15 16:01:18,481 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-15 16:01:20,979 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/manage/ HTTP/1.1" 200 28929
+INFO 2025-06-15 16:01:23,650 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/ HTTP/1.1" 200 30670
+INFO 2025-06-15 16:01:25,241 basehttp "GET /projects/8878afd8-f444-47dc-8cb2-db8be25ce4fe/update-status/ HTTP/1.1" 200 1512

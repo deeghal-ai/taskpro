@@ -1,0 +1,27 @@
+# Environment variables for TaskPro
+# Copy this file to .env and fill in your actual values
+
+# Django settings
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+DJANGO_SETTINGS_MODULE=pms.settings.development
+
+# Production settings (for PythonAnywhere)
+ALLOWED_HOST=yourusername.pythonanywhere.com
+
+# Database settings (MySQL for production)
+DB_NAME=yourusername$taskpro
+DB_USER=yourusername
+DB_PASSWORD=your_database_password
+DB_HOST=yourusername.mysql.pythonanywhere-services.com
+DB_PORT=3306
+
+# Email settings (optional)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_app_password
+
+# Security settings for production
+SECURE_SSL_REDIRECT=True 

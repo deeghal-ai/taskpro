@@ -20,3 +20,14 @@ Thumbs.db
 
 # Ignore logs
 *.log
+logs/
+
+# Ignore Django collected static files
+staticfiles/
+
+# Ignore backup files
+backup*.json
+full_backup.json
+
+# Ignore old settings file (if renamed)
+pms/settings.py.old
