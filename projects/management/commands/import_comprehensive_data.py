@@ -458,8 +458,14 @@ class Command(BaseCommand):
                 self.stdout.write(f"DEBUG: No city found for project {project_name}")
                 return None
             
-            # Get product
-            product_name = find_column_value(row, ['hs _product', 'product'])
+            # Get product from HS _Product column specifically
+            product_name = ''
+            for key, value in row.items():
+                key_clean = key.replace('\n', ' ').replace('\r', ' ').strip().lower()
+                if 'hs _product' in key_clean or 'hs_product' in key_clean:
+                    product_name = value.strip() if value else ''
+                    break
+            
             product = None
             if product_name:
                 try:
@@ -469,7 +475,7 @@ class Command(BaseCommand):
                     self.stdout.write(f"Product not found: {product_name}")
                     return None
             else:
-                self.stdout.write(f"DEBUG: No product found for project {project_name}")
+                self.stdout.write(f"DEBUG: No HS _Product found for project {project_name}")
                 return None
             
             # Get DPM (from APM Name column)
