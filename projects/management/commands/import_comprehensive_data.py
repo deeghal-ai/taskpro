@@ -7,8 +7,8 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from projects.models import (
-    Project, ProjectStatusHistory, ProjectStatus, Product, 
-    City, Region, ProjectDelivery
+    Project, ProjectStatusHistory, ProjectStatusOption, Product, 
+    ProductSubcategory, ProjectDelivery
 )
 from projects.signals import track_status_changes
 from locations.models import City as LocationCity, Region as LocationRegion
@@ -169,13 +169,13 @@ class Command(BaseCommand):
         }
         
         for status_name in statuses_data:
-            status, created = ProjectStatus.objects.get_or_create(
+            status, created = ProjectStatusOption.objects.get_or_create(
                 name=status_name,
                 defaults={
-                    'description': f'{status_name} status',
-                    'color': status_colors.get(status_name, '#6c757d'),
-                    'is_active': True,
-                    'order': list(statuses_data).index(status_name)
+                    'category_one': 'Imported',
+                    'category_two': 'From CSV',
+                    'order': list(statuses_data).index(status_name),
+                    'is_active': True
                 }
             )
             if created:
@@ -303,9 +303,13 @@ class Command(BaseCommand):
             current_status = None
             if status_name:
                 try:
-                    current_status = ProjectStatus.objects.get(name=status_name)
-                except ProjectStatus.DoesNotExist:
+                    current_status = ProjectStatusOption.objects.get(name=status_name)
+                except ProjectStatusOption.DoesNotExist:
                     self.stdout.write(f"Status not found: {status_name}")
+            
+            # Parse latest date for default dates
+            latest_date_str = row.get('Latest_Date', '').strip()
+            latest_date = self.parse_date(latest_date_str) if latest_date_str else datetime.now().date()
             
             return {
                 'project_name': project_name,
@@ -316,9 +320,10 @@ class Command(BaseCommand):
                 'dpm': dpm,
                 'account_manager': sales_name,
                 'current_status': current_status,
-                'quantity': self.safe_int(row.get('Quantity', '0')),
-                'expected_tat': self.safe_int(row.get('Expected TAT', '0')),
-                'is_active': True
+                'quantity': max(1, self.safe_int(row.get('Quantity', '1'))),
+                'expected_tat': max(1, self.safe_int(row.get('Expected TAT', '30'))),
+                'purchase_date': latest_date,
+                'sales_confirmation_date': latest_date
             }
         
         except Exception as e:
@@ -350,8 +355,8 @@ class Command(BaseCommand):
                         continue
                     
                     try:
-                        status = ProjectStatus.objects.get(name=status_name)
-                    except ProjectStatus.DoesNotExist:
+                        status = ProjectStatusOption.objects.get(name=status_name)
+                    except ProjectStatusOption.DoesNotExist:
                         continue
                     
                     # Parse date
@@ -367,10 +372,12 @@ class Command(BaseCommand):
                     history, created = ProjectStatusHistory.objects.get_or_create(
                         project=project,
                         status=status,
-                        date=status_date,
+                        changed_at=status_date,
                         defaults={
-                            'notes': f'Imported from CSV - Status: {status_name}',
-                            'created_by': None  # System import
+                            'category_one_snapshot': status.category_one,
+                            'category_two_snapshot': status.category_two,
+                            'comments': f'Imported from CSV - Status: {status_name}',
+                            'changed_by': project.dpm  # Use project DPM
                         }
                     )
                     
@@ -393,13 +400,12 @@ class Command(BaseCommand):
         
         for project in projects:
             # Get latest status history
-            latest_history = project.status_history.order_by('-date').first()
+            latest_history = project.status_history.order_by('-changed_at').first()
             
             if latest_history:
-                # Update project's current status and latest date
+                # Update project's current status
                 project.current_status = latest_history.status
-                project.latest_status_date = latest_history.date
-                project.save(update_fields=['current_status', 'latest_status_date'])
+                project.save(update_fields=['current_status'])
                 updated_count += 1
                 
                 if updated_count % 20 == 0:
