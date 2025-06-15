@@ -5,11 +5,121 @@
 {% block report_subtitle %}{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}{% endblock %}
 
 {% block report_content %}
+<!-- Team Summary Section -->
+<div class="report-section mb-4">
+    <div class="section-header">
+        <h4>
+            <i class="bi bi-graph-up"></i>
+            Team Summary Metrics
+        </h4>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-speedometer2 display-6 text-primary mb-2"></i>
+                    <h6 class="card-title">Avg Productivity</h6>
+                    <h3 class="text-primary mb-0">{{ team_averages.avg_productivity|floatformat:1|default:"N/A" }}%</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up display-6 text-success mb-2"></i>
+                    <h6 class="card-title">Avg Optimization</h6>
+                    <h3 class="text-success mb-0">{{ team_averages.avg_optimization|floatformat:1|default:"N/A" }}%</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock display-6 text-info mb-2"></i>
+                    <h6 class="card-title">Avg Utilization</h6>
+                    <h3 class="text-info mb-0">{{ team_averages.avg_utilization|floatformat:1|default:"N/A" }}%</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-lightning display-6 text-warning mb-2"></i>
+                    <h6 class="card-title">Avg Efficiency</h6>
+                    <h3 class="text-warning mb-0">{{ team_averages.avg_efficiency|floatformat:1|default:"N/A" }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-star display-6 text-warning mb-2"></i>
+                    <h6 class="card-title">Avg Quality</h6>
+                    <h3 class="text-warning mb-0">{{ team_averages.avg_quality|floatformat:1|default:"N/A" }}/5</h3>
+                    {% if team_averages.avg_quality %}
+                    <div class="star-rating mt-2">
+                        {% for i in "12345" %}
+                            {% if i|add:0 <= team_averages.avg_quality %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck display-6 text-danger mb-2"></i>
+                    <h6 class="card-title">Avg Delivery</h6>
+                    <h3 class="text-danger mb-0">{{ team_averages.avg_delivery|floatformat:1|default:"N/A" }}/5</h3>
+                    {% if team_averages.avg_delivery %}
+                    <div class="star-rating mt-2">
+                        {% for i in "12345" %}
+                            {% if i|add:0 <= team_averages.avg_delivery %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-list-task display-6 text-secondary mb-2"></i>
+                    <h6 class="card-title">Total Assignments</h6>
+                    <h3 class="text-secondary mb-0">{{ team_totals.total_assignments|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-folder display-6 text-dark mb-2"></i>
+                    <h6 class="card-title">Total Projects</h6>
+                    <h3 class="text-dark mb-0">{{ team_totals.total_projects|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="report-section">
     <div class="section-header">
         <h4>
             <i class="bi bi-people"></i>
-            Team Performance Overview
+            Individual Performance Details
         </h4>
     </div>
 
@@ -73,13 +183,9 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-circle me-2">
-                                        {{ data.team_member.get_full_name|slice:":2"|upper }}
-                                    </div>
                                     <div>
                                         <strong>{{ data.team_member.get_full_name }}</strong>
                                         <br>
-                                        <small class="text-muted">{{ data.team_member.username }}</small>
                                     </div>
                                 </div>
                             </td>

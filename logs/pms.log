@@ -6191,3 +6191,18 @@ INFO 2025-06-15 13:36:48,688 basehttp "GET / HTTP/1.1" 302 0
 INFO 2025-06-15 13:36:48,817 basehttp "GET /projects/ HTTP/1.1" 200 47867
 INFO 2025-06-15 13:36:55,869 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
 INFO 2025-06-15 13:36:58,768 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-15 13:42:18,764 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:42:20,983 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 29205
+INFO 2025-06-15 13:42:29,725 basehttp "GET /projects/create/ HTTP/1.1" 200 43582
+INFO 2025-06-15 13:42:33,673 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 200 21723
+INFO 2025-06-15 13:42:52,059 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 29205
+INFO 2025-06-15 13:46:18,038 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 13:46:19,988 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:46:48,359 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34508
+INFO 2025-06-15 13:49:29,555 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34482
+INFO 2025-06-15 13:49:49,665 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34500
+INFO 2025-06-15 13:50:03,516 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34454
+INFO 2025-06-15 13:50:32,642 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34508
+INFO 2025-06-15 13:51:06,179 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34524
+INFO 2025-06-15 13:51:30,381 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34270
+INFO 2025-06-15 13:52:25,253 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 34036

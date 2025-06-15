@@ -105,8 +105,25 @@ def team_overview_report(request):
             }
         })
     
+    # Calculate team averages and totals
+    team_averages = {}
+    team_totals = {'total_assignments': 0, 'total_projects': 0}
+    
+    if formatted_overview:
+        # Calculate averages for each metric
+        metrics_to_average = ['avg_productivity', 'avg_optimization', 'avg_utilization', 'avg_efficiency', 'avg_quality', 'avg_delivery']
+        for metric in metrics_to_average:
+            values = [item['metrics'][metric] for item in formatted_overview if item['metrics'][metric] is not None]
+            team_averages[metric] = sum(values) / len(values) if values else None
+        
+        # Calculate totals
+        team_totals['total_assignments'] = sum(item['metrics']['total_assignments'] or 0 for item in formatted_overview)
+        team_totals['total_projects'] = sum(item['metrics']['total_projects'] or 0 for item in formatted_overview)
+    
     context = {
         'overview_data': formatted_overview,
+        'team_averages': team_averages,
+        'team_totals': team_totals,
         'start_date': start_date,
         'end_date': end_date,
         'title': 'Team Overview Report'
