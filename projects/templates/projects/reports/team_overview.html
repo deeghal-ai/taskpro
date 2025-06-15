@@ -1,75 +1,263 @@
 <!-- projects/templates/projects/reports/team_overview.html -->
 {% extends "projects/reports/base_report.html" %}
 
-{% block report_content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h4>Team Performance Overview</h4>
-        <p class="text-muted">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</p>
-    </div>
-</div>
+{% block report_title %}Team Performance Overview{% endblock %}
+{% block report_subtitle %}{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}{% endblock %}
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Team Member</th>
-                        <th>Avg Productivity</th>
-                        <th>Avg Utilization</th>
-                        <th>Avg Quality</th>
-                        <th>Avg Delivery</th>
-                        <th>Assignments</th>
-                        <th>Projects</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data in overview_data %}
-                    <tr>
-                        <td>{{ data.team_member.get_full_name }}</td>
-                        <td>
-                            {% if data.metrics.avg_productivity %}
-                                <span class="badge bg-primary">{{ data.metrics.avg_productivity|floatformat:1 }}%</span>
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if data.metrics.avg_utilization %}
-                                <span class="badge bg-success">{{ data.metrics.avg_utilization|floatformat:1 }}%</span>
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if data.metrics.avg_quality %}
-                                <span class="badge bg-info">{{ data.metrics.avg_quality|floatformat:1 }}/5</span>
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if data.metrics.avg_delivery %}
-                                <span class="badge bg-warning">{{ data.metrics.avg_delivery|floatformat:1 }}/5</span>
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ data.metrics.total_assignments|default:0 }}</td>
-                        <td>{{ data.metrics.total_projects|default:0 }}</td>
-                        <td>
-                            <a href="{% url 'projects:team_member_report' data.team_member.id %}" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> View Details
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+{% block report_content %}
+<div class="report-section">
+    <div class="section-header">
+        <h4>
+            <i class="bi bi-people"></i>
+            Team Performance Overview
+        </h4>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="bi bi-graph-up-arrow"></i>
+                Performance Metrics
+                <span class="badge bg-primary ms-2">{{ overview_data|length }} Member{{ overview_data|length|pluralize }}</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="bi bi-person me-1"></i>
+                                Team Member
+                            </th>
+                            <th>
+                                <i class="bi bi-speedometer2 me-1"></i>
+                                Avg Productivity
+                            </th>
+                            <th>
+                                <i class="bi bi-graph-up me-1"></i>
+                                Optimization
+                            </th>
+                            <th>
+                                <i class="bi bi-clock me-1"></i>
+                                Avg Utilization
+                            </th>
+                            <th>
+                                <i class="bi bi-lightning me-1"></i>
+                                Avg Efficiency
+                            </th>
+                            <th>
+                                <i class="bi bi-star me-1"></i>
+                                Avg Quality
+                            </th>
+                            <th>
+                                <i class="bi bi-truck me-1"></i>
+                                Avg Delivery
+                            </th>
+                            <th>
+                                <i class="bi bi-list-task me-1"></i>
+                                Assignments
+                            </th>
+                            <th>
+                                <i class="bi bi-folder me-1"></i>
+                                Projects
+                            </th>
+                            <th>
+                                <i class="bi bi-gear me-1"></i>
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in overview_data %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">
+                                        {{ data.team_member.get_full_name|slice:":2"|upper }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ data.team_member.get_full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ data.team_member.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if data.metrics.avg_productivity %}
+                                    <div class="metric-display">
+                                        <span class="badge bg-primary">{{ data.metrics.avg_productivity|floatformat:1 }}%</span>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar bg-primary" 
+                                                 style="width: {{ data.metrics.avg_productivity }}%"></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.metrics.avg_optimization %}
+                                    <div class="metric-display">
+                                        <span class="badge 
+                                            {% if data.metrics.avg_optimization >= 20 %}bg-success
+                                            {% elif data.metrics.avg_optimization >= 10 %}bg-warning text-dark
+                                            {% elif data.metrics.avg_optimization >= 0 %}bg-info
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ data.metrics.avg_optimization|floatformat:1 }}%
+                                        </span>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar 
+                                                {% if data.metrics.avg_optimization >= 20 %}bg-success
+                                                {% elif data.metrics.avg_optimization >= 10 %}bg-warning
+                                                {% elif data.metrics.avg_optimization >= 0 %}bg-info
+                                                {% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ data.metrics.avg_optimization|default:0 }}%"></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.metrics.avg_utilization %}
+                                    <div class="metric-display">
+                                        <span class="badge bg-success">{{ data.metrics.avg_utilization|floatformat:1 }}%</span>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar bg-success" 
+                                                 style="width: {{ data.metrics.avg_utilization }}%"></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.metrics.avg_efficiency %}
+                                    <div class="metric-display">
+                                        <span class="badge 
+                                            {% if data.metrics.avg_efficiency >= 90 %}bg-success
+                                            {% elif data.metrics.avg_efficiency >= 80 %}bg-info
+                                            {% elif data.metrics.avg_efficiency >= 70 %}bg-warning text-dark
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ data.metrics.avg_efficiency|floatformat:1 }}%
+                                        </span>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar 
+                                                {% if data.metrics.avg_efficiency >= 90 %}bg-success
+                                                {% elif data.metrics.avg_efficiency >= 80 %}bg-info
+                                                {% elif data.metrics.avg_efficiency >= 70 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ data.metrics.avg_efficiency|default:0 }}%"></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.metrics.avg_quality %}
+                                    <div class="metric-display">
+                                        <span class="badge bg-info">{{ data.metrics.avg_quality|floatformat:1 }}/5</span>
+                                        <div class="star-rating mt-1">
+                                            {% for i in "12345" %}
+                                                {% if i|add:0 <= data.metrics.avg_quality %}
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.metrics.avg_delivery %}
+                                    <div class="metric-display">
+                                        <span class="badge bg-warning text-dark">{{ data.metrics.avg_delivery|floatformat:1 }}/5</span>
+                                        <div class="star-rating mt-1">
+                                            {% for i in "12345" %}
+                                                {% if i|add:0 <= data.metrics.avg_delivery %}
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ data.metrics.total_assignments|default:0 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ data.metrics.total_projects|default:0 }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'projects:team_member_report' data.team_member.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="bi bi-people display-1 text-muted"></i>
+                                    <h5 class="text-muted mt-2">No team members found</h5>
+                                    <p class="text-muted">No performance data available for the selected date range.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .metric-display {
+        min-width: 120px;
+    }
+
+    .star-rating i {
+        font-size: 0.875rem;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.3;
+    }
+</style>
 {% endblock %}

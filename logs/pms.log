@@ -6029,3 +6029,165 @@ INFO 2025-06-14 15:32:27,892 basehttp "GET /projects/reports/my-report/ HTTP/1.1
 INFO 2025-06-14 15:35:00,601 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 9377
 INFO 2025-06-14 15:35:40,398 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 10504
 INFO 2025-06-14 15:35:43,299 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 10562
+INFO 2025-06-14 15:48:32,101 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 20435
+INFO 2025-06-14 15:49:04,291 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/? HTTP/1.1" 200 20435
+INFO 2025-06-14 15:49:21,925 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/? HTTP/1.1" 200 20435
+INFO 2025-06-14 15:49:35,083 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/?start_date=2025-05-15&end_date=2025-06-15 HTTP/1.1" 200 20435
+INFO 2025-06-14 15:49:47,289 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/? HTTP/1.1" 200 20435
+INFO 2025-06-14 15:50:24,863 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 26678
+INFO 2025-06-14 15:50:44,359 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 20435
+INFO 2025-06-14 15:51:14,266 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 26678
+INFO 2025-06-14 15:53:19,947 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 26678
+INFO 2025-06-14 15:53:22,362 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 20441
+INFO 2025-06-14 15:55:08,724 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 22801
+INFO 2025-06-14 15:56:25,184 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 22801
+INFO 2025-06-14 15:56:27,627 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 22801
+INFO 2025-06-14 15:56:39,199 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 22801
+INFO 2025-06-14 15:56:50,565 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 22801
+INFO 2025-06-14 15:59:19,302 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 22630
+INFO 2025-06-14 15:59:51,406 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 26713
+INFO 2025-06-14 16:00:20,857 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 16:00:20,930 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 16:00:24,765 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
+INFO 2025-06-14 16:00:27,053 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 16:00:28,742 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-14 16:00:33,193 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 16:00:44,550 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/tasks/18ce0cbf-e243-4db7-bb34-b2da6557bf48/ HTTP/1.1" 200 26161
+INFO 2025-06-14 16:01:28,644 basehttp "GET /projects/reports/delivery-performance/ HTTP/1.1" 200 21723
+INFO 2025-06-14 16:01:50,546 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-14 16:01:50,593 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 16:15:30,438 basehttp "GET /projects/?search=&status=&product=&region=&city=&dpm= HTTP/1.1" 200 47867
+INFO 2025-06-14 16:15:48,334 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-14 16:16:00,043 basehttp "GET /projects/82f7e9ee-0e25-403a-91e4-a42062ef0615/ HTTP/1.1" 200 31509
+INFO 2025-06-14 16:16:04,330 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 16:16:12,279 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-14 16:16:17,550 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 16:16:20,515 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-14 16:16:22,563 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/manage/ HTTP/1.1" 200 33154
+INFO 2025-06-14 16:16:25,159 basehttp "GET /projects/tasks/dashboard/ HTTP/1.1" 200 33038
+INFO 2025-06-14 16:16:26,763 basehttp "GET /projects/798aed07-36ce-4a6a-83d0-ee26da9b73d1/ HTTP/1.1" 200 34753
+INFO 2025-06-14 16:16:29,323 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-14 16:16:54,786 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
+INFO 2025-06-14 16:16:57,833 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-15 12:38:08,280 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 12:38:11,003 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:38:19,955 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 12:38:20,813 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:39:14,382 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 12:39:15,477 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:40:27,318 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 12:40:28,435 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:41:12,942 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:41:18,142 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-15 12:41:22,050 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 28005
+INFO 2025-06-15 12:41:32,651 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23246
+INFO 2025-06-15 12:43:44,584 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 12:43:49,670 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:43:52,468 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-15 12:46:25,297 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:46:28,488 basehttp "GET /projects/assignments/58363e49-18a7-4c71-a9a9-5e303d423886/timesheet/ HTTP/1.1" 200 55775
+INFO 2025-06-15 12:46:46,810 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:46:48,772 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25575
+INFO 2025-06-15 12:48:58,461 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:53:19,068 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 12:53:19,388 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 12:53:21,356 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:53:21,498 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:54:07,378 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 12:54:08,074 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 12:54:08,355 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:54:09,348 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 12:54:12,891 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:54:15,137 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25907
+INFO 2025-06-15 12:54:21,485 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:54:25,199 basehttp "GET /projects/roster/ HTTP/1.1" 200 63678
+INFO 2025-06-15 12:54:29,594 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 62346
+INFO 2025-06-15 12:54:33,710 services Timer started for praveen on ASID_000045
+INFO 2025-06-15 12:54:33,743 basehttp "POST /projects/tasks/my-assignments/ HTTP/1.1" 302 0
+INFO 2025-06-15 12:54:33,843 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 65702
+INFO 2025-06-15 12:54:39,753 basehttp "GET /projects/assignments/253529ee-f166-434b-8951-2527030b9eb9/timesheet/ HTTP/1.1" 200 43426
+INFO 2025-06-15 12:54:44,663 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 65395
+INFO 2025-06-15 12:54:47,030 basehttp "GET /projects/assignments/266f1461-e65f-46f6-bdf6-44a70da4b490/timesheet/ HTTP/1.1" 200 25907
+INFO 2025-06-15 12:54:54,802 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 65395
+INFO 2025-06-15 12:55:58,198 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:07:58,797 basehttp "GET /projects/reports/my-report/? HTTP/1.1" 200 22061
+INFO 2025-06-15 13:08:11,498 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-15 13:08:11,583 basehttp "GET /projects/tasks/my-assignments/ HTTP/1.1" 200 65395
+INFO 2025-06-15 13:08:17,330 basehttp "GET /projects/roster/ HTTP/1.1" 200 63678
+INFO 2025-06-15 13:08:36,013 services Updated roster for praveen on 2025-06-13: PRESENT
+INFO 2025-06-15 13:08:36,036 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:08:36,734 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63981
+INFO 2025-06-15 13:08:46,939 services Updated roster for praveen on 2025-06-14: PRESENT
+INFO 2025-06-15 13:08:46,975 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:08:47,771 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63979
+INFO 2025-06-15 13:08:59,085 services Updated roster for praveen on 2025-06-10: LEAVE
+INFO 2025-06-15 13:08:59,116 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:08:59,897 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63975
+INFO 2025-06-15 13:09:01,803 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:09:12,884 services Updated roster for praveen on 2025-06-11: LEAVE
+INFO 2025-06-15 13:09:12,901 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:09:13,585 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63971
+INFO 2025-06-15 13:09:15,507 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:09:29,292 services Updated roster for praveen on 2025-06-03: LEAVE
+INFO 2025-06-15 13:09:29,326 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:09:30,153 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63967
+INFO 2025-06-15 13:09:32,036 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:09:41,868 services Updated roster for praveen on 2025-06-04: LEAVE
+INFO 2025-06-15 13:09:41,897 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:09:42,511 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63963
+INFO 2025-06-15 13:09:44,408 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:13:14,241 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:13:14,337 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:13:16,136 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:13:16,206 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:13:48,218 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:13:49,124 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:13:49,333 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:13:50,491 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:13:54,845 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:14:13,568 services Updated roster for praveen on 2025-06-02: LEAVE
+INFO 2025-06-15 13:14:13,590 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:14:14,472 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63959
+INFO 2025-06-15 13:14:19,082 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:14:34,458 services Updated roster for praveen on 2025-06-02: TEAM_OUTING
+INFO 2025-06-15 13:14:34,485 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:14:35,316 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63971
+INFO 2025-06-15 13:14:38,009 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:14:49,448 services Updated roster for praveen on 2025-06-02: HOLIDAY
+INFO 2025-06-15 13:14:49,475 basehttp "POST /projects/roster/update-day/ HTTP/1.1" 302 0
+INFO 2025-06-15 13:14:50,102 basehttp "GET /projects/roster/2025/6/ HTTP/1.1" 200 63963
+INFO 2025-06-15 13:14:52,770 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22061
+INFO 2025-06-15 13:19:01,074 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:19:01,775 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:19:02,668 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:03,169 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:11,314 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:19:11,527 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:19:12,508 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:12,771 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:22,596 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 13:19:22,814 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 13:19:24,319 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:24,544 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:34,156 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 13:19:35,048 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 13:19:35,509 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:19:36,408 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:21:17,537 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\services.py changed, reloading.
+INFO 2025-06-15 13:21:18,060 autoreload C:\Users\Deeghal Bhaumik\Documents\Taskpro\taskpro-fresh\projects\report_views.py changed, reloading.
+INFO 2025-06-15 13:21:18,633 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:21:19,004 autoreload Watching for file changes with StatReloader
+INFO 2025-06-15 13:21:22,834 basehttp "GET /projects/reports/my-report/ HTTP/1.1" 200 22608
+INFO 2025-06-15 13:21:42,556 basehttp "GET /projects/reports/team-overview/ HTTP/1.1" 200 29205
+INFO 2025-06-15 13:21:59,059 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23793
+INFO 2025-06-15 13:23:48,614 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23793
+INFO 2025-06-15 13:25:19,023 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23387
+INFO 2025-06-15 13:27:38,714 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23387
+INFO 2025-06-15 13:30:08,710 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23387
+INFO 2025-06-15 13:36:15,317 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/ HTTP/1.1" 200 23461
+INFO 2025-06-15 13:36:29,858 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/?start_date=2025-05-16&end_date=2025-06-01 HTTP/1.1" 200 20439
+INFO 2025-06-15 13:36:38,765 basehttp "GET /projects/reports/team-member/ba09973a-0f10-4ee7-9683-f1d78a377b1e/?start_date=2025-05-16&end_date=2025-06-02 HTTP/1.1" 200 23461
+INFO 2025-06-15 13:36:48,688 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-06-15 13:36:48,817 basehttp "GET /projects/ HTTP/1.1" 200 47867
+INFO 2025-06-15 13:36:55,869 basehttp "GET /projects/delivered/ HTTP/1.1" 200 25644
+INFO 2025-06-15 13:36:58,768 basehttp "GET /projects/ HTTP/1.1" 200 47867

@@ -1,129 +1,287 @@
 <!-- projects/templates/projects/reports/team_member_report.html -->
 {% extends "projects/reports/base_report.html" %}
 
+{% block report_title %}{{ team_member.get_full_name }} - Performance Report{% endblock %}
+{% block report_subtitle %}{{ report.period }}{% endblock %}
+
 {% block report_content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h4>{{ team_member.get_full_name }} - Performance Report</h4>
-        <p class="text-muted">{{ report.period }}</p>
-    </div>
-</div>
-
 <!-- Summary Metrics -->
-<div class="row">
-    <div class="col-md-3">
-        <div class="metric-card">
-            <div class="metric-label">Average Productivity</div>
-            <div class="metric-value text-primary">
-                {% if report.summary.average_productivity %}
-                    {{ report.summary.average_productivity|floatformat:1 }}%
-                {% else %}
-                    N/A
-                {% endif %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-speedometer2 text-primary"></i>
+                </div>
+                <div class="metric-label">Average Productivity</div>
+                <div class="metric-value text-primary">
+                    {% if report.summary.average_productivity %}
+                        {{ report.summary.average_productivity|floatformat:1 }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <small class="text-muted">Projected Hours / Worked Hours</small>
             </div>
-            <small class="text-muted">Projected Hours / Worked Hours</small>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-clock text-success"></i>
+                </div>
+                <div class="metric-label">Average Utilization</div>
+                <div class="metric-value text-success">
+                    {% if report.summary.average_utilization %}
+                        {{ report.summary.average_utilization|floatformat:1 }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <small class="text-muted">Assignment Hours / Total Available</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-star text-info"></i>
+                </div>
+                <div class="metric-label">Average Quality</div>
+                <div class="metric-value text-info">
+                    {% if report.summary.average_quality_rating %}
+                        {{ report.summary.average_quality_rating|floatformat:1 }}/5
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <small class="text-muted">Quality Ratings</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-truck text-warning"></i>
+                </div>
+                <div class="metric-label">Average Delivery</div>
+                <div class="metric-value text-warning">
+                    {% if report.summary.average_delivery_rating %}
+                        {{ report.summary.average_delivery_rating|floatformat:1 }}/5
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <small class="text-muted">Delivery Performance</small>
+            </div>
         </div>
     </div>
-    
-    <div class="col-md-3">
-        <div class="metric-card">
-            <div class="metric-label">Average Utilization</div>
-            <div class="metric-value text-success">
-                {% if report.summary.average_utilization %}
-                    {{ report.summary.average_utilization|floatformat:1 }}%
-                {% else %}
-                    N/A
-                {% endif %}
-            </div>
-            <small class="text-muted">Worked Hours / Available Hours</small>
-        </div>
-    </div>
-    
-    <div class="col-md-3">
-        <div class="metric-card">
-            <div class="metric-label">Average Quality</div>
-            <div class="metric-value text-info">
-                {% if report.summary.average_quality_rating %}
-                    {{ report.summary.average_quality_rating|floatformat:1 }}/5
-                {% else %}
-                    N/A
-                {% endif %}
-            </div>
-            <small class="text-muted">From {{ report.summary.total_assignments_completed }} assignments</small>
-        </div>
-    </div>
-    
-    <div class="col-md-3">
-        <div class="metric-card">
-            <div class="metric-label">Delivery Performance</div>
-            <div class="metric-value text-warning">
-                {% if report.summary.average_delivery_rating %}
-                    {{ report.summary.average_delivery_rating|floatformat:1 }}/5
-                {% else %}
-                    N/A
-                {% endif %}
-            </div>
-            <small class="text-muted">{{ report.summary.total_projects_delivered }} projects delivered</small>
-        </div>
-    </div>
-</div>
 
-<!-- Charts section removed - keeping reports simple and focused on summary metrics -->
-
-<!-- Delivery History (if any) -->
-{% if report.delivery_history %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Recent Project Deliveries</h5>
+    <!-- Additional Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-speedometer2 text-warning"></i>
+                </div>
+                <div class="metric-label">Optimization</div>
+                <div class="metric-value text-warning">
+                    {% if report.summary.average_optimization %}
+                        {{ report.summary.average_optimization|floatformat:1 }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <small class="text-muted">
+                    {% if report.summary.optimization_saved_hours %}
+                        Saved {{ report.summary.optimization_saved_hours|floatformat:1 }}h
+                    {% else %}
+                        (Projected - Worked) / Projected
+                    {% endif %}
+                </small>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Project</th>
-                                <th>Delivery Date</th>
-                                <th>Expected Date</th>
-                                <th>Variance</th>
-                                <th>Rating</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for delivery in report.delivery_history %}
-                            <tr>
-                                <td>{{ delivery.project_name }}</td>
-                                <td>{{ delivery.delivery_date|date:"M d, Y" }}</td>
-                                <td>{{ delivery.expected_completion_date|date:"M d, Y"|default:"Not set" }}</td>
-                                <td>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-lightning text-info"></i>
+                </div>
+                <div class="metric-label">Average Efficiency</div>
+                <div class="metric-value text-info">
+                    {% if report.summary.average_efficiency %}
+                        {{ report.summary.average_efficiency|floatformat:1 }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <small class="text-muted">Total Work / Present Hours</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-list-task text-primary"></i>
+                </div>
+                <div class="metric-label">Total Assignments</div>
+                <div class="metric-value text-primary">
+                    {{ report.summary.total_assignments_completed|default:0 }}
+                </div>
+                <small class="text-muted">
+                    Completed Assignments<br>
+                    {{ report.summary.total_hours_worked|default:0|floatformat:1 }}h worked
+                </small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card text-center">
+                <div class="metric-icon">
+                    <i class="bi bi-folder text-success"></i>
+                </div>
+                <div class="metric-label">Total Projects</div>
+                <div class="metric-value text-success">
+                    {{ report.summary.total_projects_delivered|default:0 }}
+                </div>
+                <small class="text-muted">Projects Delivered</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Delivery History -->
+    {% if report.delivery_history %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="bi bi-truck"></i>
+                Project Deliveries 
+                <small class="text-muted">({{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }})</small>
+                <span class="badge bg-primary ms-2">{{ report.delivery_history|length }} Deliver{{ report.delivery_history|length|pluralize:"y,ies" }}</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="bi bi-folder me-1"></i>
+                                Project
+                            </th>
+                            <th>
+                                <i class="bi bi-calendar-check me-1"></i>
+                                Delivery Date
+                            </th>
+                            <th>
+                                <i class="bi bi-calendar-event me-1"></i>
+                                Expected Date
+                            </th>
+                            <th>
+                                <i class="bi bi-clock-history me-1"></i>
+                                Variance
+                            </th>
+                            <th>
+                                <i class="bi bi-star me-1"></i>
+                                Rating
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for delivery in report.delivery_history %}
+                        <tr>
+                            <td>
+                                <strong>{{ delivery.hs_id }}</strong>
+                                <br>
+                                <small class="text-muted">{{ delivery.project.name }}</small>
+                            </td>
+                            <td>{{ delivery.delivery_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if delivery.expected_completion_date %}
+                                    {{ delivery.expected_completion_date|date:"M d, Y" }}
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if delivery.days_variance is not None %}
                                     {% if delivery.days_variance < 0 %}
-                                        <span class="text-success">{{ delivery.days_variance|stringformat:"d"|slice:"1:" }} days early</span>
+                                        <span class="text-success">
+                                            <i class="bi bi-arrow-down"></i>
+                                            {% with days=delivery.days_variance %}
+                                                {% if days == -1 %}
+                                                    1 day early
+                                                {% else %}
+                                                    {{ days|stringformat:"d"|slice:"1:" }} days early
+                                                {% endif %}
+                                            {% endwith %}
+                                        </span>
                                     {% elif delivery.days_variance > 0 %}
-                                        <span class="text-danger">{{ delivery.days_variance }} days late</span>
+                                        <span class="text-danger">
+                                            <i class="bi bi-arrow-up"></i>
+                                            {% if delivery.days_variance == 1 %}
+                                                1 day late
+                                            {% else %}
+                                                {{ delivery.days_variance }} days late
+                                            {% endif %}
+                                        </span>
                                     {% else %}
                                         <span class="text-muted">On time</span>
                                     {% endif %}
-                                </td>
-                                <td>
-                                    {% if delivery.delivery_performance_rating %}
-                                        <span class="badge bg-primary">{{ delivery.delivery_performance_rating|floatformat:1 }}</span>
-                                    {% else %}
-                                        <span class="text-muted">Not rated</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if delivery.delivery_performance_rating %}
+                                    <span class="badge bg-primary">
+                                        {{ delivery.delivery_performance_rating|floatformat:1 }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">Not rated</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 {% endblock %}
 
-{% block report_scripts %}
-<!-- Chart scripts removed - keeping reports simple and focused on summary metrics -->
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .metric-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-display {
+        min-width: 120px;
+    }
+
+    .star-rating i {
+        font-size: 0.875rem;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.3;
+    }
+
+    /* Enhanced metric cards for individual metrics */
+    .metric-card .metric-icon {
+        margin-bottom: 1rem;
+    }
+
+    .metric-card .metric-value {
+        font-size: 1.8rem;
+    }
+</style>
 {% endblock %}

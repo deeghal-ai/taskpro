@@ -1498,7 +1498,7 @@ class ProjectService:
             
             # UPDATED: Create assignment summary based on completion status
             if assignment.is_completed:
-                # For completed assignments: Days Worked | Task Productivity | Quality Rating | Timer Usage %
+                # For completed assignments: Days Worked | Task Productivity | Quality Rating | Optimization | Timer Usage %
                 if total_worked_minutes > 0 and projected_minutes > 0:
                     task_productivity = (projected_minutes / total_worked_minutes) * 100
                     productivity_display = f"{task_productivity:.1f}%"
@@ -1506,6 +1506,23 @@ class ProjectService:
                     productivity_display = "N/A"
                 else:
                     productivity_display = "0%"
+                
+                # Calculate optimization: (projected - worked) / projected * 100
+                if projected_minutes > 0:
+                    optimization_percentage = ((projected_minutes - total_worked_minutes) / projected_minutes) * 100
+                    optimization_display = f"{optimization_percentage:.1f}%"
+                    # Add color class based on optimization value
+                    if optimization_percentage >= 20:
+                        optimization_class = "text-success"
+                    elif optimization_percentage >= 10:
+                        optimization_class = "text-info"
+                    elif optimization_percentage >= 0:
+                        optimization_class = "text-warning"
+                    else:
+                        optimization_class = "text-danger"
+                else:
+                    optimization_display = "N/A"
+                    optimization_class = "text-muted"
                 
                 # UPDATED: Show quality_rating instead of error_count with color coding
                 if assignment.quality_rating:
@@ -1527,6 +1544,8 @@ class ProjectService:
                     'progress_percentage': round(progress_percentage, 1),
                     'days_worked': days_worked,
                     'task_productivity': productivity_display,
+                    'optimization': optimization_display,
+                    'optimization_class': optimization_class,
                     'quality_rating': quality_rating_display,  # CHANGED: from error_count
                     'quality_rating_class': quality_rating_class,  # NEW: CSS class for coloring
                     'timer_usage_percentage': f"{timer_usage_percentage:.1f}%",
@@ -2100,10 +2119,25 @@ class ReportingService:
         total_worked_minutes = 0
         
         for roster in roster_days:
-            if roster.status == 'PRESENT':
+            if roster.status in ['PRESENT', 'LEAVE', 'HALF_DAY']:
                 total_available_minutes += 480  # 8 hours
                 
         total_worked_minutes = sum(dt['day_total'] for dt in daily_totals)
+        
+        # Calculate efficiency (assignment + misc hours vs present/half days only)
+        efficiency_available_minutes = 0
+        total_misc_minutes = 0
+        
+        for roster in roster_days:
+            if roster.status == 'PRESENT':
+                efficiency_available_minutes += 480  # 8 hours
+            elif roster.status == 'HALF_DAY':
+                efficiency_available_minutes += 240  # 4 hours
+            
+            # Add misc hours to total work time for efficiency calculation
+            total_misc_minutes += roster.misc_hours
+        
+        total_efficiency_work_minutes = total_worked_minutes + total_misc_minutes
         
         # Calculate delivery performance
         deliveries = ProjectDelivery.objects.filter(
@@ -2135,10 +2169,23 @@ class ReportingService:
                 'projected_hours': total_projected / 60,
                 'worked_hours': total_worked / 60,
             },
+            'optimization': {
+                'score': ((total_projected - total_worked) / total_projected * 100) if total_projected > 0 else None,
+                'projected_hours': total_projected / 60,
+                'worked_hours': total_worked / 60,
+                'saved_hours': (total_projected - total_worked) / 60 if total_projected > 0 else 0,
+            },
             'utilization': {
                 'score': (total_worked_minutes / total_available_minutes * 100) if total_available_minutes > 0 else None,
                 'worked_minutes': total_worked_minutes,
                 'available_minutes': total_available_minutes,
+            },
+            'efficiency': {
+                'score': (total_efficiency_work_minutes / efficiency_available_minutes * 100) if efficiency_available_minutes > 0 else None,
+                'total_work_minutes': total_efficiency_work_minutes,
+                'assignment_minutes': total_worked_minutes,
+                'misc_minutes': total_misc_minutes,
+                'available_minutes': efficiency_available_minutes,
             },
             'quality': {
                 'average_rating': sum(quality_ratings) / len(quality_ratings) if quality_ratings else None,

@@ -44,7 +44,9 @@ def team_member_report(request, team_member_id=None):
         'delivery_history': delivery_history,
         'summary': {
             'average_productivity': metrics['productivity']['score'],
+            'average_optimization': metrics['optimization']['score'],
             'average_utilization': metrics['utilization']['score'],
+            'average_efficiency': metrics['efficiency']['score'],
             'average_quality_rating': metrics['quality']['average_rating'],
             'average_delivery_rating': metrics['delivery']['average_rating'],
             'total_assignments_completed': metrics['quality']['total_assignments'],
@@ -52,6 +54,9 @@ def team_member_report(request, team_member_id=None):
             'on_time_delivery_rate': metrics['delivery']['on_time_rate'],
             'total_hours_projected': metrics['productivity']['projected_hours'],
             'total_hours_worked': metrics['productivity']['worked_hours'],
+            'optimization_saved_hours': metrics['optimization']['saved_hours'],
+            'efficiency_total_work_hours': metrics['efficiency']['total_work_minutes'] / 60 if metrics['efficiency']['total_work_minutes'] else 0,
+            'efficiency_misc_hours': metrics['efficiency']['misc_minutes'] / 60 if metrics['efficiency']['misc_minutes'] else 0,
         }
     }
     
@@ -90,7 +95,9 @@ def team_overview_report(request):
             'team_member': item['team_member'],
             'metrics': {
                 'avg_productivity': item['metrics']['productivity']['score'],
+                'avg_optimization': item['metrics']['optimization']['score'],
                 'avg_utilization': item['metrics']['utilization']['score'],
+                'avg_efficiency': item['metrics']['efficiency']['score'],
                 'avg_quality': item['metrics']['quality']['average_rating'],
                 'avg_delivery': item['metrics']['delivery']['average_rating'],
                 'total_assignments': item['metrics']['quality']['total_assignments'],

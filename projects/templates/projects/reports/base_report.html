@@ -3,61 +3,383 @@
 
 {% block extra_css %}
 <style>
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .page-header h1 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.75rem;
+    }
+
+    .page-header .subtitle {
+        font-size: 1rem;
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    /* Enhanced Filter Card */
+    .filter-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+    }
+
+    .filter-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .filter-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-header h5 i {
+        color: var(--primary-color);
+    }
+
+    .filter-body {
+        padding: 1.5rem;
+    }
+
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.625rem 0.75rem;
+        transition: all var(--transition-speed) ease;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-label i {
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    /* Enhanced Metric Cards */
     .metric-card {
         background: #fff;
-        border: 1px solid #dee2e6;
-        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
         padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        height: 100%;
     }
-    
+
+    .metric-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
     .metric-value {
         font-size: 2rem;
         font-weight: 700;
         margin: 0.5rem 0;
+        color: var(--primary-color);
     }
-    
+
     .metric-label {
         font-size: 0.875rem;
         color: #6c757d;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
-    
-    /* Chart styles removed - no longer using charts in reports */
-    
-    .date-filter {
-        background: #f8f9fa;
+
+    /* Enhanced Cards */
+    .card {
+        border: none;
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #fff 100%);
+        border-bottom: 2px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .card-title {
+        margin: 0;
+        color: #2d3748;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-title i {
+        color: var(--primary-color);
+    }
+
+    /* Enhanced Table Styling */
+    .table {
+        margin-bottom: 0;
+        background: #ffffff;
+    }
+
+    .table thead th {
+        background: var(--light-bg);
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #64748b;
         padding: 1rem;
-        border-radius: 0.5rem;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .table tbody tr {
+        transition: background-color var(--transition-speed) ease;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--light-bg);
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: #f1f5f9;
+    }
+
+    /* Enhanced Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+        border-radius: 0.375rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .badge.bg-primary {
+        background-color: var(--primary-color) !important;
+    }
+
+    .badge.bg-success {
+        background-color: var(--success-color) !important;
+    }
+
+    .badge.bg-info {
+        background-color: var(--info-color) !important;
+    }
+
+    .badge.bg-warning {
+        background-color: var(--warning-color) !important;
+        color: #000 !important;
+    }
+
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    /* Report Section Headers */
+    .report-section {
         margin-bottom: 2rem;
     }
+
+    .section-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .section-header h4, .section-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-header i {
+        color: var(--primary-color);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-body .row {
+            flex-direction: column;
+        }
+
+        .filter-body .col-md-3,
+        .filter-body .col-md-4 {
+            margin-bottom: 1rem;
+        }
+
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+
+        .metric-card {
+            text-align: center;
+        }
+    }
 </style>
-<!-- Chart.js removed - no longer using charts in reports -->
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-graph-up"></i>
+            {% block report_title %}Reports Dashboard{% endblock %}
+        </h1>
+        <p class="subtitle">
+            {% block report_subtitle %}Comprehensive analytics and performance insights{% endblock %}
+        </p>
+    </div>
+
     <!-- Date Filter -->
-    <div class="date-filter">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label for="start_date" class="form-label">Start Date</label>
-                <input type="date" name="start_date" id="start_date" 
-                       class="form-control" value="{{ start_date|date:'Y-m-d' }}">
-            </div>
-            <div class="col-md-3">
-                <label for="end_date" class="form-label">End Date</label>
-                <input type="date" name="end_date" id="end_date" 
-                       class="form-control" value="{{ end_date|date:'Y-m-d' }}">
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-funnel"></i> Apply Filter
-                </button>
-            </div>
-        </form>
+    <div class="filter-card">
+        <div class="filter-header">
+            <h5>
+                <i class="bi bi-funnel"></i>
+                Filter Options
+            </h5>
+        </div>
+        <div class="filter-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">
+                        <i class="bi bi-calendar-event"></i>
+                        Start Date
+                    </label>
+                    <input type="date" name="start_date" id="start_date" 
+                           class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">
+                        <i class="bi bi-calendar-check"></i>
+                        End Date
+                    </label>
+                    <input type="date" name="end_date" id="end_date" 
+                           class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Apply Filter
+                    </button>
+                    <a href="?" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
     
     {% block report_content %}
@@ -74,6 +396,21 @@
     
     document.getElementById('end_date').addEventListener('change', function() {
         document.getElementById('start_date').max = this.value;
+    });
+
+    // Enhanced animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fade in cards
+        const cards = document.querySelectorAll('.card, .metric-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
     });
 </script>
 {% block report_scripts %}
