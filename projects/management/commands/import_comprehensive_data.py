@@ -139,7 +139,7 @@ class Command(BaseCommand):
     def import_products(self):
         self.stdout.write("Importing products...")
         
-        # Products with TAT based on your provided data
+        # Products with TAT exactly as provided by user
         default_products = [
             ('Real_Apartment_Digitour', 21),
             ('Real_Construction_Digitour', 25),
@@ -153,21 +153,19 @@ class Command(BaseCommand):
             ('Short_Video', 15),
             ('Digiplot', 25),
             ('2D_Floor_Plan', 7),
-            ('Profile_Video', 30),  # Default TAT for empty values
-            ('Digilite', 30),  # Default TAT for empty values
-            ('PT_Virtual_Tour', 30),  # Default TAT for empty values
+            ('Profile_Video', 30),  # Default TAT for empty value
+            ('Digilite', 30),  # Default TAT for empty value
+            ('PT_Virtual_Tour', 30),  # Default TAT for empty value
             ('Real_Full_Project_Digitour', 25),
             ('Virtual_Villa_Dollhouse', 45),
             ('RenderViews_StillImages', 21),
             ('Slice_View', 45),
-            ('Rework', 30),  # Default TAT for empty values
-            ('Custom_Content', 30),  # Default TAT for empty values
+            ('Rework', 30),  # Default TAT for empty value
+            ('Custom_Content', 30),  # Default TAT for empty value
             ('3d/2d_Floor_plan', 7),
             ('Real_Location_Digitour', 30),
             ('Additional VO', 12),
             ('Virtual_Villa_Full_Project_Digitour', 40),
-            # Additional products found in CSV
-            ('Offline Digtour Video Creation', 30)
         ]
         
         products_created = 0
@@ -466,17 +464,32 @@ class Command(BaseCommand):
                     product_name = value.strip() if value else ''
                     break
             
+            # Debug: print all available products if product not found
+            if not product_name:
+                self.stdout.write(f"DEBUG: No HS _Product found for project {project_name}")
+                self.stdout.write("DEBUG: Available columns with 'product' in name:")
+                for key, value in row.items():
+                    key_clean = key.replace('\n', ' ').replace('\r', ' ').strip()
+                    if 'product' in key_clean.lower():
+                        self.stdout.write(f"  '{key_clean}' = '{value}'")
+                return None
+            
             product = None
             if product_name:
                 try:
                     product = Product.objects.get(name=product_name)
                     self.stdout.write(f"DEBUG: Found product: {product_name}")
                 except Product.DoesNotExist:
-                    self.stdout.write(f"Product not found: {product_name}")
+                    self.stdout.write(f"PRODUCT NOT FOUND: '{product_name}'")
+                    self.stdout.write("DEBUG: Available products in database:")
+                    available_products = Product.objects.all().values_list('name', flat=True)
+                    for avail_product in available_products:
+                        self.stdout.write(f"  - '{avail_product}'")
+                    self.stdout.write("DEBUG: Checking for similar product names...")
+                    for avail_product in available_products:
+                        if product_name.lower() in avail_product.lower() or avail_product.lower() in product_name.lower():
+                            self.stdout.write(f"  - Similar: '{avail_product}' vs '{product_name}'")
                     return None
-            else:
-                self.stdout.write(f"DEBUG: No HS _Product found for project {project_name}")
-                return None
             
             # Get DPM (from APM Name column)
             apm_name = find_column_value(row, ['apm name', 'apm'])
