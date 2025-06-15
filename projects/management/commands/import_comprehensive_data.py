@@ -413,9 +413,17 @@ class Command(BaseCommand):
                         return value.strip() if value else ''
                 return ''
             
+            # Debug: Print first row to see what we're working with
+            if not hasattr(self, '_debug_printed'):
+                self.stdout.write("DEBUG: First row columns:")
+                for key, value in row.items():
+                    self.stdout.write(f"  '{key}' = '{value[:50]}...' " if len(str(value)) > 50 else f"  '{key}' = '{value}'")
+                self._debug_printed = True
+            
             # Basic project info
             project_name = find_column_value(row, ['Project Name', 'project name'])
             if not project_name:
+                self.stdout.write(f"DEBUG: No project name found in row")
                 return None
             
             # Get city
@@ -427,6 +435,9 @@ class Command(BaseCommand):
                 except LocationCity.DoesNotExist:
                     self.stdout.write(f"City not found: {city_name}")
                     return None
+            else:
+                self.stdout.write(f"DEBUG: No city found for project {project_name}")
+                return None
             
             # Get product
             product_name = find_column_value(row, ['HS _Product', 'Product', 'HS_Product'])
@@ -437,6 +448,9 @@ class Command(BaseCommand):
                 except Product.DoesNotExist:
                     self.stdout.write(f"Product not found: {product_name}")
                     return None
+            else:
+                self.stdout.write(f"DEBUG: No product found for project {project_name}")
+                return None
             
             # Get DPM (from APM Name column)
             apm_name = find_column_value(row, ['APM Name', 'APM', 'apm name'])
@@ -446,12 +460,16 @@ class Command(BaseCommand):
                 try:
                     dpm = User.objects.get(username=username)
                 except User.DoesNotExist:
-                    self.stdout.write(f"DPM not found: {apm_name}")
+                    self.stdout.write(f"DPM not found: {apm_name} (username: {username})")
                     return None
+            else:
+                self.stdout.write(f"DEBUG: No APM name found for project {project_name}")
+                return None
             
             # Get account manager (from Sales column)
             sales_name = find_column_value(row, ['Sales', 'sales'])
             if not sales_name:
+                self.stdout.write(f"DEBUG: No sales name found for project {project_name}")
                 return None
             
             # Get current status
@@ -463,6 +481,9 @@ class Command(BaseCommand):
                 except ProjectStatusOption.DoesNotExist:
                     self.stdout.write(f"Status not found: {status_name}")
                     return None
+            else:
+                self.stdout.write(f"DEBUG: No status found for project {project_name}")
+                return None
             
             # Parse latest date for default dates
             latest_date_str = find_column_value(row, ['Latest_Date', 'Latest Date', 'latest date'])
