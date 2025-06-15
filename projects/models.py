@@ -6,7 +6,9 @@ from accounts.models import User
 from locations.models import City
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 
 class ProductSubcategory(models.Model):
     """
@@ -277,14 +279,33 @@ class Project(models.Model):
     @property
     def is_delivered(self):
         """
-        Check if project is in delivered state.
-        A project is considered delivered when its status is "Final Delivery".
+        Check if project is in a 'delivered' or 'terminated' state.
+        This now includes Final Delivery, Deemed Consumed, and Opp Dropped.
         """
         if not self.current_status:
             return False
         
         status_name = self.current_status.name.lower()
-        return 'final' in status_name and 'delivery' in status_name
+        
+        return (
+            ('final' in status_name and 'delivery' in status_name) or
+            status_name == 'deemed consumed' or
+            status_name == 'opp dropped'
+        )
+
+    @property
+    def delivery_date(self):
+        """
+        Returns the date of the first status history entry that is considered
+        a 'delivered' or 'terminated' status. Returns None if not found.
+        """
+        history_entry = self.status_history.filter(
+            Q(status__name__iexact='Final Delivery') |
+            Q(status__name__iexact='Deemed Consumed') |
+            Q(status__name__iexact='Opp Dropped')
+        ).order_by('changed_at').first()
+        
+        return history_entry.changed_at if history_entry else None
 
     @property
     def is_pipeline(self):
@@ -442,7 +463,10 @@ class ProjectStatusHistory(models.Model):
         related_name='status_changes',
         help_text="The DPM who made this status change"
     )
-    changed_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="Timestamp of the status change"
+    )
     comments = models.TextField(
         blank=True,
         help_text="Optional comments about why the status was changed"
@@ -1154,6 +1178,13 @@ class ProjectDelivery(models.Model):
     expected_completion_date = models.DateField(null=True, blank=True)
     actual_completion_date = models.DateField()
     
+    # New field to store the calculated variance
+    days_variance_snapshot = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Snapshot of days variance at time of delivery"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -1169,9 +1200,3 @@ class ProjectDelivery(models.Model):
         if self.expected_completion_date and self.actual_completion_date:
             return (self.actual_completion_date - self.expected_completion_date).days
         return 0
-    
-    def save(self, *args, **kwargs):
-        # Calculate days variance
-        if self.expected_completion_date and self.actual_completion_date:
-            self.days_variance = (self.actual_completion_date - self.expected_completion_date).days
-        super().save(*args, **kwargs)

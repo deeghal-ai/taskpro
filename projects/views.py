@@ -218,10 +218,40 @@ def project_list(request):
     if region:
         filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
 
+    # Get display names for applied filters for the template
+    filters_applied_display = {}
+    if filters_applied.get('status'):
+        try:
+            filters_applied_display['status'] = ProjectStatusOption.objects.get(id=filters_applied['status']).name
+        except ProjectStatusOption.DoesNotExist:
+            pass
+    if filters_applied.get('product'):
+        try:
+            filters_applied_display['product'] = Product.objects.get(id=filters_applied['product']).name
+        except Product.DoesNotExist:
+            pass
+    if filters_applied.get('region'):
+        try:
+            filters_applied_display['region'] = Region.objects.get(id=filters_applied['region']).name
+        except Region.DoesNotExist:
+            pass
+    if filters_applied.get('city'):
+        try:
+            filters_applied_display['city'] = City.objects.get(id=filters_applied['city']).name
+        except City.DoesNotExist:
+            pass
+    if filters_applied.get('dpm'):
+        try:
+            dpm_user = User.objects.get(id=filters_applied['dpm'])
+            filters_applied_display['dpm'] = dpm_user.get_full_name() or dpm_user.username
+        except User.DoesNotExist:
+            pass
+
     context = {
         'projects': projects,
         'filter_form': filter_form,
         'filters_applied': filters_applied,
+        'filters_applied_display': filters_applied_display,
         'filter_options': filter_options,
         'title': 'Pipeline Projects',
         'is_pipeline': True  # Add flag to identify page type
@@ -283,10 +313,40 @@ def delivered_projects(request):
     if region:
         filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
 
+    # Get display names for applied filters
+    filters_applied_display = {}
+    if filters_applied.get('status'):
+        try:
+            filters_applied_display['status'] = ProjectStatusOption.objects.get(id=filters_applied['status']).name
+        except ProjectStatusOption.DoesNotExist:
+            pass
+    if filters_applied.get('product'):
+        try:
+            filters_applied_display['product'] = Product.objects.get(id=filters_applied['product']).name
+        except Product.DoesNotExist:
+            pass
+    if filters_applied.get('region'):
+        try:
+            filters_applied_display['region'] = Region.objects.get(id=filters_applied['region']).name
+        except Region.DoesNotExist:
+            pass
+    if filters_applied.get('city'):
+        try:
+            filters_applied_display['city'] = City.objects.get(id=filters_applied['city']).name
+        except City.DoesNotExist:
+            pass
+    if filters_applied.get('dpm'):
+        try:
+            dpm_user = User.objects.get(id=filters_applied['dpm'])
+            filters_applied_display['dpm'] = dpm_user.get_full_name() or dpm_user.username
+        except User.DoesNotExist:
+            pass
+
     context = {
         'projects': projects,
         'filter_form': filter_form,
         'filters_applied': filters_applied,
+        'filters_applied_display': filters_applied_display,
         'filter_options': filter_options,
         'title': 'Delivered Projects',
         'is_delivered': True  # Add flag to identify page type

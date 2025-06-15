@@ -215,47 +215,72 @@ class ProjectService:
                 - If failed: (False, error_message)
         """
         try:
-            # Start with all projects
-            queryset = Project.objects.select_related(
+            # Create a subquery to get the latest status change date for each project
+            latest_status_date_subquery = ProjectStatusHistory.objects.filter(
+                project=OuterRef('pk')
+            ).order_by('-changed_at').values('changed_at')[:1]
+
+            # Start with all projects, annotating them with the latest status date
+            queryset = Project.objects.annotate(
+                latest_status_date=Subquery(latest_status_date_subquery)
+            ).select_related(
                 'current_status',
                 'product',
                 'city',
                 'city__region',
                 'dpm'
-            ).order_by('-created_at')
+            ).order_by(F('latest_status_date').desc(nulls_last=True), '-created_at')
+
+            # Define the statuses that are considered 'delivered' or 'terminated'
+            delivered_status_query = (
+                (Q(name__icontains='final') & Q(name__icontains='delivery')) |
+                Q(name__iexact='Deemed Consumed') |
+                Q(name__iexact='Opp Dropped')
+            )
 
             # Apply project type filter
             if project_type == 'pipeline':
-                # Get all status IDs that indicate "Final Delivery"
-                final_delivery_statuses = ProjectStatusOption.objects.filter(
-                    Q(name__icontains='final') & Q(name__icontains='delivery')
+                # Get all status IDs that indicate a "delivered" or "terminated" state
+                delivered_statuses = ProjectStatusOption.objects.filter(
+                    delivered_status_query
                 ).values_list('id', flat=True)
                 
-                # Exclude projects with Final Delivery status
-                if final_delivery_statuses:
-                    queryset = queryset.exclude(current_status_id__in=final_delivery_statuses)
+                # Exclude these projects from the pipeline
+                if delivered_statuses:
+                    queryset = queryset.exclude(current_status_id__in=delivered_statuses)
                     
             elif project_type == 'delivered':
-                # Get only projects with "Final Delivery" status
-                final_delivery_statuses = ProjectStatusOption.objects.filter(
-                    Q(name__icontains='final') & Q(name__icontains='delivery')
+                # Get only projects with a "delivered" or "terminated" status
+                delivered_statuses = ProjectStatusOption.objects.filter(
+                    delivered_status_query
                 ).values_list('id', flat=True)
                 
-                if final_delivery_statuses:
-                    queryset = queryset.filter(current_status_id__in=final_delivery_statuses)
+                if delivered_statuses:
+                    queryset = queryset.filter(current_status_id__in=delivered_statuses)
                 else:
-                    # No final delivery statuses defined, return empty queryset
+                    # No such statuses defined, return empty queryset
                     queryset = queryset.none()
 
-            # Apply search if provided
+            # Store all applied filters to pass back to the template
+            filters_applied = {
+                'search': search_query,
+                'status': status,
+                'product': product,
+                'region': region,
+                'city': city,
+                'dpm': dpm,
+            }
+
+            # Apply search filter
             if search_query:
                 queryset = queryset.filter(
+                    Q(hs_id__icontains=search_query) |
                     Q(project_name__icontains=search_query) |
                     Q(opportunity_id__icontains=search_query) |
                     Q(builder_name__icontains=search_query)
                 )
 
-            # Apply filters
+            # Apply other filters
             if status:
                 queryset = queryset.filter(current_status_id=status)
             if product:
@@ -267,20 +292,9 @@ class ProjectService:
             if dpm:
                 queryset = queryset.filter(dpm_id=dpm)
 
-            # Create paginator
+            # Paginate the results
             paginator = Paginator(queryset, items_per_page)
             page_obj = paginator.get_page(page)
-
-            # Track which filters are applied
-            filters_applied = {
-                'search_query': search_query,
-                'status': status,
-                'product': product,
-                'region': region,
-                'city': city,
-                'dpm': dpm,
-                'project_type': project_type
-            }
 
             logger.debug(f"Retrieved filtered project list ({project_type}) with {paginator.count} total projects")
             return True, (page_obj, filters_applied)

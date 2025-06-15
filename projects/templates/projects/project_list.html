@@ -556,60 +556,32 @@
         </div>
     </div>
 
-    <!-- Active Filters Display -->
+    <!-- Active Filters Notification -->
     {% if filters_applied.search or filters_applied.status or filters_applied.product or filters_applied.region or filters_applied.city or filters_applied.dpm %}
-    <div class="active-filters">
-        <strong class="me-2">Active Filters:</strong>
-        {% if filters_applied.search %}
-            <span class="badge">
-                <i class="bi bi-search"></i> Search: {{ filters_applied.search }}
-            </span>
-        {% endif %}
-        {% if filters_applied.status %}
-            {% for status in filter_options.statuses %}
-                {% if status.id|stringformat:"s" == filters_applied.status|stringformat:"s" %}
-                    <span class="badge">
-                        <i class="bi bi-flag"></i> Status: {{ status.name }}
-                    </span>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-        {% if filters_applied.product %}
-            {% for product in filter_options.products %}
-                {% if product.id|stringformat:"s" == filters_applied.product|stringformat:"s" %}
-                    <span class="badge">
-                        <i class="bi bi-box"></i> Product: {{ product.name }}
-                    </span>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-        {% if filters_applied.region %}
-            {% for region in filter_options.regions %}
-                {% if region.id|stringformat:"s" == filters_applied.region|stringformat:"s" %}
-                    <span class="badge">
-                        <i class="bi bi-geo-alt"></i> Region: {{ region.name }}
-                    </span>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-        {% if filters_applied.city %}
-            {% for city in filter_options.cities %}
-                {% if city.id|stringformat:"s" == filters_applied.city|stringformat:"s" %}
-                    <span class="badge">
-                        <i class="bi bi-building"></i> City: {{ city.name }}
-                    </span>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-        {% if filters_applied.dpm %}
-            {% for dpm in filter_options.dpms %}
-                {% if dpm.id|stringformat:"s" == filters_applied.dpm|stringformat:"s" %}
-                    <span class="badge">
-                        <i class="bi bi-person"></i> DPM: {{ dpm.get_full_name|default:dpm.username }}
-                    </span>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+        <div>
+            <i class="bi bi-funnel-fill me-2"></i>
+            <strong>Filters are active:</strong>
+            {% if filters_applied.search %}
+                <span class="badge bg-secondary">Search: "{{ filters_applied.search }}"</span>
+            {% endif %}
+            {% if filters_applied.status %}
+                <span class="badge bg-secondary">Status: {{ filters_applied_display.status }}</span>
+            {% endif %}
+            {% if filters_applied.product %}
+                <span class="badge bg-secondary">Product: {{ filters_applied_display.product }}</span>
+            {% endif %}
+            {% if filters_applied.region %}
+                <span class="badge bg-secondary">Region: {{ filters_applied_display.region }}</span>
+            {% endif %}
+            {% if filters_applied.city %}
+                <span class="badge bg-secondary">City: {{ filters_applied_display.city }}</span>
+            {% endif %}
+            {% if filters_applied.dpm %}
+                <span class="badge bg-secondary">DPM: {{ filters_applied_display.dpm }}</span>
+            {% endif %}
+        </div>
+        <a href="{% url 'projects:project_list' %}" class="btn btn-sm btn-outline-info">Clear Filters</a>
     </div>
     {% endif %}
 
@@ -639,58 +611,78 @@
                     <thead>
                         <tr>
                             <th>HS ID</th>
-                            <th>Project Name</th>
-                            <th>Opportunity ID</th>
-                            <th>Builder</th>
-                            <th>Status</th>
-                            <th>Product</th>
+                            <th>PROJECT NAME</th>
+                            <th>OPPORTUNITY ID</th>
+                            <th>LATEST DATE</th>
+                            <th>STATUS</th>
+                            <th>PRODUCT</th>
                             <th>DPM</th>
-                            <th>Created</th>
-                            <th class="text-center">Actions</th>
+                            <th>ACCOUNT MANAGER</th>
+                            <th class="text-center">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for project in projects %}
                         <tr>
-                            <td><span class="hs-id">{{ project.hs_id }}</span></td>
                             <td>
-                                <div class="project-info">
-                                    <div class="project-name">{{ project.project_name }}</div>
-                                    <div class="project-location">
+                                <a href="{% url 'projects:project_detail' project.id %}" class="hs-id-link">
+                                    <span class="hs-id">{{ project.hs_id }}</span>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'projects:project_detail' project.id %}" class="project-name-link">
+                                    <div class="fw-semibold">{{ project.project_name }}</div>
+                                    <small class="text-muted">
                                         <i class="bi bi-geo-alt-fill"></i>
-                                        {{ project.city }}
-                                    </div>
-                                </div>
+                                        {{ project.city.name }} ({{ project.city.region.name }})
+                                    </small>
+                                </a>
                             </td>
                             <td>{{ project.opportunity_id|slice:"26:" }}</td>
-                            <td>{{ project.builder_name }}</td>
                             <td>
-                                <span class="status-badge">{{ project.current_status.name }}</span>
+                                {% if project.latest_status_date %}
+                                    {{ project.latest_status_date|date:"M d, Y" }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge" style="background-color: {{ project.current_status.color|default:'#6c757d' }}; color: white;">
+                                    {{ project.current_status.name }}
+                                </span>
                             </td>
                             <td>
                                 <span class="badge bg-info">{{ project.product.name }}</span>
                             </td>
                             <td>{{ project.dpm.get_full_name|default:project.dpm.username }}</td>
-                            <td>
-                                <small>{{ project.created_at|date:"M d, Y" }}</small>
-                            </td>
+                            <td><small>{{ project.account_manager|default:"Not specified" }}</small></td>
                             <td class="text-center">
                                 <a href="{% url 'projects:project_detail' project.id %}" 
-                                   class="btn btn-sm btn-primary btn-action">
+                                   class="btn btn-sm btn-primary btn-action" 
+                                   data-bs-toggle="tooltip" title="View Project Details">
                                     <i class="bi bi-eye"></i> View
                                 </a>
+                                {% if project.dpm == request.user or request.user.is_superuser or request.user.role == 'management' %}
                                 <a href="{% url 'projects:project_management' project.id %}" 
-                                   class="btn btn-sm btn-secondary btn-action">
-                                    <i class="bi bi-arrow-repeat"></i> Manage
+                                   class="btn btn-sm btn-secondary btn-action" 
+                                   data-bs-toggle="tooltip" title="Manage Tasks & Assignments">
+                                    <i class="bi bi-gear"></i> Manage
                                 </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
                             <td colspan="9" class="empty-state">
-                                <i class="bi bi-folder2-open"></i>
-                                <h5>No projects found</h5>
-                                <p>No projects match your current filters. Try adjusting your search criteria.</p>
+                                {% if filters_applied.search or filters_applied.status or filters_applied.product or filters_applied.region or filters_applied.city or filters_applied.dpm %}
+                                    <i class="bi bi-search"></i>
+                                    <h5>No projects match your filters</h5>
+                                    <p>Try adjusting your search or filter criteria.</p>
+                                {% else %}
+                                    <i class="bi bi-grid"></i>
+                                    <h5>No pipeline projects found</h5>
+                                    <p>Looks like there are no active projects in the pipeline.</p>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -747,301 +739,41 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-(function() {
-    'use strict';
+document.addEventListener('DOMContentLoaded', function() {
+    // Dynamic city loading based on region
+    const regionSelect = document.getElementById('regionSelect');
+    const citySelect = document.getElementById('citySelect');
     
-    // Filter Counter
-    const FilterCounter = {
-        init() {
-            this.updateFilterCount();
-        },
-        
-        updateFilterCount() {
-            const filterCount = document.getElementById('activeFilterCount');
-            if (filterCount) {
-                let count = 0;
-                const filters = {
-                    search: '{{ filters_applied.search|escapejs }}',
-                    status: '{{ filters_applied.status|escapejs }}',
-                    product: '{{ filters_applied.product|escapejs }}',
-                    region: '{{ filters_applied.region|escapejs }}',
-                    city: '{{ filters_applied.city|escapejs }}',
-                    dpm: '{{ filters_applied.dpm|escapejs }}'
-                };
-                
-                Object.values(filters).forEach(value => {
-                    if (value) count++;
-                });
-                
-                filterCount.textContent = count;
+    if (regionSelect && citySelect) {
+        regionSelect.addEventListener('change', function() {
+            const regionId = this.value;
+            
+            if (regionId) {
+                fetch(`{% url 'projects:api_cities' %}?region=${regionId}`)
+                    .then(response => response.json())
+                    .then(cities => {
+                        citySelect.innerHTML = '<option value="">All Cities</option>';
+                        cities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                        // Re-select the previously selected city if applicable
+                        const selectedCity = new URLSearchParams(window.location.search).get('city');
+                        if (selectedCity) {
+                            citySelect.value = selectedCity;
+                        }
+                    });
+            } else {
+                // Reset city dropdown if no region is selected
+                citySelect.innerHTML = '<option value="">All Cities</option>';
             }
-        }
-    };
-    
-    // Dynamic City Filtering
-    const DynamicCityFilter = {
-        regionSelect: null,
-        citySelect: null,
-        citiesApiUrl: "{% url 'projects:api_cities' %}",
-        originalCityOptions: [],
-        
-        init() {
-            this.regionSelect = document.querySelector('#id_region');
-            this.citySelect = document.querySelector('#id_city');
-            
-            if (this.regionSelect && this.citySelect) {
-                // Store original city options
-                this.storeOriginalOptions();
-                // Attach event listener
-                this.regionSelect.addEventListener('change', () => this.updateCities());
-            }
-        },
-        
-        storeOriginalOptions() {
-            // Store all city options for restoration
-            Array.from(this.citySelect.options).forEach(option => {
-                this.originalCityOptions.push({
-                    value: option.value,
-                    text: option.text,
-                    selected: option.selected
-                });
-            });
-        },
-        
-        async updateCities() {
-            const regionId = this.regionSelect.value;
-            
-            // Show loading state
-            this.citySelect.innerHTML = '<option value="">Loading cities...</option>';
-            this.citySelect.disabled = true;
-            
-            if (!regionId) {
-                // Restore original options if no region selected
-                this.restoreOriginalOptions();
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${this.citiesApiUrl}?region=${regionId}`);
-                const cities = await response.json();
-                
-                // Clear and rebuild options
-                this.citySelect.innerHTML = '<option value="">All Cities</option>';
-                
-                cities.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city.id;
-                    option.textContent = city.name;
-                    this.citySelect.appendChild(option);
-                });
-                
-                this.citySelect.disabled = false;
-            } catch (error) {
-                console.error('Error loading cities:', error);
-                this.restoreOriginalOptions();
-            }
-        },
-        
-        restoreOriginalOptions() {
-            this.citySelect.innerHTML = '';
-            this.originalCityOptions.forEach(optionData => {
-                const option = document.createElement('option');
-                option.value = optionData.value;
-                option.textContent = optionData.text;
-                if (optionData.selected) {
-                    option.selected = true;
-                }
-                this.citySelect.appendChild(option);
-            });
-            this.citySelect.disabled = false;
-        }
-    };
-    
-    // Form Handler
-    const FormHandler = {
-        filterForm: null,
-        
-        init() {
-            this.filterForm = document.getElementById('filter-form');
-            if (this.filterForm) {
-                this.attachEventListeners();
-            }
-        },
-        
-        attachEventListeners() {
-            // Add loading state on form submission
-            this.filterForm.addEventListener('submit', (e) => {
-                const submitBtn = this.filterForm.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.classList.add('btn-loading');
-                }
-            });
-            
-            // Auto-submit on select change if desired
-            const autoSubmitSelects = this.filterForm.querySelectorAll('.auto-submit');
-            autoSubmitSelects.forEach(select => {
-                select.addEventListener('change', () => {
-                    this.filterForm.submit();
-                });
-            });
-        }
-    };
-    
-    // Filter Toggle Handler
-    const FilterToggle = {
-        header: null,
-        collapse: null,
-        
-        init() {
-            this.header = document.querySelector('.filter-header');
-            this.collapse = document.getElementById('filterCollapse');
-            
-            if (this.header && this.collapse) {
-                this.attachEventListeners();
-            }
-        },
-        
-        attachEventListeners() {
-            // Update chevron on collapse/expand
-            this.collapse.addEventListener('show.bs.collapse', () => {
-                this.header.classList.remove('collapsed');
-            });
-            
-            this.collapse.addEventListener('hide.bs.collapse', () => {
-                this.header.classList.add('collapsed');
-            });
-        }
-    };
-    
-    // Table Row Animation
-    const TableAnimation = {
-        init() {
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach((row, index) => {
-                row.style.opacity = '0';
-                row.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '1';
-                    row.style.transform = 'translateY(0)';
-                }, index * 50);
-            });
-        }
-    };
-    
-    // Tooltips
-    const TooltipHandler = {
-        init() {
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        }
-    };
-    
-    // Instant Search Handler
-    const InstantSearch = {
-        searchInput: null,
-        table: null,
-        
-        init() {
-            this.searchInput = document.getElementById('id_search');
-            this.table = document.querySelector('.projects-card table');
-            
-            if (this.searchInput && this.table) {
-                this.attachEventListeners();
-            }
-        },
-        
-        attachEventListeners() {
-            // Add instant search on keyup
-            this.searchInput.addEventListener('keyup', () => {
-                this.filterTable();
-            });
-            
-            // Also filter on input event for better responsiveness
-            this.searchInput.addEventListener('input', () => {
-                this.filterTable();
-            });
-        },
-        
-        filterTable() {
-            const searchTerm = this.searchInput.value.toLowerCase().trim();
-            const tbody = this.table.querySelector('tbody');
-            const rows = tbody.querySelectorAll('tr');
-            let visibleCount = 0;
-            
-            rows.forEach(row => {
-                // Skip empty state row
-                if (row.querySelector('.empty-state')) {
-                    return;
-                }
-                
-                const text = row.textContent.toLowerCase();
-                const isVisible = searchTerm === '' || text.includes(searchTerm);
-                
-                row.style.display = isVisible ? '' : 'none';
-                if (isVisible) {
-                    visibleCount++;
-                }
-            });
-            
-            // Update the visible count in header
-            this.updateVisibleCount(visibleCount);
-            
-            // Show/hide empty state if no results
-            this.toggleEmptyState(visibleCount === 0 && searchTerm !== '');
-        },
-        
-        updateVisibleCount(count) {
-            const countElement = document.querySelector('.projects-card .card-header small');
-            if (countElement) {
-                const totalCount = countElement.textContent.match(/\d+/)[0];
-                if (this.searchInput.value.trim()) {
-                    countElement.innerHTML = `(${count} of ${totalCount} shown)`;
-                } else {
-                    countElement.innerHTML = `(${totalCount} total)`;
-                }
-            }
-        },
-        
-        toggleEmptyState(show) {
-            const tbody = this.table.querySelector('tbody');
-            let emptyRow = tbody.querySelector('.instant-search-empty');
-            
-            if (show && !emptyRow) {
-                // Create empty state row for instant search
-                emptyRow = document.createElement('tr');
-                emptyRow.className = 'instant-search-empty';
-                emptyRow.innerHTML = `
-                    <td colspan="9" class="empty-state">
-                        <i class="bi bi-search"></i>
-                        <h5>No matching projects found</h5>
-                        <p>No projects match your search term. Try different keywords or clear the search.</p>
-                    </td>
-                `;
-                tbody.appendChild(emptyRow);
-            } else if (!show && emptyRow) {
-                emptyRow.remove();
-            }
-        }
-    };
-
-    // Initialize all components when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        FilterCounter.init();
-        DynamicCityFilter.init();
-        FormHandler.init();
-        FilterToggle.init();
-        TableAnimation.init();
-        TooltipHandler.init();
-        InstantSearch.init(); // Add instant search initialization
-    });
-})();
+        });
+    }
+});
 </script>
+
 {% endblock %}

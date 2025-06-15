@@ -381,6 +381,9 @@
                     <dt>DPM</dt>
                     <dd>{{ project.dpm.get_full_name }}</dd>
                     
+                    <dt>Account Manager</dt>
+                    <dd>{{ project.account_manager|default:"Not specified" }}</dd>
+                    
                     <dt>Project Incharge</dt>
                     <dd>
                         {% if project.project_incharge %}
