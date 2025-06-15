@@ -304,7 +304,13 @@ class Command(BaseCommand):
             with open('Projects.csv', 'r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    apm_name = row.get('APM Name', '').strip()
+                    # Handle multi-line headers - use the key that contains "APM"
+                    apm_name = None
+                    for key, value in row.items():
+                        if 'APM' in key and 'Name' in key:
+                            apm_name = value.strip()
+                            break
+                    
                     if apm_name:
                         apm_names.add(apm_name)
         except FileNotFoundError:
@@ -313,6 +319,9 @@ class Command(BaseCommand):
         
         users_created = 0
         for apm_name in apm_names:
+            if not apm_name or apm_name in ['', 'APM Name']:
+                continue
+                
             # Create username from APM name
             username = apm_name.lower().replace(' ', '_').replace('&', 'and')[:30]
             
@@ -347,8 +356,8 @@ class Command(BaseCommand):
                         if not hs_id or hs_id == 'HS_ID':
                             continue
                         
-                        # Extract project data
-                        project_data = self.extract_project_data(row)
+                        # Extract project data with flexible column mapping
+                        project_data = self.extract_project_data_flexible(row)
                         if not project_data:
                             projects_skipped += 1
                             continue
@@ -393,16 +402,24 @@ class Command(BaseCommand):
         
         self.stdout.write(f"Projects import completed: {projects_created} created, {projects_updated} updated, {projects_skipped} skipped")
 
-    def extract_project_data(self, row):
-        """Extract and map project data from CSV row"""
+    def extract_project_data_flexible(self, row):
+        """Extract and map project data from CSV row with flexible column mapping"""
         try:
+            # Find columns by partial matching since headers might be multi-line
+            def find_column_value(row, keywords):
+                for key, value in row.items():
+                    key_lower = key.lower().replace('\n', ' ').replace('\r', ' ')
+                    if any(keyword.lower() in key_lower for keyword in keywords):
+                        return value.strip() if value else ''
+                return ''
+            
             # Basic project info
-            project_name = row.get('Project Name', '').strip()
+            project_name = find_column_value(row, ['Project Name', 'project name'])
             if not project_name:
                 return None
             
             # Get city
-            city_name = row.get('City', '').strip()
+            city_name = find_column_value(row, ['City', 'city'])
             city = None
             if city_name:
                 try:
@@ -412,7 +429,7 @@ class Command(BaseCommand):
                     return None
             
             # Get product
-            product_name = row.get('HS _Product', '').strip()
+            product_name = find_column_value(row, ['HS _Product', 'Product', 'HS_Product'])
             product = None
             if product_name:
                 try:
@@ -422,7 +439,7 @@ class Command(BaseCommand):
                     return None
             
             # Get DPM (from APM Name column)
-            apm_name = row.get('APM Name', '').strip()
+            apm_name = find_column_value(row, ['APM Name', 'APM', 'apm name'])
             dpm = None
             if apm_name:
                 username = apm_name.lower().replace(' ', '_').replace('&', 'and')[:30]
@@ -433,12 +450,12 @@ class Command(BaseCommand):
                     return None
             
             # Get account manager (from Sales column)
-            sales_name = row.get('Sales', '').strip()
+            sales_name = find_column_value(row, ['Sales', 'sales'])
             if not sales_name:
                 return None
             
             # Get current status
-            status_name = row.get('Status', '').strip()
+            status_name = find_column_value(row, ['Status', 'status'])
             current_status = None
             if status_name:
                 try:
@@ -448,20 +465,26 @@ class Command(BaseCommand):
                     return None
             
             # Parse latest date for default dates
-            latest_date_str = row.get('Latest_Date', '').strip()
+            latest_date_str = find_column_value(row, ['Latest_Date', 'Latest Date', 'latest date'])
             latest_date = self.parse_date(latest_date_str) if latest_date_str else datetime.now().date()
+            
+            # Get other fields
+            opp_id = find_column_value(row, ['Opp ID', 'Opportunity ID'])
+            builder_name = find_column_value(row, ['Builder', 'builder'])
+            quantity_str = find_column_value(row, ['Quantity', 'quantity'])
+            tat_str = find_column_value(row, ['Expected TAT', 'TAT', 'expected tat'])
             
             return {
                 'project_name': project_name,
-                'opportunity_id': row.get('Opp ID', '').strip() or 'N/A',
-                'builder_name': row.get('Builder', '').strip() or 'Unknown Builder',
+                'opportunity_id': opp_id or 'N/A',
+                'builder_name': builder_name or 'Unknown Builder',
                 'city': city,
                 'product': product,
                 'dpm': dpm,
                 'account_manager': sales_name,
                 'current_status': current_status,
-                'quantity': max(1, self.safe_int(row.get('Quantity', '1'))),
-                'expected_tat': max(1, self.safe_int(row.get('Expected TAT', '30'))),
+                'quantity': max(1, self.safe_int(quantity_str)),
+                'expected_tat': max(1, self.safe_int(tat_str) or 30),
                 'purchase_date': latest_date,
                 'sales_confirmation_date': latest_date
             }
