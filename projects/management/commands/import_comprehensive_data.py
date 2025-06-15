@@ -139,7 +139,7 @@ class Command(BaseCommand):
     def import_products(self):
         self.stdout.write("Importing products...")
         
-        # Products with TAT based on your actual data
+        # Products with TAT based on your provided data
         default_products = [
             ('Real_Apartment_Digitour', 21),
             ('Real_Construction_Digitour', 25),
@@ -165,7 +165,9 @@ class Command(BaseCommand):
             ('3d/2d_Floor_plan', 7),
             ('Real_Location_Digitour', 30),
             ('Additional VO', 12),
-            ('Virtual_Villa_Full_Project_Digitour', 40)
+            ('Virtual_Villa_Full_Project_Digitour', 40),
+            # Additional products found in CSV
+            ('Offline Digtour Video Creation', 30)
         ]
         
         products_created = 0
@@ -408,30 +410,47 @@ class Command(BaseCommand):
             # Find columns by partial matching since headers might be multi-line
             def find_column_value(row, keywords):
                 for key, value in row.items():
-                    key_lower = key.lower().replace('\n', ' ').replace('\r', ' ')
-                    if any(keyword.lower() in key_lower for keyword in keywords):
-                        return value.strip() if value else ''
+                    # Clean up the key by removing line breaks and extra spaces
+                    key_clean = key.replace('\n', ' ').replace('\r', ' ').strip()
+                    key_lower = key_clean.lower()
+                    
+                    # Check if any keyword matches
+                    for keyword in keywords:
+                        if keyword.lower() in key_lower:
+                            return value.strip() if value else ''
                 return ''
             
             # Debug: Print first row to see what we're working with
             if not hasattr(self, '_debug_printed'):
                 self.stdout.write("DEBUG: First row columns:")
                 for key, value in row.items():
-                    self.stdout.write(f"  '{key}' = '{value[:50]}...' " if len(str(value)) > 50 else f"  '{key}' = '{value}'")
+                    clean_key = key.replace('\n', ' ').replace('\r', ' ').strip()
+                    self.stdout.write(f"  '{clean_key}' = '{value[:50]}...' " if len(str(value)) > 50 else f"  '{clean_key}' = '{value}'")
                 self._debug_printed = True
             
-            # Basic project info
-            project_name = find_column_value(row, ['Project Name', 'project name'])
+            # Basic project info - look for "Project" and "Name" in the same column
+            project_name = find_column_value(row, ['project name'])
+            if not project_name:
+                # Try alternative matching
+                for key, value in row.items():
+                    key_clean = key.replace('\n', ' ').replace('\r', ' ').strip().lower()
+                    if 'project' in key_clean and 'name' in key_clean:
+                        project_name = value.strip() if value else ''
+                        break
+            
             if not project_name:
                 self.stdout.write(f"DEBUG: No project name found in row")
                 return None
             
+            self.stdout.write(f"DEBUG: Found project name: '{project_name}'")
+            
             # Get city
-            city_name = find_column_value(row, ['City', 'city'])
+            city_name = find_column_value(row, ['city'])
             city = None
             if city_name:
                 try:
                     city = LocationCity.objects.get(name=city_name)
+                    self.stdout.write(f"DEBUG: Found city: {city_name}")
                 except LocationCity.DoesNotExist:
                     self.stdout.write(f"City not found: {city_name}")
                     return None
@@ -440,11 +459,12 @@ class Command(BaseCommand):
                 return None
             
             # Get product
-            product_name = find_column_value(row, ['HS _Product', 'Product', 'HS_Product'])
+            product_name = find_column_value(row, ['hs _product', 'product'])
             product = None
             if product_name:
                 try:
                     product = Product.objects.get(name=product_name)
+                    self.stdout.write(f"DEBUG: Found product: {product_name}")
                 except Product.DoesNotExist:
                     self.stdout.write(f"Product not found: {product_name}")
                     return None
@@ -453,12 +473,13 @@ class Command(BaseCommand):
                 return None
             
             # Get DPM (from APM Name column)
-            apm_name = find_column_value(row, ['APM Name', 'APM', 'apm name'])
+            apm_name = find_column_value(row, ['apm name', 'apm'])
             dpm = None
             if apm_name:
                 username = apm_name.lower().replace(' ', '_').replace('&', 'and')[:30]
                 try:
                     dpm = User.objects.get(username=username)
+                    self.stdout.write(f"DEBUG: Found DPM: {apm_name} -> {username}")
                 except User.DoesNotExist:
                     self.stdout.write(f"DPM not found: {apm_name} (username: {username})")
                     return None
@@ -467,17 +488,20 @@ class Command(BaseCommand):
                 return None
             
             # Get account manager (from Sales column)
-            sales_name = find_column_value(row, ['Sales', 'sales'])
+            sales_name = find_column_value(row, ['sales'])
             if not sales_name:
                 self.stdout.write(f"DEBUG: No sales name found for project {project_name}")
                 return None
             
+            self.stdout.write(f"DEBUG: Found sales: {sales_name}")
+            
             # Get current status
-            status_name = find_column_value(row, ['Status', 'status'])
+            status_name = find_column_value(row, ['status'])
             current_status = None
             if status_name:
                 try:
                     current_status = ProjectStatusOption.objects.get(name=status_name)
+                    self.stdout.write(f"DEBUG: Found status: {status_name}")
                 except ProjectStatusOption.DoesNotExist:
                     self.stdout.write(f"Status not found: {status_name}")
                     return None
@@ -486,14 +510,16 @@ class Command(BaseCommand):
                 return None
             
             # Parse latest date for default dates
-            latest_date_str = find_column_value(row, ['Latest_Date', 'Latest Date', 'latest date'])
+            latest_date_str = find_column_value(row, ['latest_date', 'latest date'])
             latest_date = self.parse_date(latest_date_str) if latest_date_str else datetime.now().date()
             
             # Get other fields
-            opp_id = find_column_value(row, ['Opp ID', 'Opportunity ID'])
-            builder_name = find_column_value(row, ['Builder', 'builder'])
-            quantity_str = find_column_value(row, ['Quantity', 'quantity'])
-            tat_str = find_column_value(row, ['Expected TAT', 'TAT', 'expected tat'])
+            opp_id = find_column_value(row, ['opp id', 'opportunity id'])
+            builder_name = find_column_value(row, ['builder'])
+            quantity_str = find_column_value(row, ['quantity'])
+            tat_str = find_column_value(row, ['expected tat', 'tat'])
+            
+            self.stdout.write(f"DEBUG: Successfully extracted all data for project {project_name}")
             
             return {
                 'project_name': project_name,
