@@ -6,6 +6,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Add your PythonAnywhere domain here
 ALLOWED_HOSTS = [
     config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
+    'taskspro.in',
+    'www.taskspro.in',
     'localhost',
     '127.0.0.1'
 ]
@@ -40,6 +42,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     'https://' + config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
+    'https://taskspro.in',
+    'https://www.taskspro.in',
 ]
 
 # Session settings

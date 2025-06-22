@@ -7,7 +7,9 @@ DEBUG=True
 DJANGO_SETTINGS_MODULE=pms.settings.development
 
 # Production settings (for PythonAnywhere)
-ALLOWED_HOST=yourusername.pythonanywhere.com
+# Use your custom domain or PythonAnywhere domain
+ALLOWED_HOST=taskspro.in
+# Alternative: ALLOWED_HOST=yourusername.pythonanywhere.com
 
 # Database settings (MySQL for production)
 DB_NAME=yourusername$taskpro
