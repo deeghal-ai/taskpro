@@ -7,7 +7,7 @@ from .services import ProjectService
 from accounts.models import User
 from locations.models import Region, City
 from django.http import JsonResponse
-from .models import Project, ProjectStatusOption, ProjectTask, TaskAssignment, ProjectStatusHistory, ActiveTimer, TimeSession, DailyTimeTotal, ProjectDelivery
+from .models import Project, ProjectStatusOption, ProjectTask, TaskAssignment, ProjectStatusHistory, ActiveTimer, TimeSession, DailyTimeTotal, ProjectDelivery, Product
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Subquery, OuterRef, F, Avg, Count, Q
