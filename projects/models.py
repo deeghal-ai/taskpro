@@ -8,19 +8,20 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import Sum, Q
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 
 class ProductSubcategory(models.Model):
     """
     A lookup table for product subcategories.
-    
+
     This model serves as a simple reference list for categorizing projects.
     While independent of products themselves, subcategories help organize
     and classify projects for reporting and analysis purposes.
     """
     id = models.UUIDField(
-        primary_key=True, 
-        default=uuid.uuid4, 
+        primary_key=True,
+        default=uuid.uuid4,
         editable=False
     )
     name = models.CharField(
@@ -47,14 +48,14 @@ class ProductSubcategory(models.Model):
 class Product(models.Model):
     """
     Represents a product in the system.
-    
+
     Products are independent entities that define what can be delivered in a project.
     Each product has its own expected turnaround time (TAT) which serves as the
     default duration for projects using this product.
     """
     id = models.UUIDField(
-        primary_key=True, 
-        default=uuid.uuid4, 
+        primary_key=True,
+        default=uuid.uuid4,
         editable=False
     )
     name = models.CharField(
@@ -84,19 +85,19 @@ class Product(models.Model):
 class ProjectStatusOption(models.Model):
     """
     Represents a specific status in the project lifecycle with its categorizations.
-    
+
     Each status entry contains:
     - The status name (like "Sales Confirmation")
     - Its first category (like "Awaiting Data")
     - Its second category (like "Not Started")
     - Its order in the sequence
-    
+
     This allows for complete flexibility in managing statuses and their
     categorizations through the admin interface.
     """
     id = models.UUIDField(
-        primary_key=True, 
-        default=uuid.uuid4, 
+        primary_key=True,
+        default=uuid.uuid4,
         editable=False
     )
     name = models.CharField(
@@ -129,21 +130,21 @@ class ProjectStatusOption(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.category_one} - {self.category_two})"
-    
+
 
 class Project(models.Model):
     """
     The central model representing a project in the system.
-    
+
     A project represents a specific delivery for a client, linking together
     the product to be delivered, the team responsible, and tracking its
     progression through various status stages.
     """
-    
+
     # Basic project information
     id = models.UUIDField(
-        primary_key=True, 
-        default=uuid.uuid4, 
+        primary_key=True,
+        default=uuid.uuid4,
         editable=False
     )
 
@@ -284,9 +285,9 @@ class Project(models.Model):
         """
         if not self.current_status:
             return False
-        
+
         status_name = self.current_status.name.lower()
-        
+
         return (
             ('final' in status_name and 'delivery' in status_name) or
             status_name == 'deemed consumed' or
@@ -304,7 +305,7 @@ class Project(models.Model):
             Q(status__name__iexact='Deemed Consumed') |
             Q(status__name__iexact='Opp Dropped')
         ).order_by('changed_at').first()
-        
+
         return history_entry.changed_at if history_entry else None
 
     @property
@@ -316,12 +317,12 @@ class Project(models.Model):
         """
         if not self.current_status:
             return True  # New projects without status are considered pipeline
-        
+
         # Check for special status that moves project back to pipeline
         status_name = self.current_status.name.lower()
         if 'approval' in status_name and 'deemed' in status_name and 'consumed' in status_name:
             return True
-        
+
         # Otherwise, pipeline means not delivered
         return not self.is_delivered
 
@@ -332,20 +333,20 @@ class Project(models.Model):
         """
         # Get all projects with HS_IDs, including the current project being saved
         projects = cls.objects.filter(hs_id__isnull=False).exclude(hs_id='').order_by('hs_id')
-        
+
         if not projects.exists():
             return 'A1'  # Start with A1 if no projects exist
-        
+
         # Find the highest HS_ID by parsing all of them
         max_letter = 'A'
         max_number = 0
-        
+
         for project in projects:
             if project.hs_id:
                 try:
                     letter = project.hs_id[0]
                     number = int(project.hs_id[1:])
-                    
+
                     # Compare letter first, then number
                     if letter > max_letter or (letter == max_letter and number > max_number):
                         max_letter = letter
@@ -353,7 +354,7 @@ class Project(models.Model):
                 except (ValueError, IndexError):
                     # Skip invalid HS_IDs
                     continue
-        
+
         # Generate next HS_ID
         if max_number >= 999:
             # Move to next letter
@@ -367,74 +368,63 @@ class Project(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Enhanced save method that handles:
-        - HS_ID generation for new projects
-        - Role validation for assignments
-        - Default TAT from product
-        - Status change tracking
+        Custom save method to manage status history and HS_ID generation.
         """
-        # Generate HS_ID for new projects BEFORE the transaction
-        # Check if this is a new project (not yet in database)
-        is_new_project = self._state.adding
-        if is_new_project and not self.hs_id:
-            self.hs_id = self.generate_hs_id()
-        
-        with transaction.atomic():
-            # Add validation for project_incharge
-            if self.project_incharge and self.project_incharge.role != 'TEAM_MEMBER':
-                raise ValidationError("Project Incharge must be a team member")
+        # --- ADDED: Check for bulk import flag ---
+        is_bulk_import = kwargs.pop('is_bulk_import', False)
 
-            if not is_new_project:
-                try:
-                    old_project = Project.objects.get(pk=self.pk)
-                    is_status_change = old_project.current_status != self.current_status
-                except Project.DoesNotExist:
-                    is_status_change = True
-            else:
-                is_status_change = True
+        is_new = self._state.adding
+        status_changed = False
 
-            # Your existing TAT handling
-            if not self.expected_tat and self.product:
-                self.expected_tat = self.product.expected_tat
-            
-            # Validate DPM role
-            if self.dpm and self.dpm.role != 'DPM':
-                raise ValueError("DPM must have the DPM role")
-            
-            # Call the parent save method
-            super().save(*args, **kwargs)
-            
-            # Your existing status history creation
-            if is_status_change and self.current_status:
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                
-                current_user = getattr(self, '_current_user', None)
-                if not current_user:
-                    current_user = self.dpm
-                
-                ProjectStatusHistory.objects.create(
-                    project=self,
-                    status=self.current_status,
-                    category_one_snapshot=self.current_status.category_one,
-                    category_two_snapshot=self.current_status.category_two,
-                    changed_by=current_user,
-                    comments=getattr(self, '_status_change_comment', '')
-                )
+        # Track status changes only for existing projects
+        if not is_new:
+            try:
+                old_instance = Project.objects.get(pk=self.pk)
+                if old_instance.current_status != self.current_status:
+                    status_changed = True
+            except Project.DoesNotExist:
+                # This case handles an object being created in memory but not yet saved,
+                # which shouldn't happen with our current logic but is a good safeguard.
+                pass
+
+        # --- REMOVED: Flawed HS_ID generation logic ---
+
+        # Save the project instance first
+        super().save(*args, **kwargs)
+
+        # After saving, create the initial status history, but skip if it's a bulk import
+        if not is_bulk_import and (is_new or status_changed):
+            ProjectStatusHistory.objects.create(
+                project=self,
+                status=self.current_status,
+                changed_by=getattr(self, '_current_user', self.dpm),
+                comments=getattr(self, '_status_change_comment', 'Project Created'),
+                category_one_snapshot=self.current_status.category_one,
+                category_two_snapshot=self.current_status.category_two,
+            )
+
+@receiver(pre_save, sender=Project)
+def set_project_hs_id(sender, instance, **kwargs):
+    """
+    Signal receiver to set the HS_ID for a new project only if it's not already set.
+    This is the correct way to handle default value generation.
+    """
+    if instance._state.adding and not instance.hs_id:
+        instance.hs_id = Project.generate_hs_id()
 
 
 class ProjectStatusHistory(models.Model):
     """
     Tracks the complete history of status changes for each project.
-    
+
     This model maintains a historical record of every status change,
     capturing not just the status itself but also its categories
     at the time of the change. This ensures our historical data
     remains accurate even if status categories are modified later.
     """
     id = models.UUIDField(
-        primary_key=True, 
-        default=uuid.uuid4, 
+        primary_key=True,
+        default=uuid.uuid4,
         editable=False
     )
     project = models.ForeignKey(
@@ -566,7 +556,7 @@ class ProjectTask(models.Model):
         choices=[('NEW', 'New'), ('REWORK', 'Rework')],
         help_text="Whether this is a new task or rework"
     )
-    
+
     estimated_time = models.PositiveIntegerField(
         help_text="Estimated time for task completion (in minutes)"
     )
@@ -586,7 +576,7 @@ class ProjectTask(models.Model):
 
     def __str__(self):
         return f"{self.task_id} - {self.project.project_name}"
-    
+
     def get_formatted_time(self):
         """Convert estimated_time from minutes to HH:MM format"""
         if self.estimated_time is None:
@@ -594,7 +584,7 @@ class ProjectTask(models.Model):
         hours = self.estimated_time // 60
         minutes = self.estimated_time % 60
         return f"{hours:02d}:{minutes:02d}"
-    
+
     def get_formatted_hours(self):
         """Convert total_projected_hours from minutes to HH:MM format"""
         total_minutes = self.total_projected_hours
@@ -614,11 +604,11 @@ class ProjectTask(models.Model):
             else:
                 new_number = 1
             self.task_id = f"TID_{new_number:05d}"
-        
+
         # Validate the task belongs to project's product
         if self.product_task.product_id != self.project.product_id:
             raise ValidationError("Task must belong to the project's product")
-            
+
         super().save(*args, **kwargs)
 
     @property
@@ -627,7 +617,7 @@ class ProjectTask(models.Model):
         return self.assignments.aggregate(
             total=models.Sum('projected_hours')
         )['total'] or 0
-    
+
 
 
 class TaskAssignment(models.Model):
@@ -732,7 +722,7 @@ class TaskAssignment(models.Model):
 
     def __str__(self):
         return f"{self.assignment_id} - {self.task.task_id}"
-    
+
     def get_formatted_hours(self):
         """Convert projected_hours from minutes to HH:MM format"""
         if self.projected_hours is None:
@@ -740,7 +730,7 @@ class TaskAssignment(models.Model):
         hours = self.projected_hours // 60
         minutes = self.projected_hours % 60
         return f"{hours:02d}:{minutes:02d}"
-    
+
     def clean(self):
         super().clean()
         if self.assigned_to and self.assigned_to.role not in ['TEAM_MEMBER', 'DPM']:
@@ -753,7 +743,7 @@ class TaskAssignment(models.Model):
         total_minutes = self.daily_totals.aggregate(
             total=models.Sum('total_minutes')
         )['total'] or 0
-        
+
         hours = total_minutes // 60
         minutes = total_minutes % 60
         return f"{hours:02d}:{minutes:02d}"
@@ -768,12 +758,12 @@ class TaskAssignment(models.Model):
             else:
                 new_number = 1
             self.assignment_id = f"ASID_{new_number:06d}"
-        
+
         # Only validate assigned_by role for NEW assignments or when assigned_by is being changed
         if not self.pk or 'assigned_by' in getattr(self, '_changed_fields', []):
             if self.assigned_by and self.assigned_by.role != 'DPM':
                 raise ValidationError("Only DPMs can create assignments")
-        
+
         self.full_clean()  # This will run the validation
         super().save(*args, **kwargs)
 
@@ -802,11 +792,11 @@ class ActiveTimer(models.Model):
         help_text="When the timer was started"
     )
     last_updated = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name = 'Active Timer'
         verbose_name_plural = 'Active Timers'
-    
+
     def __str__(self):
         return f"{self.team_member.username} - {self.assignment.assignment_id}"
 
@@ -865,15 +855,15 @@ class TimeSession(models.Model):
         help_text="Whether this session duration was manually edited"
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['-started_at']
         verbose_name = 'Time Session'
         verbose_name_plural = 'Time Sessions'
-    
+
     def __str__(self):
         return f"{self.assignment.assignment_id} - {self.date_worked} - {self.get_formatted_duration()}"
-    
+
     def get_formatted_duration(self):
         """Convert duration from minutes to HH:MM format"""
         if self.duration_minutes is None:
@@ -916,24 +906,24 @@ class DailyTimeTotal(models.Model):
         help_text="Whether this total was manually adjusted by team member"
     )
     last_updated = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         unique_together = ['assignment', 'team_member', 'date_worked']
         ordering = ['-date_worked']
         verbose_name = 'Daily Time Total'
         verbose_name_plural = 'Daily Time Totals'
-    
+
     def __str__(self):
         return f"{self.assignment.assignment_id} - {self.team_member.username} - {self.date_worked} - {self.get_formatted_total()}"
-    
+
     def get_hours(self):
         """Get hours part of total_minutes"""
         return self.total_minutes // 60
-    
-    def get_minutes(self):  
+
+    def get_minutes(self):
         """Get minutes part of total_minutes"""
         return self.total_minutes % 60
-    
+
     def get_formatted_total(self):
         """Convert total from minutes to HH:MM format"""
         hours = self.total_minutes // 60
@@ -976,12 +966,12 @@ class TimerActionLog(models.Model):
         blank=True,
         help_text="Additional details about this action"
     )
-    
+
     class Meta:
         ordering = ['-timestamp']
         verbose_name = 'Timer Action Log'
         verbose_name_plural = 'Timer Action Logs'
-    
+
     def __str__(self):
         return f"{self.assignment.assignment_id} - {self.action} - {self.timestamp}"
 
@@ -1006,7 +996,7 @@ class DailyRoster(models.Model):
     date = models.DateField(
         help_text="Date for this roster entry"
     )
-    
+
     # Working Status
     status = models.CharField(
         max_length=20,
@@ -1021,9 +1011,9 @@ class DailyRoster(models.Model):
         default='PRESENT',
         help_text="Working status for this date"
     )
-    
+
     # REMOVED: assignment_hours field - calculate dynamically instead
-    
+
     # Keep only actual user-entered data
     misc_hours = models.PositiveIntegerField(
         default=0,
@@ -1034,7 +1024,7 @@ class DailyRoster(models.Model):
         blank=True,
         help_text="Description of miscellaneous work"
     )
-    
+
     # Metadata
     is_auto_created = models.BooleanField(
         default=True,
@@ -1046,7 +1036,7 @@ class DailyRoster(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         unique_together = ['team_member', 'date']
         ordering = ['-date']
@@ -1056,10 +1046,10 @@ class DailyRoster(models.Model):
             models.Index(fields=['team_member', 'date']),
             models.Index(fields=['date', 'status']),
         ]
-    
+
     def __str__(self):
         return f"{self.team_member.username} - {self.date} - {self.get_status_display()}"
-    
+
     @property
     def assignment_hours(self):
         """Calculate assignment hours dynamically from DailyTimeTotal"""
@@ -1067,31 +1057,31 @@ class DailyRoster(models.Model):
             team_member=self.team_member,
             date_worked=self.date
         ).aggregate(total=Sum('total_minutes'))['total'] or 0
-    
+
     @property
     def total_hours(self):
         """Total hours worked (assignment + misc)"""
         return self.assignment_hours + self.misc_hours
-    
+
     def get_total_hours_formatted(self):
         """Get total hours in HH:MM format"""
         total_minutes = self.total_hours
         hours = total_minutes // 60
         minutes = total_minutes % 60
         return f"{hours:02d}:{minutes:02d}"
-    
+
     def get_assignment_hours_formatted(self):
         """Get assignment hours in HH:MM format"""
         hours = self.assignment_hours // 60
         minutes = self.assignment_hours % 60
         return f"{hours:02d}:{minutes:02d}"
-    
+
     def get_misc_hours_formatted(self):
         """Get misc hours in HH:MM format"""
         hours = self.misc_hours // 60
         minutes = self.misc_hours % 60
         return f"{hours:02d}:{minutes:02d}"
-    
+
 
 
 class Holiday(models.Model):
@@ -1123,7 +1113,7 @@ class Holiday(models.Model):
         help_text="Whether this holiday is active"
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         unique_together = ['date', 'location']
         ordering = ['date']
@@ -1133,7 +1123,7 @@ class Holiday(models.Model):
             models.Index(fields=['date', 'location']),
             models.Index(fields=['year', 'location']),
         ]
-    
+
     def __str__(self):
         return f"{self.name} - {self.date} ({self.location})"
 
@@ -1168,25 +1158,30 @@ class ProjectDelivery(models.Model):
     delivery_performance_rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
-        validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="Performance rating given to project incharge"
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ],
+        help_text="Delivery performance rating (1-5)"
     )
-    
+
     # Snapshot data for historical accuracy
     project_name = models.CharField(max_length=255)
     hs_id = models.CharField(max_length=10)
     expected_completion_date = models.DateField(null=True, blank=True)
     actual_completion_date = models.DateField()
-    
+
     # New field to store the calculated variance
     days_variance_snapshot = models.IntegerField(
         null=True,
         blank=True,
         help_text="Snapshot of days variance at time of delivery"
     )
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         unique_together = ['project', 'delivery_date']
         indexes = [

@@ -374,16 +374,15 @@
                                 </td>
                                 <td>
                                     <div class="status-info">
-                                        {% if project.latest_status_name %}
-                                            <span class="status-badge">{{ project.latest_status_name }}</span>
+                                        <span class="status-badge">
+                                            {{ project.current_status.name|default:"No status" }}
+                                        </span>
+                                        <span class="status-date">
+                                            <i class="bi bi-clock-history"></i>
                                             {% if project.latest_status_date %}
-                                                <span class="status-date">
-                                                    <i class="bi bi-clock"></i> {{ project.latest_status_date|date:"M d, Y" }}
-                                                </span>
+                                                {{ project.latest_status_date|date:"M d, Y" }}
                                             {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">No status</span>
-                                        {% endif %}
+                                        </span>
                                     </div>
                                 </td>
                                 <td>

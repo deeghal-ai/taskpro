@@ -28,6 +28,7 @@ staticfiles/
 # Ignore backup files
 backup*.json
 full_backup.json
+.json
 
 # Ignore old settings file (if renamed)
 pms/settings.py.old

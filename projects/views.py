@@ -22,31 +22,30 @@ import json
 
 def ensure_is_dpm(request, project):
     """
-    Verify that the current user is the DPM for this project.
-    
+    Verify that the current user is a DPM.
+
     Args:
         request: The HTTP request
-        project: The project object
-        
+        project: The project object (used for redirect)
+
     Returns:
         Response or None: Redirect response if check fails, None if successful
     """
-    if request.user != project.dpm:
-        messages.error(request, "Only the project DPM can perform this action.")
+    if request.user.role != 'DPM':
+        messages.error(request, "Only a DPM can perform this action.")
         return redirect('projects:project_detail', project_id=project.id)
     return None
-
 
 @login_required
 def create_project(request):
     """
-    View for creating a new project. Handles form processing and 
+    View for creating a new project. Handles form processing and
     delegates business logic to the service layer.
     """
     if request.method == 'POST':
         # Create and validate form
         form = ProjectCreateForm(request.POST, user=request.user)
-        
+
         if form.is_valid():
             try:
                 # Form's save method delegates to service
@@ -62,7 +61,7 @@ def create_project(request):
     else:
         # For GET requests, create an empty form
         form = ProjectCreateForm(user=request.user)
-    
+
     # Render the template with the form
     return render(request, 'projects/create_project.html', {'form': form, 'title': 'Create New Project'})
 
@@ -75,15 +74,15 @@ def project_detail(request, project_id):
     if not success:
         messages.error(request, result)
         return redirect('projects:project_list')
-    
+
     project, status_history = result
-    
+
     # Get status options for the modal
     status_options = ProjectStatusOption.objects.filter(is_active=True).order_by('order')
-    
+
     # Prepare the form for the modal
     form = ProjectStatusUpdateForm(initial={'status': project.current_status})
-    
+
     # Prepare context
     context = {
         'project': project,
@@ -92,7 +91,7 @@ def project_detail(request, project_id):
         'form': form,
         'title': f'Project: {project.project_name}'
     }
-    
+
     return render(request, 'projects/project_detail.html', context)
 
 @login_required
@@ -103,35 +102,35 @@ def update_project_status(request, project_id):
     """
     # Get the project first
     success, result = ProjectService.get_project(project_id)
-    
+
     if not success:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'message': result}, status=404)
         messages.error(request, result)
         return redirect('projects:project_list')
-    
+
     project = result
-    
+
     # Check if it's an AJAX request to get status options
     if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Return available status options as JSON
         statuses = ProjectStatusOption.objects.filter(is_active=True).order_by('order')
         status_options = [{'id': str(s.id), 'name': s.name} for s in statuses]
         return JsonResponse({'status_options': status_options})
-    
+
     if request.method == 'POST':
         form = ProjectStatusUpdateForm(request.POST)
         if form.is_valid():
             status_id = form.cleaned_data['status'].id
             comments = form.cleaned_data['comments']
-            
+
             success, result = ProjectService.update_project_status(
                 project_id=project_id,
                 status_id=status_id,
                 user=request.user,
                 comments=comments
             )
-            
+
             if success:
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
@@ -156,11 +155,11 @@ def update_project_status(request, project_id):
     else:
         # Pre-select current status in form
         form = ProjectStatusUpdateForm(initial={'status': project.current_status})
-    
+
     # For non-AJAX requests, render the original template
     return render(request, 'projects/status_update.html', {
-        'form': form, 
-        'project': project, 
+        'form': form,
+        'project': project,
         'title': f'Update Status: {project.project_name}'
     })
 
@@ -190,11 +189,11 @@ def project_list(request):
         page=page,
         project_type='pipeline'  # Only get pipeline projects
     )
-    
+
     if not success:
         messages.error(request, result)
         return redirect('home')
-    
+
     projects, filters_applied = result
 
     # Get filter options
@@ -210,10 +209,10 @@ def project_list(request):
         }
     else:
         filter_options = filter_options_result
-    
+
     # Create filter form with current values
     filter_form = ProjectFilterForm(initial=filters_applied)
-    
+
     # Update city queryset based on selected region
     if region:
         filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
@@ -256,7 +255,7 @@ def project_list(request):
         'title': 'Pipeline Projects',
         'is_pipeline': True  # Add flag to identify page type
     }
-    
+
     return render(request, 'projects/project_list.html', context)
 
 
@@ -285,11 +284,11 @@ def delivered_projects(request):
         page=page,
         project_type='delivered'  # Only get delivered projects
     )
-    
+
     if not success:
         messages.error(request, result)
         return redirect('home')
-    
+
     projects, filters_applied = result
 
     # Get filter options
@@ -305,10 +304,10 @@ def delivered_projects(request):
         }
     else:
         filter_options = filter_options_result
-    
+
     # Create filter form with current values
     filter_form = ProjectFilterForm(initial=filters_applied)
-    
+
     # Update city queryset based on selected region
     if region:
         filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
@@ -351,7 +350,7 @@ def delivered_projects(request):
         'title': 'Delivered Projects',
         'is_delivered': True  # Add flag to identify page type
     }
-    
+
     return render(request, 'projects/delivered_projects.html', context)
 
 
@@ -375,24 +374,24 @@ def project_management(request, project_id):
     if not success:
         messages.error(request, result)
         return redirect('projects:project_list')
-    
+
     project = result
-    
+
     # Use the permission helper function
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # Get project with tasks using the service method
     success, result = ProjectService.get_project_with_tasks(project_id)
-    
+
     if not success:
         messages.error(request, result)
         return redirect('projects:project_list')
-        
+
     # Unpack the result tuple
     project, tasks = result
-    
+
     # Prepare context
     context = {
         'project': project,
@@ -401,7 +400,7 @@ def project_management(request, project_id):
         'project_form': ProjectManagementForm(instance=project),
         'task_form': ProjectTaskForm(project=project)
     }
-    
+
     return render(request, 'projects/project_management.html', context)
 
 
@@ -410,31 +409,31 @@ def create_project_task(request, project_id):
     """Handle task creation only."""
     if request.method != 'POST':
         return redirect('projects:project_management', project_id=project_id)
-    
+
     # Get project to check configuration
     success, result = ProjectService.get_project(project_id)
     if not success:
         messages.error(request, result)
         return redirect('projects:project_list')
-    
+
     project = result
 
     # Check if user is the DPM
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # Check project configuration before attempting task creation
     if not project.project_incharge or not project.expected_completion_date:
         messages.warning(
-            request, 
+            request,
             "Please complete the project configuration before creating tasks."
         )
         return redirect('projects:project_management', project_id=project_id)
-    
+
     # Process form in the view
     form = ProjectTaskForm(project=project, user=request.user, data=request.POST)
-    
+
     if form.is_valid():
         try:
             # Form's save method delegates to service
@@ -446,7 +445,7 @@ def create_project_task(request, project_id):
         for field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f"{field}: {error}")
-    
+
     return redirect('projects:project_management', project_id=project_id)
 
 
@@ -455,23 +454,23 @@ def update_project_configuration(request, project_id):
     """Handle project configuration updates only."""
     if request.method != 'POST':
         return redirect('projects:project_management', project_id=project_id)
-    
+
     # Get project to check permissions
     success, result = ProjectService.get_project(project_id)
     if not success:
         messages.error(request, result)
         return redirect('projects:project_list')
-    
+
     project = result
 
     # Check if user is the DPM
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # Process form in the view
     form = ProjectManagementForm(request.POST, instance=project)
-    
+
     if form.is_valid():
         # Pass cleaned data to service
         success, result = ProjectService.update_project_configuration(
@@ -479,10 +478,10 @@ def update_project_configuration(request, project_id):
             config_data=form.cleaned_data,
             dpm=request.user
         )
-        
+
         if success:
             messages.success(request, "Project details updated successfully")
-            
+
             # Check if delivery performance rating was updated
             if 'delivery_performance_rating' in form.changed_data:
                 # Update any existing ProjectDelivery records
@@ -490,7 +489,7 @@ def update_project_configuration(request, project_id):
                 ProjectDelivery.objects.filter(project=project).update(
                     delivery_performance_rating=form.cleaned_data['delivery_performance_rating']
                 )
-                
+
                 # Recalculate metrics if there are deliveries
                 deliveries = ProjectDelivery.objects.filter(project=project)
                 for delivery in deliveries:
@@ -504,7 +503,7 @@ def update_project_configuration(request, project_id):
         for field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f"{field}: {error}")
-    
+
     return redirect('projects:project_management', project_id=project_id)
 
 
@@ -517,40 +516,40 @@ def task_detail(request, project_id, task_id):
     if not success:
         messages.error(request, project_result)
         return redirect('projects:project_list')
-    
+
     project = project_result
-    
+
     # Check if user is the DPM
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # Get task and assignments
     success, task_result = ProjectService.get_task_with_assignments(task_id)
     if not success:
         messages.error(request, task_result)
         return redirect('projects:project_management', project_id=project_id)
-    
+
     task, assignments = task_result
-    
+
     # Ensure task belongs to the correct project
     if task.project.id != project.id:
         messages.error(request, "Invalid task for this project")
         return redirect('projects:project_management', project_id=project_id)
-    
+
     # Separate assignments into active and completed
     active_assignments = []
     completed_assignments = []
-    
+
     for assignment in assignments:
         # Add working hours to each assignment
         assignment.working_hours = assignment.get_total_working_hours()
-        
+
         if assignment.is_completed:
             completed_assignments.append(assignment)
         else:
             active_assignments.append(assignment)
-    
+
     # Prepare context
     context = {
         'task': task,
@@ -561,7 +560,7 @@ def task_detail(request, project_id, task_id):
         'assignment_form': TaskAssignmentForm(),
         'update_form': TaskAssignmentUpdateForm()
     }
-    
+
     return render(request, 'projects/task_detail.html', context)
 
 
@@ -570,18 +569,18 @@ def create_task_assignment(request, project_id, task_id):
     """Handle new assignment creation."""
     if request.method != 'POST':
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     # Get the project and check permissions
     success, project_result = ProjectService.get_project(project_id)
     if not success:
         messages.error(request, project_result)
         return redirect('projects:project_list')
-    
+
     project = project_result
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # Get the task to pass to the form
     success, task_result = ProjectService.get_project_task(task_id, project_id)
     if not success:
@@ -589,10 +588,10 @@ def create_task_assignment(request, project_id, task_id):
         return redirect('projects:project_management', project_id=project_id)
 
     task = task_result
-    
+
     # Use the form for validation and data conversion
     form = TaskAssignmentForm(data=request.POST, task=task, user=request.user)
-    
+
     if form.is_valid():
         try:
             # Form's save method delegates to service
@@ -600,12 +599,12 @@ def create_task_assignment(request, project_id, task_id):
             messages.success(request, "Assignment created successfully")
         except ValidationError as e:
             messages.error(request, f"Error creating assignment: {e}")
-            
+
     else:
         for field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f"{field}: {error}")
-    
+
     return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
 
@@ -614,18 +613,18 @@ def update_task_assignment(request, project_id, task_id, assignment_id):
     """Handle assignment updates."""
     if request.method != 'POST':
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     # Get the project and perform permission checks
     success, project_result = ProjectService.get_project(project_id)
     if not success:
         messages.error(request, project_result)
         return redirect('projects:project_list')
-    
+
     project = project_result
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # First get the current assignment
     success, assignment_result = ProjectService.get_task_assignment(assignment_id)
     if not success:
@@ -638,21 +637,21 @@ def update_task_assignment(request, project_id, task_id, assignment_id):
     if assignment.task.id != task_id or assignment.task.project.id != project_id:
         messages.error(request, "Invalid assignment for this project and task")
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     # Use the form to validate and convert the data
     form = TaskAssignmentUpdateForm(data=request.POST, instance=assignment)
-    
+
     if form.is_valid():
         # Form is valid, get the cleaned_data which has proper conversions applied
         form_data = form.cleaned_data
-        
+
         # Pass the properly converted data to the service
         success, result = ProjectService.update_task_assignment(
             assignment_id=assignment_id,
             assignment_data=form_data,
             dpm=request.user
         )
-        
+
         if success:
             messages.success(request, "Assignment updated successfully")
         else:
@@ -662,7 +661,7 @@ def update_task_assignment(request, project_id, task_id, assignment_id):
         for field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, f"{field}: {error}")
-    
+
     return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
 
@@ -676,21 +675,21 @@ def dpm_task_dashboard(request):
     if request.user.role != 'DPM':
         messages.error(request, "Access denied. This page is only for Project Managers.")
         return redirect('home')
-    
+
     # Get projects for this DPM
     success, result = ProjectService.get_dpm_projects_for_task_management(request.user)
-    
+
     if not success:
         messages.error(request, result)
         return redirect('home')
-    
+
     projects = result
 
     context = {
         'projects': projects,
         'title': 'Task Management Dashboard'
     }
-    
+
     return render(request, 'projects/dpm_task_dashboard.html', context)
 
 
@@ -703,36 +702,36 @@ def team_member_dashboard(request):
     if request.user.role != 'TEAM_MEMBER':
         messages.error(request, "This dashboard is only for team members")
         return redirect('projects:project_list')
-    
+
     # Handle POST requests (timer actions)
     if request.method == 'POST':
-        
+
         # Start Timer
         if 'start_timer' in request.POST:
             assignment_id = request.POST.get('assignment_id')
             success, result = ProjectService.start_timer(assignment_id, request.user)
-            
+
             if success:
                 messages.success(request, f"Timer started for assignment {result.assignment.assignment_id}")
             else:
                 messages.error(request, result)
-        
+
         # Stop Timer
         elif 'stop_timer' in request.POST:
             form = TimerStopForm(request.POST)
             if form.is_valid():
                 description = form.cleaned_data['description']
                 is_completed = form.cleaned_data['is_completed']
-                
+
                 success, result = ProjectService.stop_timer(request.user, description)
-                
+
                 if success:
                     messages.success(request, f"Timer stopped. Session duration: {result.get_formatted_duration()}")
-                    
+
                     # Mark as completed if requested
                     if is_completed:
                         success, complete_result = ProjectService.complete_assignment(
-                            result.assignment.id, 
+                            result.assignment.id,
                             request.user
                         )
                         if success:
@@ -741,12 +740,12 @@ def team_member_dashboard(request):
                             messages.warning(request, f"Timer stopped but couldn't complete assignment: {complete_result}")
                 else:
                     messages.error(request, result)
-        
+
         # Add Manual Time
         elif 'add_time' in request.POST:
             assignment_id = request.POST.get('assignment_id')
             form = ManualTimeEntryForm(request.POST)
-            
+
             if form.is_valid():
                 success, result = ProjectService.add_manual_time(
                     assignment_id=assignment_id,
@@ -756,11 +755,11 @@ def team_member_dashboard(request):
                     minutes=form.cleaned_data['duration_minutes'],
                     description=form.cleaned_data['description']
                 )
-                
+
                 if success:
                     total_minutes = (form.cleaned_data['duration_hours'] * 60) + form.cleaned_data['duration_minutes']
                     messages.success(request, f"Added {ProjectService._format_minutes(total_minutes)} to your timesheet")
-                    
+
                     # Mark as completed if requested
                     if form.cleaned_data['is_completed']:
                         success, complete_result = ProjectService.complete_assignment(assignment_id, request.user)
@@ -774,33 +773,33 @@ def team_member_dashboard(request):
                 for field, errors in form.errors.items():
                     for error in errors:
                         messages.error(request, f"{field}: {error}")
-        
+
         # Mark Completed
         elif 'mark_completed' in request.POST:
             assignment_id = request.POST.get('assignment_id')
             success, result = ProjectService.complete_assignment(assignment_id, request.user)
-            
+
             if success:
                 messages.success(request, f"Assignment {result.assignment_id} marked as completed!")
             else:
                 messages.error(request, result)
-        
+
         # Redirect to prevent form resubmission
         return redirect('projects:team_member_dashboard')
-    
+
     # GET request - display dashboard
     success, result = ProjectService.get_team_member_dashboard_data(request.user)
-    
+
     if not success:
         messages.error(request, result)
         return redirect('home')
-    
+
     dashboard_data = result
-    
+
     # Create forms for the modals
     timer_stop_form = TimerStopForm()
     time_entry_form = ManualTimeEntryForm()
-    
+
     context = {
         'active_assignments': dashboard_data['active_assignments'],
         'completed_assignments': dashboard_data['completed_assignments'],
@@ -812,7 +811,7 @@ def team_member_dashboard(request):
         'title': 'My Tasks Dashboard',
         'now': timezone.now()  # For template comparisons
     }
-    
+
     return render(request, 'projects/team_member_dashboard.html', context)
 
 
@@ -824,47 +823,47 @@ def completed_assignments_list(request):
     if request.user.role != 'TEAM_MEMBER':
         messages.error(request, "This page is only accessible by team members")
         return redirect('projects:project_list')
-    
+
     # Get date range parameters from request
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
-    
+
     # Parse dates if provided
     start_date = None
     end_date = None
     date_filter_active = False
-    
+
     if start_date_str:
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
             date_filter_active = True
         except ValueError:
             messages.warning(request, "Invalid start date format")
-    
+
     if end_date_str:
         try:
             end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
             date_filter_active = True
         except ValueError:
             messages.warning(request, "Invalid end date format")
-    
+
     # Validate date range
     if start_date and end_date and start_date > end_date:
         messages.error(request, "Start date cannot be after end date")
         start_date = end_date = None
         date_filter_active = False
-    
+
     # Get completed assignments with date filtering
     success, result = ProjectService.get_team_member_all_completed_assignments(
         request.user, start_date, end_date
     )
-    
+
     if not success:
         messages.error(request, result)
         return redirect('projects:team_member_dashboard')
-    
+
     completed_assignments = result
-    
+
     # Prepare filter display text
     filter_text = "All Time"
     if date_filter_active:
@@ -874,7 +873,7 @@ def completed_assignments_list(request):
             filter_text = f"From {start_date.strftime('%b %d, %Y')}"
         elif end_date:
             filter_text = f"Until {end_date.strftime('%b %d, %Y')}"
-    
+
     context = {
         'completed_assignments': completed_assignments,
         'title': 'Completed Assignments',
@@ -884,7 +883,7 @@ def completed_assignments_list(request):
         'filter_text': filter_text,
         'date_filter_active': date_filter_active
     }
-    
+
     return render(request, 'projects/completed_assignments_list.html', context)
 
 
@@ -894,7 +893,7 @@ def assignment_timesheet(request, assignment_id):
     if request.user.role != 'TEAM_MEMBER':
         messages.error(request, "Access denied")
         return redirect('home')
-    
+
     # Handle session duration editing
     if request.method == 'POST' and 'edit_session_duration' in request.POST:
         # Get form data
@@ -903,21 +902,21 @@ def assignment_timesheet(request, assignment_id):
             'duration_hours': request.POST.get('duration_hours'),
             'duration_minutes': request.POST.get('duration_minutes')
         }
-        
+
         # Create and validate form
         form = EditSessionDurationForm(form_data)
-        
+
         if form.is_valid():
             session_id = form.cleaned_data['session_id']
             total_minutes = form.get_total_minutes()
-            
+
             # Call service method
             success, result = ProjectService.edit_session_duration(
                 session_id=session_id,
                 team_member=request.user,
                 new_duration_minutes=total_minutes
             )
-            
+
             if success:
                 formatted_duration = ProjectService._format_minutes(total_minutes)
                 messages.success(request, f"Session duration updated to {formatted_duration}")
@@ -928,20 +927,20 @@ def assignment_timesheet(request, assignment_id):
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
-    
+
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
-    
+
     # Get timesheet data using service layer (no date filtering)
     success, result = ProjectService.get_assignment_timesheet_data(
         assignment_id, request.user
     )
-    
+
     if not success:
         messages.error(request, result)
         return redirect('projects:team_member_dashboard')
-    
+
     timesheet_data = result
-    
+
     context = {
         'assignment': timesheet_data['assignment'],
         'daily_totals': timesheet_data['daily_totals'],
@@ -949,7 +948,7 @@ def assignment_timesheet(request, assignment_id):
         'assignment_summary': timesheet_data['assignment_summary'],
         'title': f'Timesheet: {timesheet_data["assignment"].assignment_id}'
     }
-    
+
     return render(request, 'projects/assignment_timesheet.html', context)
 
 @login_required
@@ -958,30 +957,30 @@ def daily_roster(request):
     if request.user.role != 'TEAM_MEMBER':
         messages.error(request, "Access denied")
         return redirect('home')
-    
+
     # Get filter form
     filter_form = DailyRosterFilterForm(request.GET)
-    
+
     # Default to today
     selected_date = date.today()
     show_week = False
-    
+
     if filter_form.is_valid():
         if filter_form.cleaned_data['date']:
             selected_date = filter_form.cleaned_data['date']
         show_week = filter_form.cleaned_data.get('week_view', False)
-    
+
     # ✅ NOW USING SERVICE LAYER:
     success, result = ProjectService.get_daily_roster_data(
         request.user, selected_date, show_week
     )
-    
+
     if not success:
         messages.error(request, result)
         return redirect('home')
-    
+
     roster_data = result
-    
+
     context = {
         'daily_totals': roster_data['daily_totals'],
         'filter_form': filter_form,
@@ -991,7 +990,7 @@ def daily_roster(request):
         'total_formatted': roster_data['total_formatted'],
         'title': f'Daily Roster - {roster_data["date_range"]}'
     }
-    
+
     return render(request, 'projects/daily_roster.html', context)
 
 @login_required
@@ -1004,11 +1003,11 @@ def monthly_roster(request, year=None, month=None):
     if request.user.role != 'TEAM_MEMBER':
         messages.error(request, "This page is only for team members")
         return redirect('home')
-    
+
     # Handle misc hours addition
     if request.method == 'POST' and 'add_misc_hours' in request.POST:
         form = AddMiscHoursForm(request.POST)
-        
+
         if form.is_valid():
             success, result = ProjectService.add_misc_hours(
                 team_member=request.user,
@@ -1017,7 +1016,7 @@ def monthly_roster(request, year=None, month=None):
                 duration_hours=form.cleaned_data['duration_hours'],
                 duration_minutes=form.cleaned_data['duration_minutes']
             )
-            
+
             if success:
                 total_minutes = form.get_total_minutes()
                 formatted_duration = ProjectService._format_minutes(total_minutes)
@@ -1029,36 +1028,36 @@ def monthly_roster(request, year=None, month=None):
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
-        
+
         # Redirect to the same month after processing
         if year and month:
             return redirect('projects:roster_date', year=year, month=month)  # FIXED: Changed from 'monthly_roster_date'
         else:
             return redirect('projects:roster')  # FIXED: Changed from 'monthly_roster'
-    
+
     # Default to current month if not specified
     if not year or not month:
         today = date.today()
         year, month = today.year, today.month
-    
+
     # Get monthly roster data
     success, result = ProjectService.get_monthly_roster(request.user, year, month)
-    
+
     if not success:
         messages.error(request, result)
         return redirect('projects:team_member_dashboard')
-    
+
     monthly_data = result
-    
+
     # Calculate navigation dates
     current_date = date(year, month, 1)
     prev_month = current_date - timedelta(days=1)
     next_month_day = current_date.replace(day=28) + timedelta(days=4)
     next_month = next_month_day - timedelta(days=next_month_day.day-1)
-    
+
     # Create misc hours form for the modal
     misc_hours_form = AddMiscHoursForm()
-    
+
     context = {
         'monthly_data': monthly_data,
         'current_date': current_date,
@@ -1067,7 +1066,7 @@ def monthly_roster(request, year=None, month=None):
         'misc_hours_form': misc_hours_form,
         'title': f'Roster - {monthly_data["month_name"]} {year}'
     }
-    
+
     return render(request, 'projects/monthly_roster.html', context)
 
 @login_required
@@ -1078,45 +1077,48 @@ def update_roster_day(request):
     if request.user.role != 'TEAM_MEMBER':
         messages.error(request, "Access denied")
         return redirect('home')
-    
+
     if request.method != 'POST':
         return redirect('projects:roster')  # FIXED: Changed from 'monthly_roster'
-    
+
     try:
         # Get form data
         date_str = request.POST.get('date')
         new_status = request.POST.get('status')
         notes = request.POST.get('notes', '')
-        
+
         # Parse date
         from datetime import datetime
         work_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
+
+        # Get existing roster to preserve misc hours and description
+        roster, _ = ProjectService.get_or_create_daily_roster(request.user, work_date)
+
         # Update roster using service
         success, result = ProjectService.update_roster_status(
             team_member=request.user,
             date=work_date,
             new_status=new_status,
-            misc_hours=0,
-            misc_description="",
+            misc_hours=roster.misc_hours,
+            misc_description=roster.misc_description,
             notes=notes
         )
-        
+
         if success:
             messages.success(request, f"Status updated for {work_date.strftime('%B %d, %Y')}")
         else:
             messages.error(request, f"Error updating status: {result}")
-    
+
     except Exception as e:
         messages.error(request, f"Invalid date format: {str(e)}")
-    
+
     # Redirect back to the same month
     try:
         work_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         return redirect('projects:roster_date', year=work_date.year, month=work_date.month)
     except:
         return redirect('projects:roster')
-    
+
 
 @login_required
 def update_quality_rating(request, project_id, task_id, assignment_id):
@@ -1126,18 +1128,18 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
     """
     if request.method != 'POST':
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     # Get the project and check permissions
     success, project_result = ProjectService.get_project(project_id)
     if not success:
         messages.error(request, project_result)
         return redirect('projects:project_list')
-    
+
     project = project_result
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
-    
+
     # Get the assignment
     success, assignment_result = ProjectService.get_task_assignment(assignment_id)
     if not success:
@@ -1150,34 +1152,34 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
     if assignment.task.id != task_id or assignment.task.project.id != project_id:
         messages.error(request, "Invalid assignment for this project and task")
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     # Validate assignment is completed
     if not assignment.is_completed:
         messages.error(request, "Can only rate quality of completed assignments")
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     # Get and validate quality rating
     quality_rating = request.POST.get('quality_rating')
     if not quality_rating:
         messages.error(request, "Please select a quality rating")
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-    
+
     try:
         # Convert to decimal and validate range
         rating_value = float(quality_rating)
         if rating_value < 1.0 or rating_value > 5.0:
             messages.error(request, "Quality rating must be between 1.0 and 5.0")
             return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
-        
+
         # Update only the quality rating
         assignment.quality_rating = rating_value
         assignment.save()
-        
+
         messages.success(request, f"Quality rating updated to {rating_value}/5 for assignment {assignment.assignment_id}")
-        
+
     except (ValueError, TypeError):
         messages.error(request, "Invalid quality rating value")
-    
+
     return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
 
@@ -1192,20 +1194,20 @@ def my_projects(request):
     if request.user.role != 'TEAM_MEMBER':
         messages.warning(request, "This view is only available for team members.")
         return redirect('home')
-    
+
     # Get projects where user is project in-charge
     success, result = ProjectService.get_team_member_projects(request.user)
-    
+
     if not success:
         messages.error(request, result)
         return redirect('projects:team_member_dashboard')
-    
+
     projects_data = result
-    
+
     # Separate pipeline and delivered projects
     pipeline_projects = [p for p in projects_data if p['stats']['is_pipeline']]
     delivered_projects = [p for p in projects_data if p['stats']['is_delivered']]
-    
+
     context = {
         'projects_data': projects_data,
         'pipeline_projects': pipeline_projects,
@@ -1214,7 +1216,7 @@ def my_projects(request):
         'total_projects': len(projects_data),
         'is_read_only': True  # Flag to ensure read-only display
     }
-    
+
     return render(request, 'projects/my_projects.html', context)
 
 
@@ -1226,12 +1228,12 @@ def delivery_performance_report(request):
     # Get date range
     end_date = date.today()
     start_date = end_date - timedelta(days=90)  # Last 3 months
-    
+
     # Get all team members who have been project incharge
     team_members_with_deliveries = User.objects.filter(
         project_deliveries__delivery_date__range=[start_date, end_date]
     ).distinct()
-    
+
     # Build report data
     report_data = []
     for member in team_members_with_deliveries:
@@ -1239,14 +1241,14 @@ def delivery_performance_report(request):
             project_incharge=member,
             delivery_date__range=[start_date, end_date]
         )
-        
+
         metrics = deliveries.aggregate(
             avg_rating=Avg('delivery_performance_rating'),
             total_projects=Count('id'),
             on_time=Count('id', filter=Q(days_variance__lte=0)),
             late=Count('id', filter=Q(days_variance__gt=0))
         )
-        
+
         report_data.append({
             'team_member': member,
             'average_rating': metrics['avg_rating'],
@@ -1254,15 +1256,15 @@ def delivery_performance_report(request):
             'on_time_rate': (metrics['on_time'] / metrics['total_projects'] * 100) if metrics['total_projects'] > 0 else 0,
             'deliveries': deliveries[:5]  # Recent 5
         })
-    
+
     # Sort by average rating
     report_data.sort(key=lambda x: x['average_rating'] or 0, reverse=True)
-    
+
     context = {
         'report_data': report_data,
         'start_date': start_date,
         'end_date': end_date,
         'title': 'Delivery Performance Report'
     }
-    
+
     return render(request, 'projects/reports/delivery_performance.html', context)

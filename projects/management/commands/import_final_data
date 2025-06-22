@@ -1,0 +1,401 @@
+import csv
+import os
+from datetime import datetime, date
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.utils.dateparse import parse_date
+from projects.models import (
+    Project, Product, ProductSubcategory, ProjectStatusOption, 
+    ProjectStatusHistory
+)
+from locations.models import City, Region
+from accounts.models import User
+
+class Command(BaseCommand):
+    help = 'Final comprehensive import of projects and status histories from CSV files with DPM mapping'
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--projects-csv',
+            type=str,
+            default='Projects.csv',
+            help='Path to projects CSV file'
+        )
+        parser.add_argument(
+            '--statuses-csv', 
+            type=str,
+            default='Statuses.csv',
+            help='Path to status history CSV file'
+        )
+        parser.add_argument(
+            '--dry-run',
+            action='store_true',
+            help='Run without making changes (preview mode)'
+        )
+
+    def handle(self, *args, **options):
+        self.projects_csv = options['projects_csv']
+        self.statuses_csv = options['statuses_csv']
+        self.dry_run = options['dry_run']
+        
+        if self.dry_run:
+            self.stdout.write(self.style.WARNING('=== DRY RUN MODE - No changes will be made ==='))
+        
+        self.stdout.write(self.style.SUCCESS('🚀 Starting final comprehensive data import...'))
+        
+        try:
+            with transaction.atomic():
+                # Save transaction point for rollback if needed
+                sid = transaction.savepoint()
+                
+                self.load_lookup_data()
+                self.create_apm_to_dpm_mapping()
+                
+                projects_created = self.import_projects()
+                histories_created = self.import_status_histories()
+                
+                if self.dry_run:
+                    self.stdout.write(self.style.WARNING('DRY RUN: Rolling back all changes...'))
+                    transaction.savepoint_rollback(sid)
+                else:
+                    transaction.savepoint_commit(sid)
+                    
+                self.stdout.write(self.style.SUCCESS(
+                    f'\n🎉 IMPORT COMPLETED!\n'
+                    f'Projects created: {projects_created}\n'
+                    f'Status histories created: {histories_created}'
+                ))
+                
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'❌ Import failed: {str(e)}'))
+            if not self.dry_run:
+                raise
+
+    def load_lookup_data(self):
+        """Pre-load all lookup data for efficient mapping"""
+        self.stdout.write('📊 Loading lookup data...')
+        
+        # Products (case-insensitive lookup)
+        self.products = {p.name.strip().lower(): p for p in Product.objects.all()}
+        self.stdout.write(f'  ✅ Loaded {len(self.products)} products')
+        
+        # Cities (case-insensitive lookup)
+        self.cities = {c.name.strip().lower(): c for c in City.objects.all()}
+        self.stdout.write(f'  ✅ Loaded {len(self.cities)} cities')
+        
+        # Status options (case-insensitive lookup)
+        self.statuses = {s.name.strip().lower(): s for s in ProjectStatusOption.objects.all()}
+        self.stdout.write(f'  ✅ Loaded {len(self.statuses)} status options')
+        
+        # Product subcategories (case-insensitive lookup)
+        self.subcategories = {sc.name.strip().lower(): sc for sc in ProductSubcategory.objects.all()}
+        self.stdout.write(f'  ✅ Loaded {len(self.subcategories)} subcategories')
+        
+        # Default fallbacks
+        self.default_city = City.objects.first()
+        self.default_status = ProjectStatusOption.objects.first()
+        
+        if not self.default_city or not self.default_status:
+            raise Exception("❌ CRITICAL: Missing default city or status option in database")
+
+    def create_apm_to_dpm_mapping(self):
+        """Create mapping from APM names to DPM users"""
+        self.stdout.write('👥 Creating APM to DPM mapping...')
+        
+        # APM name to DPM mapping (based on your existing users)
+        # This maps the APM names from CSV to actual DPM usernames in your system
+        apm_to_dpm_mapping = {
+            'anil': 'anil',  # Anil Raghuwanshi
+            'jagadish': 'jagadish',  # Jagadish Kumar  
+            'abhiudaya': 'abhiudaya',  # Abhiudaya Parihar
+            'neeraj malhotra': 'jagadish',  # Map to Jagadish
+            'rohan yeshwant nimbalkar': 'anil',  # Map to Anil
+            'tarang saxena': 'jagadish',  # Map to Jagadish
+            'manjot singh': 'jagadish',  # Map to Jagadish
+            'deepak kumar panigrahy': 'jagadish',  # Map to Jagadish
+            'ankit vaid': 'jagadish',  # Map to Jagadish
+            'debashis das': 'jagadish',  # Map to Jagadish
+            'lubaba navid momin': 'anil',  # Map to Anil
+            'shantanu pai': 'anil',  # Map to Anil
+            'shraddha suresh mange bhanushali': 'anil',  # Map to Anil
+            'umez munaf mulla': 'anil',  # Map to Anil
+            'pratik dave': 'anil',  # Map to Anil
+            'harshil sunil doshi': 'anil',  # Map to Anil
+            'himanshu himmatlal parasharya': 'anil',  # Map to Anil
+            'madhushree mukherjee': 'jagadish',  # Map to Jagadish
+            'bikash singh': 'jagadish',  # Map to Jagadish
+            'shashank tyagi': 'jagadish',  # Map to Jagadish
+            'madisetty sai charith': 'anil',  # Map to Anil
+            'shaikh saddam rafique': 'anil',  # Map to Anil
+            'apurva gupta': 'jagadish',  # Map to Jagadish
+            'khagesh mahajan': 'anil',  # Map to Anil
+            'himanshi lalbahadur pal': 'anil',  # Map to Anil
+            'shah purav': 'anil',  # Map to Anil
+            'bishnu sahu': 'jagadish',  # Map to Jagadish
+            'kanchan ritesh jha': 'anil',  # Map to Anil
+            'udhaya sankar': 'anil',  # Map to Anil
+            'priti tulsyan': 'anil',  # Map to Anil
+            'junaid azmi': 'anil',  # Map to Anil
+            's zilani basha': 'jagadish',  # Map to Jagadish
+            'amol madhukar rakibe': 'anil',  # Map to Anil
+            'ebrahim khalil mohammad ali haider': 'anil',  # Map to Anil
+            'sachin sharma': 'jagadish',  # Map to Jagadish
+            'anjali baluni': 'jagadish',  # Map to Jagadish
+            'mohit laddha': 'anil',  # Map to Anil
+            'jatin katara': 'jagadish',  # Map to Jagadish
+            'pratik praveen kalghatgi': 'jagadish',  # Map to Jagadish
+            'madhur mohan': 'anil',  # Map to Anil
+            'trivedi manthan prakashbhai': 'anil',  # Map to Anil
+            'manisha mehla': 'jagadish',  # Map to Jagadish
+            'pobbati balaji': 'jagadish',  # Map to Jagadish
+            'manish kumar sah': 'anil',  # Map to Anil
+            'shashank verma': 'anil',  # Map to Anil
+            'jasmeet singh': 'jagadish',  # Map to Jagadish
+            'sheth sagar rajendrabhai': 'anil',  # Map to Anil
+            'piyoosh kumar': 'anil',  # Map to Anil
+            'darshan arjun pingat': 'anil',  # Map to Anil
+            'shashank dattaraj narad': 'anil',  # Map to Anil
+            'neha sood': 'jagadish',  # Map to Jagadish
+            'vikas': 'jagadish',  # Map to Jagadish
+        }
+        
+        # Load actual DPM users from database
+        dpms = {u.username.lower(): u for u in User.objects.filter(role='DPM')}
+        self.stdout.write(f'  ✅ Found {len(dpms)} DPM users in database')
+        
+        # Create final mapping
+        self.apm_to_dpm = {}
+        for apm_name, dpm_username in apm_to_dpm_mapping.items():
+            if dpm_username.lower() in dpms:
+                self.apm_to_dpm[apm_name.lower()] = dpms[dpm_username.lower()]
+            else:
+                self.stdout.write(f'  ⚠️  DPM {dpm_username} not found for APM {apm_name}')
+        
+        # Set default DPM
+        self.default_dpm = list(dpms.values())[0] if dpms else None
+        if not self.default_dpm:
+            raise Exception("❌ CRITICAL: No DPM users found in database")
+        
+        self.stdout.write(f'  ✅ Created {len(self.apm_to_dpm)} APM->DPM mappings')
+
+    def get_dpm_from_apm(self, apm_name):
+        """Get DPM user from APM name"""
+        if not apm_name:
+            return self.default_dpm
+        
+        apm_clean = apm_name.strip().lower()
+        
+        # Try exact match first
+        if apm_clean in self.apm_to_dpm:
+            return self.apm_to_dpm[apm_clean]
+        
+        # Try partial match
+        for mapped_apm, dpm in self.apm_to_dpm.items():
+            if mapped_apm in apm_clean or apm_clean in mapped_apm:
+                return dpm
+        
+        # Default fallback
+        return self.default_dpm
+
+    def safe_date(self, date_str):
+        """Safely parse date string"""
+        if not date_str or str(date_str).strip() == '':
+            return date.today()
+        
+        try:
+            # Handle various date formats
+            date_str = str(date_str).strip()
+            
+            # Try Django's parser first
+            parsed = parse_date(date_str)
+            if parsed:
+                return parsed
+            
+            # Try common formats
+            for fmt in ['%d-%b-%Y', '%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y']:
+                try:
+                    return datetime.strptime(date_str, fmt).date()
+                except ValueError:
+                    continue
+            
+            # If all else fails, return today
+            return date.today()
+        except:
+            return date.today()
+
+    def safe_int(self, value, default=1):
+        """Safely convert to integer"""
+        try:
+            return max(1, int(float(str(value).strip())))
+        except:
+            return default
+
+    def find_column_value(self, row, keywords):
+        """Find column value by keywords (handles multi-line headers)"""
+        for key, value in row.items():
+            key_clean = key.replace('\n', ' ').replace('\r', ' ').strip().lower()
+            for keyword in keywords:
+                if keyword.lower() in key_clean:
+                    return str(value).strip() if value else ''
+        return ''
+
+    def import_projects(self):
+        """Import projects from CSV"""
+        self.stdout.write('\n📦 Importing projects...')
+        
+        if not os.path.exists(self.projects_csv):
+            self.stdout.write(f'❌ Projects CSV file not found: {self.projects_csv}')
+            return 0
+        
+        projects_created = 0
+        projects_skipped = 0
+        existing_hs_ids = set(Project.objects.values_list('hs_id', flat=True))
+        
+        with open(self.projects_csv, 'r', encoding='utf-8-sig') as file:
+            reader = csv.DictReader(file)
+            
+            for i, row in enumerate(reader, 1):
+                if i % 100 == 0:
+                    self.stdout.write(f'  📊 Processing row {i}...')
+                
+                hs_id = row.get('HS_ID', '').strip()
+                if not hs_id or hs_id in existing_hs_ids:
+                    projects_skipped += 1
+                    continue
+                
+                try:
+                    # Extract project data
+                    project_name = self.find_column_value(row, ['project name']) or row.get('Builder', '') or hs_id
+                    builder_name = row.get('Builder', '').strip() or 'Unknown Builder'
+                    opportunity_id = row.get('Opp ID', '').strip() or hs_id
+                    
+                    # Get product
+                    product_name = self.find_column_value(row, ['hs _product', 'hs product', 'product'])
+                    product = self.products.get(product_name.lower()) if product_name else None
+                    if not product:
+                        self.stdout.write(f'  ⚠️  Product not found: {product_name} for {hs_id}')
+                        projects_skipped += 1
+                        continue
+                    
+                    # Get city
+                    city_name = row.get('City', '').strip()
+                    city = self.cities.get(city_name.lower()) if city_name else self.default_city
+                    
+                    # Get status
+                    status_name = row.get('Status', '').strip()
+                    current_status = self.statuses.get(status_name.lower()) if status_name else self.default_status
+                    
+                    # Get DPM from APM name
+                    apm_name = self.find_column_value(row, ['apm name', 'apm'])
+                    dpm = self.get_dpm_from_apm(apm_name)
+                    
+                    # Get other fields
+                    quantity = self.safe_int(row.get('Quantity', '1'))
+                    expected_tat = self.safe_int(row.get('Expected TAT', ''), product.expected_tat)
+                    purchase_date = self.safe_date(row.get('Latest_Date', ''))
+                    account_manager = row.get('Sales', '').strip() or 'Unknown'
+                    
+                    # Get subcategory
+                    subcat_name = self.find_column_value(row, ['product_sub_category', 'subcategory'])
+                    product_subcategory = self.subcategories.get(subcat_name.lower()) if subcat_name else None
+                    
+                    # Create project
+                    if not self.dry_run:
+                        project = Project.objects.create(
+                            hs_id=hs_id,
+                            opportunity_id=opportunity_id,
+                            project_type=row.get('Event/\nNon-Event', '').strip() or 'NON_EVENT',
+                            project_name=project_name,
+                            builder_name=builder_name,
+                            city=city,
+                            product=product,
+                            product_subcategory=product_subcategory,
+                            package_id=row.get('Package_ID', '').strip(),
+                            quantity=quantity,
+                            purchase_date=purchase_date,
+                            sales_confirmation_date=purchase_date,
+                            expected_tat=expected_tat,
+                            account_manager=account_manager,
+                            dpm=dpm,
+                            current_status=current_status
+                        )
+                    
+                    projects_created += 1
+                    
+                except Exception as e:
+                    self.stdout.write(f'  ❌ Error processing project {hs_id}: {str(e)}')
+                    projects_skipped += 1
+        
+        self.stdout.write(f'  ✅ Projects - Created: {projects_created}, Skipped: {projects_skipped}')
+        return projects_created
+
+    def import_status_histories(self):
+        """Import status histories from CSV"""
+        self.stdout.write('\n📋 Importing status histories...')
+        
+        if not os.path.exists(self.statuses_csv):
+            self.stdout.write(f'❌ Statuses CSV file not found: {self.statuses_csv}')
+            return 0
+        
+        histories_created = 0
+        histories_skipped = 0
+        
+        # Get all projects that were just imported
+        projects_dict = {p.hs_id: p for p in Project.objects.all()}
+        
+        with open(self.statuses_csv, 'r', encoding='utf-8-sig') as file:
+            reader = csv.DictReader(file)
+            
+            for i, row in enumerate(reader, 1):
+                if i % 500 == 0:
+                    self.stdout.write(f'  📊 Processing status row {i}...')
+                
+                try:
+                    hs_id = row.get('HS_ID', '').strip()
+                    status_name = row.get('Status', '').strip()
+                    date_str = row.get('Date', '').strip()
+                    
+                    if not all([hs_id, status_name, date_str]):
+                        histories_skipped += 1
+                        continue
+                    
+                    # Get project
+                    project = projects_dict.get(hs_id)
+                    if not project:
+                        histories_skipped += 1
+                        continue
+                    
+                    # Get status
+                    status = self.statuses.get(status_name.lower())
+                    if not status:
+                        histories_skipped += 1
+                        continue
+                    
+                    # Parse date
+                    changed_date = self.safe_date(date_str)
+                    changed_at = datetime.combine(changed_date, datetime.min.time())
+                    
+                    # Create status history
+                    if not self.dry_run:
+                        history, created = ProjectStatusHistory.objects.get_or_create(
+                            project=project,
+                            status=status,
+                            changed_at=changed_at,
+                            defaults={
+                                'category_one_snapshot': status.category_one,
+                                'category_two_snapshot': status.category_two,
+                                'changed_by': project.dpm,
+                                'comments': 'Imported from CSV'
+                            }
+                        )
+                        if created:
+                            histories_created += 1
+                    else:
+                        histories_created += 1
+                        
+                except Exception as e:
+                    self.stdout.write(f'  ❌ Error processing status history: {str(e)}')
+                    histories_skipped += 1
+        
+        self.stdout.write(f'  ✅ Status histories - Created: {histories_created}, Skipped: {histories_skipped}')
+        return histories_created

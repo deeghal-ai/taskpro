@@ -70,7 +70,7 @@ class ProjectStatusOptionAdmin(admin.ModelAdmin):
     
     ordering = ['order', 'name']
     
-    list_per_page = 20
+    list_per_page = 100  # Temporarily increased to show all records
     
     fieldsets = (
         ('Status Information', {
@@ -99,6 +99,25 @@ class ProjectStatusOptionAdmin(admin.ModelAdmin):
         if obj:  # If editing an existing object
             return self.readonly_fields + ('name',)
         return self.readonly_fields
+    
+    def changelist_view(self, request, extra_context=None):
+        """Override changelist view to add debug info"""
+        from django.contrib import messages
+        extra_context = extra_context or {}
+        
+        total_count = ProjectStatusOption.objects.count()
+        active_count = ProjectStatusOption.objects.filter(is_active=True).count()
+        
+        # Add message to admin interface
+        messages.info(request, f"DEBUG: Database has {total_count} total status options ({active_count} active)")
+        
+        extra_context['total_count'] = total_count
+        extra_context['active_count'] = active_count
+        
+        print(f"DEBUG: Total ProjectStatusOption count: {total_count}")
+        print(f"DEBUG: Active ProjectStatusOption count: {active_count}")
+        
+        return super().changelist_view(request, extra_context)
 
 
 @admin.register(ProjectStatusHistory)

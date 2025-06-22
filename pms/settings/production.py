@@ -5,7 +5,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Add your PythonAnywhere domain here
 ALLOWED_HOSTS = [
-    config('ALLOWED_HOST', default='yourusername.pythonanywhere.com'),
+    config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
     'localhost',
     '127.0.0.1'
 ]
@@ -17,7 +17,7 @@ DATABASES = {
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='yourusername.mysql.pythonanywhere-services.com'),
+        'HOST': config('DB_HOST', default='deeghalbhaumik.mysql.pythonanywhere-services.com'),
         'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
             'sql_mode': 'traditional',
@@ -39,7 +39,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # CSRF settings
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
-    'https://' + config('ALLOWED_HOST', default='yourusername.pythonanywhere.com'),
+    'https://' + config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
 ]
 
 # Session settings
@@ -54,5 +54,6 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
-# Logging for production
-LOGGING['handlers']['file']['filename'] = '/home/deeghalbhaumik/logs/pms.log' 
+# Logging for production - Inherits from base.py
+# The LOGS_DIR created in base.py will be used automatically.
+# No need to override the filename here.

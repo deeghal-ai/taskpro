@@ -9,6 +9,11 @@ from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# Create logs directory if it doesn't exist to avoid startup errors
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default="django-insecure-6ewem_++8uha190@)agh)2kwee9kt*(tn$koj@()y%-r5o4+r5")
 
@@ -47,7 +52,7 @@ MIDDLEWARE = [
 ]
 
 # Auth settings
-AUTH_USER_MODEL = 'accounts.User' 
+AUTH_USER_MODEL = 'accounts.User'
 
 ROOT_URLCONF = "pms.urls"
 
@@ -109,7 +114,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/pms.log'),
+            'filename': os.path.join(LOGS_DIR, 'pms.log'),
             'formatter': 'verbose',
         },
     },
@@ -129,7 +134,7 @@ LOGGING = {
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
@@ -144,4 +149,4 @@ STATICFILES_DIRS = [
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField" 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
