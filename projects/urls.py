@@ -16,6 +16,7 @@ urlpatterns = [
     # Task Management URLs
     path('tasks/dashboard/', views.dpm_task_dashboard, name='dpm_task_dashboard'),
     path('tasks/assignments/', views.dpm_assignments_overview, name='dpm_assignments_overview'),
+    path('tasks/assignments/graph/', views.assignment_graph_view, name='assignment_graph_view'),
     path('<uuid:project_id>/manage/', views.project_management, name='project_management'),
     path('<uuid:project_id>/update-configuration/', views.update_project_configuration, name='update_project_configuration'),
     path('<uuid:project_id>/create-task/', views.create_project_task, name='create_project_task'),

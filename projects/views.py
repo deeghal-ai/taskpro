@@ -1670,3 +1670,273 @@ def dpm_assignments_overview(request):
     }
     
     return render(request, 'projects/dpm_assignments_overview.html', context)
+
+@login_required
+def assignment_graph_view(request):
+    """
+    Display assignment workload graph showing projected hours allocated to each team member.
+    Shows graphical representation of active assignment workload distribution.
+    """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+
+    # Handle AJAX request for dynamic filtering (same as overview)
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.POST.get('get_filter_options'):
+            # Get filter parameters from POST
+            assignment_status = request.POST.get('assignment_status', 'active')  # Default to active for graph
+            team_member_id = request.POST.get('team_member', '')
+            dpm_id = request.POST.get('dpm', '')
+            project_id = request.POST.get('project', '')
+            
+            # Convert to objects if provided
+            team_member = None
+            dpm = None
+            project = None
+            try:
+                if team_member_id:
+                    team_member = User.objects.get(id=team_member_id)
+                if dpm_id:
+                    dpm = User.objects.get(id=dpm_id)
+                if project_id:
+                    project = Project.objects.get(id=project_id)
+            except (User.DoesNotExist, Project.DoesNotExist):
+                pass
+            
+            # Get assignments for projects (excluding project filter)
+            success_projects, result_projects = ProjectService.get_dpm_all_task_assignments(
+                assignment_status=assignment_status,
+                team_member=team_member,
+                project=None,
+                dpm=dpm,
+                start_date=None,
+                end_date=None
+            )
+            
+            # Get assignments for team members (excluding team member filter)
+            success_members, result_members = ProjectService.get_dpm_all_task_assignments(
+                assignment_status=assignment_status,
+                team_member=None,
+                project=project,
+                dpm=dpm,
+                start_date=None,
+                end_date=None
+            )
+            
+            response_data = {}
+            
+            # Get unique projects
+            if success_projects:
+                project_ids = set()
+                for assignment in result_projects:
+                    project_ids.add(assignment.task.project.id)
+                
+                projects = Project.objects.filter(id__in=project_ids).order_by('project_name')
+                response_data['projects'] = [
+                    {'id': p.id, 'name': p.project_name}
+                    for p in projects
+                ]
+            else:
+                response_data['projects'] = []
+            
+            # Get unique team members
+            if success_members:
+                member_ids = set()
+                for assignment in result_members:
+                    member_ids.add(assignment.assigned_to.id)
+                
+                members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER').order_by('first_name', 'last_name', 'username')
+                response_data['team_members'] = [
+                    {
+                        'id': m.id, 
+                        'name': m.get_full_name() if m.get_full_name().strip() else m.username
+                    }
+                    for m in members
+                ]
+            else:
+                response_data['team_members'] = []
+                
+            return JsonResponse(response_data)
+
+    # Check if it's an AJAX request for chart data
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.POST.get('get_chart_data'):
+            # Get filter parameters
+            assignment_status = request.POST.get('assignment_status', 'active')
+            team_member_id = request.POST.get('team_member', '')
+            dpm_id = request.POST.get('dpm', '')
+            project_id = request.POST.get('project', '')
+            start_date_str = request.POST.get('start_date', '')
+            end_date_str = request.POST.get('end_date', '')
+            
+            # Convert to objects if provided
+            team_member = None
+            dpm = None
+            project = None
+            start_date = None
+            end_date = None
+            
+            try:
+                if team_member_id:
+                    team_member = User.objects.get(id=team_member_id)
+                if dpm_id:
+                    dpm = User.objects.get(id=dpm_id)
+                if project_id:
+                    project = Project.objects.get(id=project_id)
+                if start_date_str:
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                if end_date_str:
+                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            except (User.DoesNotExist, Project.DoesNotExist, ValueError):
+                pass
+            
+            # Get assignments using service layer
+            success, assignments = ProjectService.get_dpm_all_task_assignments(
+                assignment_status=assignment_status,
+                team_member=team_member,
+                project=project,
+                dpm=dpm,
+                start_date=start_date,
+                end_date=end_date
+            )
+            
+            if not success:
+                return JsonResponse({'error': assignments}, status=400)
+            
+            # Aggregate data by team member
+            member_workload = {}
+            total_assignments = 0
+            
+            for assignment in assignments:
+                member_name = assignment.assigned_to.get_full_name() or assignment.assigned_to.username
+                projected_hours = assignment.projected_hours or 0
+                projected_hours_decimal = projected_hours / 60.0  # Convert minutes to hours
+                
+                if member_name not in member_workload:
+                    member_workload[member_name] = {
+                        'hours': 0,
+                        'assignments': 0,
+                        'username': assignment.assigned_to.username
+                    }
+                
+                member_workload[member_name]['hours'] += projected_hours_decimal
+                member_workload[member_name]['assignments'] += 1
+                total_assignments += 1
+            
+            # Sort by hours (descending)
+            sorted_workload = sorted(member_workload.items(), key=lambda x: x[1]['hours'], reverse=True)
+            
+            # Prepare chart data
+            labels = [item[0] for item in sorted_workload]
+            hours_data = [round(item[1]['hours'], 1) for item in sorted_workload]
+            assignments_data = [item[1]['assignments'] for item in sorted_workload]
+            
+            chart_data = {
+                'labels': labels,
+                'hours': hours_data,
+                'assignments': assignments_data,
+                'total_members': len(member_workload),
+                'total_assignments': total_assignments,
+                'total_hours': round(sum(hours_data), 1),
+                'avg_hours_per_member': round(sum(hours_data) / len(member_workload), 1) if member_workload else 0
+            }
+            
+            return JsonResponse(chart_data)
+
+    # Regular GET request handling
+    # Create filter form 
+    filter_form = TaskAssignmentFilterForm(data=request.GET)
+    
+    # Default to active assignments for graph view
+    assignment_status = 'active'
+    team_member = None
+    project = None
+    dpm = None
+    start_date = None
+    end_date = None
+    
+    # Apply filters if form is valid
+    if filter_form.is_valid():
+        assignment_status = filter_form.cleaned_data.get('assignment_status', 'active')
+        team_member = filter_form.cleaned_data.get('team_member')
+        project = filter_form.cleaned_data.get('project')
+        dpm = filter_form.cleaned_data.get('dpm')
+        start_date = filter_form.cleaned_data.get('start_date')
+        end_date = filter_form.cleaned_data.get('end_date')
+    
+    # Get assignments using service layer
+    success, result = ProjectService.get_dpm_all_task_assignments(
+        assignment_status=assignment_status,
+        team_member=team_member,
+        project=project,
+        dpm=dpm,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('projects:dpm_task_dashboard')
+    
+    assignments = result
+    
+    # Aggregate data by team member for initial load
+    member_workload = {}
+    total_assignments = len(assignments)
+    
+    for assignment in assignments:
+        member_name = assignment.assigned_to.get_full_name() or assignment.assigned_to.username
+        projected_hours = assignment.projected_hours or 0
+        projected_hours_decimal = projected_hours / 60.0  # Convert minutes to hours
+        
+        if member_name not in member_workload:
+            member_workload[member_name] = {
+                'hours': 0,
+                'assignments': 0,
+                'username': assignment.assigned_to.username
+            }
+        
+        member_workload[member_name]['hours'] += projected_hours_decimal
+        member_workload[member_name]['assignments'] += 1
+    
+    # Sort by hours (descending)
+    sorted_workload = sorted(member_workload.items(), key=lambda x: x[1]['hours'], reverse=True)
+    
+    # Prepare initial chart data
+    initial_chart_data = {
+        'labels': [item[0] for item in sorted_workload],
+        'hours': [round(item[1]['hours'], 1) for item in sorted_workload],
+        'assignments': [item[1]['assignments'] for item in sorted_workload],
+        'total_members': len(member_workload),
+        'total_assignments': total_assignments,
+        'total_hours': round(sum([item[1]['hours'] for item in sorted_workload]), 1),
+        'avg_hours_per_member': round(sum([item[1]['hours'] for item in sorted_workload]) / len(member_workload), 1) if member_workload else 0
+    }
+    
+    # Create date range display text for UI
+    date_range_text = ""
+    if start_date or end_date:
+        if assignment_status == 'completed':
+            date_field_name = "completion date"
+        else:
+            date_field_name = "assigned date"
+            
+        if start_date and end_date:
+            date_range_text = f"From {start_date.strftime('%b %d, %Y')} to {end_date.strftime('%b %d, %Y')} ({date_field_name})"
+        elif start_date:
+            date_range_text = f"From {start_date.strftime('%b %d, %Y')} onwards ({date_field_name})"
+        elif end_date:
+            date_range_text = f"Up to {end_date.strftime('%b %d, %Y')} ({date_field_name})"
+    
+    context = {
+        'filter_form': filter_form,
+        'assignment_status': assignment_status,
+        'date_range_text': date_range_text,
+        'initial_chart_data': json.dumps(initial_chart_data),
+        'workload_data': sorted_workload,
+        'title': 'Assignment Workload Graph'
+    }
+    
+    return render(request, 'projects/assignment_graph_view.html', context)

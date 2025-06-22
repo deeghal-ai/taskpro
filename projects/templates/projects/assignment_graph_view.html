@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Visual Design System - Consistent with overview page */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Enhanced Card Styling */
+    .card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #fff 100%);
+        border-bottom: 2px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .card-title {
+        margin: 0;
+        color: #2d3748;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        transition: all var(--transition-speed) ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    /* Filter Section */
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        padding: 2rem;
+        position: relative;
+        height: 500px;
+    }
+
+    .chart-canvas {
+        max-height: 400px;
+    }
+
+    /* Workload Summary Panel */
+    .workload-summary {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .workload-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: all var(--transition-speed) ease;
+    }
+
+    .workload-item:last-child {
+        border-bottom: none;
+    }
+
+    .workload-item:hover {
+        background-color: rgba(0, 123, 255, 0.02);
+        transform: translateX(3px);
+    }
+
+    .member-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .member-name {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 1rem;
+    }
+
+    .member-details {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .workload-stats {
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+        gap: 0.25rem;
+    }
+
+    .hours-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: white;
+    }
+
+    .load-light { background: var(--success-color); }
+    .load-medium { background: var(--warning-color); }
+    .load-heavy { background: var(--danger-color); }
+
+    .assignments-count {
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+
+    /* Loading State */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1rem;
+        z-index: 10;
+    }
+
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-header {
+            padding: 1.5rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            padding: 1rem;
+        }
+
+        .chart-canvas {
+            max-height: 300px;
+        }
+
+        .workload-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .workload-stats {
+            align-items: flex-start;
+        }
+    }
+
+    /* Chart legend */
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+    }
+
+    /* Enhanced button styling */
+    .btn-outline-success {
+        transition: all 0.3s ease !important;
+    }
+    
+    .btn-outline-success:hover {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+        border-color: rgba(25, 135, 84, 1) !important;
+        color: rgba(25, 135, 84, 1) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2);
+    }
+    
+    .btn-outline-light:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.8) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Special styling for the table view button */
+    a[href*="dpm_assignments_overview"]:hover {
+        background-color: rgba(25, 135, 84, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.8) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Assignment Workload Graph
+                </h2>
+                <p class="mb-0 opacity-75">Visual representation of projected hours allocated to each team member</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'projects:dpm_assignments_overview' %}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(25, 135, 84, 0.1); transition: all 0.3s ease;">
+                    <i class="fas fa-table me-1"></i> Table View
+                </a>
+                <a href="{% url 'projects:dpm_task_dashboard' %}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4" id="stats-cards">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1);">
+                    <i class="fas fa-users" style="color: var(--primary-color);"></i>
+                </div>
+                <div class="stat-value" id="total-members">-</div>
+                <div class="stat-label">Team Members</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(13, 202, 240, 0.1);">
+                    <i class="fas fa-tasks" style="color: var(--info-color);"></i>
+                </div>
+                <div class="stat-value" id="total-assignments">-</div>
+                <div class="stat-label">Active Assignments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1);">
+                    <i class="fas fa-clock" style="color: var(--success-color);"></i>
+                </div>
+                <div class="stat-value" id="total-hours">-</div>
+                <div class="stat-label">Total Hours</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1);">
+                    <i class="fas fa-balance-scale" style="color: var(--warning-color);"></i>
+                </div>
+                <div class="stat-value" id="avg-hours">-</div>
+                <div class="stat-label">Avg Hours/Member</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="fas fa-filter me-2"></i>
+                Filter Workload Data
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                {% csrf_token %}
+                <div class="filter-row">
+                    <div>
+                        <label class="form-label">Team Member</label>  
+                        {{ filter_form.team_member }}
+                    </div>
+                    <div>
+                        <label class="form-label">Project Manager</label>
+                        {{ filter_form.dpm }}
+                    </div>
+                    <div>
+                        <label class="form-label">Project</label>
+                        {{ filter_form.project }}
+                    </div>
+                    <div>
+                        <label class="form-label">Assigned After</label>
+                        {{ filter_form.start_date }}
+                    </div>
+                    <div>
+                        <label class="form-label">Assigned Before</label>
+                        {{ filter_form.end_date }}
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>
+                            Apply Filters
+                        </button>
+                        <a href="{% url 'projects:assignment_graph_view' %}" class="btn btn-outline-secondary ms-1">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+            
+            {% if date_range_text %}
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fas fa-calendar me-1"></i>
+                    Filtered by: {{ date_range_text }}
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Chart Section -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Workload Distribution (Active Assignments Only)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="chart-container">
+                        <div class="loading-overlay" id="chart-loading" style="display: none;">
+                            <div class="loading-spinner"></div>
+                        </div>
+                        <canvas id="workloadChart" class="chart-canvas"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #198754;"></div>
+                            <span>Light Load (0-40h)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffc107;"></div>
+                            <span>Medium Load (40-80h)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #dc3545;"></div>
+                            <span>Heavy Load (80h+)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workload Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-list me-2"></i>
+                        Workload Breakdown
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="workload-summary" id="workload-summary">
+                        <div class="empty-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <h6>Loading workload data...</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Chart.js setup and functionality
+let workloadChart = null;
+let initialChartData = {{ initial_chart_data|safe }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize chart with initial data
+    updateChart(initialChartData);
+    updateStats(initialChartData);
+    updateWorkloadSummary(initialChartData);
+    
+    // Set up form handling
+    setupFormHandling();
+    
+    // Set up dynamic filtering
+    setupDynamicFiltering();
+});
+
+function getLoadLevel(hours) {
+    if (hours <= 40) return 'light';
+    if (hours <= 80) return 'medium';
+    return 'heavy';
+}
+
+function getLoadColor(hours) {
+    if (hours <= 40) return '#198754'; // Green
+    if (hours <= 80) return '#ffc107'; // Yellow  
+    return '#dc3545'; // Red
+}
+
+function updateChart(data) {
+    const ctx = document.getElementById('workloadChart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (workloadChart) {
+        workloadChart.destroy();
+    }
+    
+    // Create color array based on workload
+    const colors = data.hours.map(hours => getLoadColor(hours));
+    const borderColors = colors.map(color => color);
+    
+    workloadChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Projected Hours',
+                data: data.hours,
+                backgroundColor: colors.map(color => color + '80'), // Add transparency
+                borderColor: borderColors,
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            indexAxis: 'y', // Make it horizontal
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const memberIndex = context.dataIndex;
+                            const hours = context.parsed.x;
+                            const assignments = data.assignments[memberIndex];
+                            const avgHours = (hours / assignments).toFixed(1);
+                            const loadLevel = getLoadLevel(hours);
+                            
+                            return [
+                                `Total Hours: ${hours}h`,
+                                `Assignments: ${assignments}`,
+                                `Avg per Assignment: ${avgHours}h`,
+                                `Load Level: ${loadLevel.charAt(0).toUpperCase() + loadLevel.slice(1)}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Projected Hours',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + 'h';
+                        }
+                    },
+                    grid: {
+                        color: '#e9ecef'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Team Members',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            weight: '600'
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+}
+
+function updateStats(data) {
+    document.getElementById('total-members').textContent = data.total_members;
+    document.getElementById('total-assignments').textContent = data.total_assignments;
+    document.getElementById('total-hours').textContent = data.total_hours + 'h';
+    document.getElementById('avg-hours').textContent = data.avg_hours_per_member + 'h';
+}
+
+function updateWorkloadSummary(data) {
+    const summaryContainer = document.getElementById('workload-summary');
+    
+    if (data.labels.length === 0) {
+        summaryContainer.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h6>No active assignments found</h6>
+                <p class="text-muted">No active assignments match your current filters.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let summaryHTML = '';
+    for (let i = 0; i < data.labels.length; i++) {
+        const memberName = data.labels[i];
+        const hours = data.hours[i];
+        const assignments = data.assignments[i];
+        const avgHours = (hours / assignments).toFixed(1);
+        const loadLevel = getLoadLevel(hours);
+        
+        summaryHTML += `
+            <div class="workload-item">
+                <div class="member-info">
+                    <div class="member-name">${memberName}</div>
+                    <div class="member-details">${assignments} assignments • ${avgHours}h avg</div>
+                </div>
+                <div class="workload-stats">
+                    <div class="hours-badge load-${loadLevel}">${hours}h</div>
+                    <div class="assignments-count">${loadLevel} load</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    summaryContainer.innerHTML = summaryHTML;
+}
+
+function setupFormHandling() {
+    // Add loading state to filter form
+    document.querySelector('.filter-form').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Applying...';
+        submitBtn.disabled = true;
+        
+        // Show loading overlay
+        document.getElementById('chart-loading').style.display = 'flex';
+    });
+}
+
+function setupDynamicFiltering() {
+    // Get form elements
+    const teamMemberField = document.querySelector('#id_team_member');
+    const dpmField = document.querySelector('#id_dpm');
+    const projectField = document.querySelector('#id_project');
+    const startDateField = document.querySelector('#id_start_date');
+    const endDateField = document.querySelector('#id_end_date');
+    
+    // Function to update filter options
+    function updateFilterOptions() {
+        const formData = new FormData();
+        formData.append('get_filter_options', '1');
+        formData.append('assignment_status', 'active'); // Always active for graph
+        if (teamMemberField && teamMemberField.value) formData.append('team_member', teamMemberField.value);
+        if (dpmField && dpmField.value) formData.append('dpm', dpmField.value);
+        if (projectField && projectField.value) formData.append('project', projectField.value);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+        
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update project dropdown
+            if (data.projects && projectField) {
+                const currentValue = projectField.value;
+                projectField.innerHTML = '<option value="">All Projects</option>';
+                data.projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name;
+                    if (project.id == currentValue) option.selected = true;
+                    projectField.appendChild(option);
+                });
+            }
+            
+            // Update team member dropdown
+            if (data.team_members && teamMemberField) {
+                const currentValue = teamMemberField.value;
+                teamMemberField.innerHTML = '<option value="">All Team Members</option>';
+                data.team_members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = member.name;
+                    if (member.id == currentValue) option.selected = true;
+                    teamMemberField.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error updating filter options:', error));
+    }
+    
+    // Function to update chart data
+    function updateChartData() {
+        document.getElementById('chart-loading').style.display = 'flex';
+        
+        const formData = new FormData();
+        formData.append('get_chart_data', '1');
+        formData.append('assignment_status', 'active'); // Always active for graph
+        if (teamMemberField && teamMemberField.value) formData.append('team_member', teamMemberField.value);
+        if (dpmField && dpmField.value) formData.append('dpm', dpmField.value);
+        if (projectField && projectField.value) formData.append('project', projectField.value);
+        if (startDateField && startDateField.value) formData.append('start_date', startDateField.value);
+        if (endDateField && endDateField.value) formData.append('end_date', endDateField.value);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+        
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error fetching chart data:', data.error);
+                return;
+            }
+            
+            updateChart(data);
+            updateStats(data);
+            updateWorkloadSummary(data);
+        })
+        .catch(error => {
+            console.error('Error fetching chart data:', error);
+        })
+        .finally(() => {
+            document.getElementById('chart-loading').style.display = 'none';
+        });
+    }
+    
+    // Add event listeners
+    [teamMemberField, dpmField, projectField].forEach(field => {
+        if (field) {
+            field.addEventListener('change', function() {
+                updateFilterOptions();
+                updateChartData();
+            });
+        }
+    });
+    
+    [startDateField, endDateField].forEach(field => {
+        if (field) {
+            field.addEventListener('change', updateChartData);
+        }
+    });
+}
+</script>
+{% endblock %} 
