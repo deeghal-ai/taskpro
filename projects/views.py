@@ -997,6 +997,10 @@ def assignment_timesheet(request, assignment_id):
     from urllib.parse import unquote
     original_referer = unquote(request.GET.get('original_referer', ''))
     
+    # DEBUG: Add temporary debugging
+    print(f"DEBUG assignment_timesheet: original_referer from URL = '{original_referer}'")
+    print(f"DEBUG assignment_timesheet: HTTP_REFERER = '{request.META.get('HTTP_REFERER', '')}'")
+    
     if request.user.role == 'DPM':
         # Check if we have a preserved original_referer from quality rating flow
         if original_referer:
@@ -1352,6 +1356,10 @@ def update_quality_rating_timesheet(request, assignment_id):
 
     # Preserve the original referer for filter preservation
     original_referer = request.POST.get('original_referer', '')
+    
+    # DEBUG: Add temporary debugging
+    print(f"DEBUG quality_rating: original_referer from POST = '{original_referer}'")
+    print(f"DEBUG quality_rating: HTTP_REFERER = '{request.META.get('HTTP_REFERER', '')}'")
 
     # Handle clear rating request
     if request.POST.get('clear_rating'):
@@ -1362,7 +1370,9 @@ def update_quality_rating_timesheet(request, assignment_id):
         # Redirect back to timesheet with preserved referer
         if original_referer:
             encoded_referer = quote(original_referer, safe='')
-            return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
+            redirect_url = f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}"
+            print(f"DEBUG quality_rating: redirecting to = '{redirect_url}'")
+            return redirect(redirect_url)
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
     # Get and validate quality rating
@@ -1373,7 +1383,9 @@ def update_quality_rating_timesheet(request, assignment_id):
         # Redirect back to timesheet with preserved referer
         if original_referer:
             encoded_referer = quote(original_referer, safe='')
-            return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
+            redirect_url = f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}"
+            print(f"DEBUG quality_rating: redirecting to = '{redirect_url}'")
+            return redirect(redirect_url)
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
     try:
@@ -1385,7 +1397,9 @@ def update_quality_rating_timesheet(request, assignment_id):
             # Redirect back to timesheet with preserved referer
             if original_referer:
                 encoded_referer = quote(original_referer, safe='')
-                return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
+                redirect_url = f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}"
+                print(f"DEBUG quality_rating: redirecting to = '{redirect_url}'")
+                return redirect(redirect_url)
             return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
         # Update the quality rating
@@ -1407,7 +1421,9 @@ def update_quality_rating_timesheet(request, assignment_id):
     # Redirect back to timesheet with preserved referer
     if original_referer:
         encoded_referer = quote(original_referer, safe='')
-        return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
+        redirect_url = f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}"
+        print(f"DEBUG quality_rating: redirecting to = '{redirect_url}'")
+        return redirect(redirect_url)
     return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
 
