@@ -2,6 +2,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.urls import reverse
+from urllib.parse import quote
 from .forms import ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, TaskAssignmentForm, TaskAssignmentUpdateForm, ProjectManagementForm, AddMiscHoursForm, TimerStopForm, ManualTimeEntryForm, EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm
 from .services import ProjectService
 from accounts.models import User
@@ -992,9 +994,17 @@ def assignment_timesheet(request, assignment_id):
     timesheet_data = result
 
     # Determine the correct back URL based on user role
+    from urllib.parse import unquote
+    original_referer = unquote(request.GET.get('original_referer', ''))
+    
     if request.user.role == 'DPM':
-        # Extract filter parameters from HTTP_REFERER if coming from assignments overview
-        referer = request.META.get('HTTP_REFERER', '')
+        # Check if we have a preserved original_referer from quality rating flow
+        if original_referer:
+            referer = original_referer
+        else:
+            # Extract filter parameters from HTTP_REFERER if coming from assignments overview
+            referer = request.META.get('HTTP_REFERER', '')
+            
         if '/projects/tasks/assignments/' in referer and '?' in referer:
             # Extract query parameters from referer URL
             from urllib.parse import urlparse, parse_qs
@@ -1057,6 +1067,15 @@ def assignment_timesheet(request, assignment_id):
             }
         ]
 
+    # Determine the original referer to pass to the template
+    # Priority: URL parameter > current HTTP_REFERER (only if not from quality rating)
+    template_original_referer = original_referer
+    if not template_original_referer:
+        current_referer = request.META.get('HTTP_REFERER', '')
+        # Only use current referer if it's from assignments overview, not from quality rating
+        if '/projects/tasks/assignments/' in current_referer:
+            template_original_referer = current_referer
+
     context = {
         'assignment': timesheet_data['assignment'],
         'daily_totals': timesheet_data['daily_totals'],
@@ -1066,6 +1085,7 @@ def assignment_timesheet(request, assignment_id):
         'back_text': back_text,
         'back_is_full_url': back_is_full_url,
         'quality_rating_options': quality_rating_options,
+        'original_referer': template_original_referer,
         'title': f'Timesheet: {timesheet_data["assignment"].assignment_id}'
     }
 
@@ -1330,17 +1350,30 @@ def update_quality_rating_timesheet(request, assignment_id):
         messages.error(request, "Can only rate quality of completed assignments")
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
+    # Preserve the original referer for filter preservation
+    original_referer = request.POST.get('original_referer', '')
+
     # Handle clear rating request
     if request.POST.get('clear_rating'):
         assignment.quality_rating = None
         assignment.save()
         messages.success(request, f"Quality rating cleared for assignment {assignment.assignment_id}")
+        
+        # Redirect back to timesheet with preserved referer
+        if original_referer:
+            encoded_referer = quote(original_referer, safe='')
+            return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
     # Get and validate quality rating
     quality_rating = request.POST.get('quality_rating')
     if not quality_rating:
         messages.error(request, "Please select a quality rating")
+        
+        # Redirect back to timesheet with preserved referer
+        if original_referer:
+            encoded_referer = quote(original_referer, safe='')
+            return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
     try:
@@ -1348,6 +1381,11 @@ def update_quality_rating_timesheet(request, assignment_id):
         rating_value = float(quality_rating)
         if rating_value < 1.0 or rating_value > 5.0:
             messages.error(request, "Quality rating must be between 1.0 and 5.0")
+            
+            # Redirect back to timesheet with preserved referer
+            if original_referer:
+                encoded_referer = quote(original_referer, safe='')
+                return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
             return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
         # Update the quality rating
@@ -1366,6 +1404,10 @@ def update_quality_rating_timesheet(request, assignment_id):
     except (ValueError, TypeError):
         messages.error(request, "Invalid quality rating value")
 
+    # Redirect back to timesheet with preserved referer
+    if original_referer:
+        encoded_referer = quote(original_referer, safe='')
+        return redirect(f"{reverse('projects:assignment_timesheet', args=[assignment_id])}?original_referer={encoded_referer}")
     return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
 

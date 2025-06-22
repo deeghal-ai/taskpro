@@ -752,6 +752,7 @@
                     <div class="card-body p-3">
                         <form id="qualityRatingForm" method="post" action="{% url 'projects:update_quality_rating_timesheet' assignment.id %}">
                             {% csrf_token %}
+                            <input type="hidden" name="original_referer" value="{{ original_referer }}">
                             <div class="d-flex flex-wrap align-items-center gap-3">
                                 <div class="rating-options-compact d-flex gap-1">
                                     {% for rating in quality_rating_options %}
