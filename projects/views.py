@@ -41,7 +41,13 @@ def create_project(request):
     """
     View for creating a new project. Handles form processing and
     delegates business logic to the service layer.
+    Only accessible by DPMs.
     """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. Only Project Managers can create projects.")
+        return redirect('home')
+    
     if request.method == 'POST':
         # Create and validate form
         form = ProjectCreateForm(request.POST, user=request.user)
@@ -68,7 +74,12 @@ def create_project(request):
 
 @login_required
 def project_detail(request, project_id):
-    """Display detailed information about a specific project."""
+    """Display detailed information about a specific project. Only accessible by DPMs."""
+    # Check if user is a DPM first
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. Only Project Managers can view project details.")
+        return redirect('home')
+    
     # Get project data using appropriate service methods
     success, result = ProjectService.get_project_details(project_id)
     if not success:
@@ -99,7 +110,15 @@ def update_project_status(request, project_id):
     """
     Handle status updates for a project.
     Now supports both regular and AJAX requests.
+    Only accessible by DPMs.
     """
+    # Check if user is a DPM first
+    if request.user.role != 'DPM':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': 'Access denied. Only Project Managers can update project status.'}, status=403)
+        messages.error(request, "Access denied. Only Project Managers can update project status.")
+        return redirect('home')
+    
     # Get the project first
     success, result = ProjectService.get_project(project_id)
 
@@ -168,7 +187,13 @@ def update_project_status(request, project_id):
 def project_list(request):
     """
     Displays a filterable list of pipeline projects (not yet delivered).
+    Only accessible by DPMs.
     """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
     # Get filter parameters from request
     search_query = request.GET.get('search', '')
     status = request.GET.get('status', '')
@@ -263,7 +288,13 @@ def project_list(request):
 def delivered_projects(request):
     """
     Displays a filterable list of delivered projects (Final Delivery status).
+    Only accessible by DPMs.
     """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
     # Get filter parameters from request
     search_query = request.GET.get('search', '')
     status = request.GET.get('status', '')

@@ -7,7 +7,7 @@ name = "pypi"
 django = "==5.1.4"
 psycopg2-binary = "==2.9.9"
 python-decouple = "==3.8"
-whitenoise = "==6.6.0"
+whitenoise = "*"
 gunicorn = "==21.2.0"
 
 [dev-packages]
