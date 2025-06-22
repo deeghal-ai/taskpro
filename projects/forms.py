@@ -830,3 +830,138 @@ class AddMiscHoursForm(forms.Form):
             minutes = self.cleaned_data.get('duration_minutes', 0)
             return (hours * 60) + minutes
         return 0
+
+class TaskAssignmentFilterForm(forms.Form):
+    """
+    Form for filtering task assignments view for DPMs.
+    Provides different date filtering for active vs completed assignments.
+    """
+    # Assignment status filter
+    assignment_status = forms.ChoiceField(
+        choices=[
+            ('all', 'All Assignments'),
+            ('active', 'Active Assignments'),
+            ('completed', 'Completed Assignments')
+        ],
+        initial='all',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Filter by assignment completion status"
+    )
+    
+    # Team member filter
+    team_member = forms.ModelChoiceField(
+        queryset=User.objects.filter(role='TEAM_MEMBER'),
+        required=False,
+        empty_label="All Team Members",
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Filter by team member"
+    )
+    
+    # DPM filter
+    dpm = forms.ModelChoiceField(
+        queryset=User.objects.filter(role='DPM'),
+        required=False,
+        empty_label="All DPMs",
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Filter by Project Manager"
+    )
+    
+    # Project filter - will be dynamically populated based on assignments
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.none(),  # Will be set in __init__
+        required=False,
+        empty_label="All Projects",
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Filter by project"
+    )
+    
+    # Date range filters
+    start_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="For active: assigned date, For completed: completion date"
+    )
+    
+    end_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="For active: assigned date, For completed: completion date"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Get current filter values if form is bound
+        if self.is_bound:
+            # Get filter values from data
+            assignment_status = self.data.get('assignment_status', 'all')
+            team_member_id = self.data.get('team_member')
+            dpm_id = self.data.get('dpm')
+            start_date = self.data.get('start_date')
+            end_date = self.data.get('end_date')
+            
+            # Build query to get projects from filtered assignments
+            from .models import TaskAssignment
+            from django.db.models import Q
+            from datetime import datetime
+            
+            query = TaskAssignment.objects.all()
+            
+            # Apply filters to get relevant assignments
+            if assignment_status == 'active':
+                query = query.filter(is_completed=False)
+            elif assignment_status == 'completed':
+                query = query.filter(is_completed=True)
+            
+            if team_member_id:
+                query = query.filter(assigned_to_id=team_member_id)
+                
+            if dpm_id:
+                query = query.filter(task__project__dpm_id=dpm_id)
+            
+            # Apply date filtering
+            if start_date:
+                try:
+                    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                    if assignment_status == 'completed':
+                        query = query.filter(completion_date__date__gte=start_date_obj)
+                    else:
+                        query = query.filter(assigned_date__date__gte=start_date_obj)
+                except ValueError:
+                    pass
+                    
+            if end_date:
+                try:
+                    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                    if assignment_status == 'completed':
+                        query = query.filter(completion_date__date__lte=end_date_obj)
+                    else:
+                        query = query.filter(assigned_date__date__lte=end_date_obj)
+                except ValueError:
+                    pass
+            
+            # Get project IDs from filtered assignments
+            project_ids = query.values_list('task__project_id', flat=True).distinct()
+            self.fields['project'].queryset = Project.objects.filter(id__in=project_ids).order_by('project_name')
+        else:
+            # Default: Set project queryset to show only projects that have assignments
+            from .models import TaskAssignment
+            project_ids = TaskAssignment.objects.values_list('task__project_id', flat=True).distinct()
+            self.fields['project'].queryset = Project.objects.filter(id__in=project_ids).order_by('project_name')
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        
+        # Validate date range
+        if start_date and end_date and start_date > end_date:
+            raise ValidationError("Start date cannot be after end date")
+        
+        return cleaned_data

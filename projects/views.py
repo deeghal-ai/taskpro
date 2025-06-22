@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, TaskAssignmentForm, TaskAssignmentUpdateForm, ProjectManagementForm, AddMiscHoursForm, TimerStopForm, ManualTimeEntryForm, EditSessionDurationForm, DailyRosterFilterForm
+from .forms import ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, TaskAssignmentForm, TaskAssignmentUpdateForm, ProjectManagementForm, AddMiscHoursForm, TimerStopForm, ManualTimeEntryForm, EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm
 from .services import ProjectService
 from accounts.models import User
 from locations.models import Region, City
@@ -921,9 +921,18 @@ def completed_assignments_list(request):
 @login_required
 def assignment_timesheet(request, assignment_id):
     """View detailed timesheet for a specific assignment."""
-    if request.user.role != 'TEAM_MEMBER':
+    # Allow both team members and DPMs to access timesheets
+    if request.user.role not in ['TEAM_MEMBER', 'DPM']:
         messages.error(request, "Access denied")
         return redirect('home')
+    
+    # For DPMs, just verify the assignment exists (any DPM can view any timesheet)
+    if request.user.role == 'DPM':
+        try:
+            assignment = TaskAssignment.objects.select_related('task__project').get(id=assignment_id)
+        except TaskAssignment.DoesNotExist:
+            messages.error(request, "Assignment not found")
+            return redirect('projects:dpm_assignments_overview')
 
     # Handle session duration editing
     if request.method == 'POST' and 'edit_session_duration' in request.POST:
@@ -962,21 +971,101 @@ def assignment_timesheet(request, assignment_id):
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
     # Get timesheet data using service layer (no date filtering)
+    # For DPMs, pass the actual team member instead of the DPM
+    if request.user.role == 'DPM':
+        # assignment is already fetched above for DPM access check
+        team_member = assignment.assigned_to
+    else:
+        team_member = request.user
+        
     success, result = ProjectService.get_assignment_timesheet_data(
-        assignment_id, request.user
+        assignment_id, team_member
     )
 
     if not success:
         messages.error(request, result)
-        return redirect('projects:team_member_dashboard')
+        if request.user.role == 'DPM':
+            return redirect('projects:dpm_assignments_overview')
+        else:
+            return redirect('projects:team_member_dashboard')
 
     timesheet_data = result
+
+    # Determine the correct back URL based on user role
+    if request.user.role == 'DPM':
+        # Extract filter parameters from HTTP_REFERER if coming from assignments overview
+        referer = request.META.get('HTTP_REFERER', '')
+        if '/projects/tasks/assignments/' in referer and '?' in referer:
+            # Extract query parameters from referer URL
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(referer)
+            query_params = parse_qs(parsed_url.query)
+            
+            # Build filter parameters
+            filter_params = []
+            for param in ['assignment_status', 'team_member', 'dpm', 'project', 'start_date', 'end_date']:
+                if param in query_params and query_params[param][0]:
+                    filter_params.append(f"{param}={query_params[param][0]}")
+            
+            if filter_params:
+                # Reconstruct the assignments overview URL with filters
+                back_url = f"/projects/tasks/assignments/?{'&'.join(filter_params)}"
+                back_is_full_url = True
+            else:
+                # Default assignments overview
+                back_url = 'projects:dpm_assignments_overview'
+                back_is_full_url = False
+        else:
+            # Default assignments overview
+            back_url = 'projects:dpm_assignments_overview'
+            back_is_full_url = False
+            
+        back_text = 'Back to Assignments'
+    else:
+        back_url = 'projects:team_member_dashboard'
+        back_text = 'Back to Dashboard'
+        back_is_full_url = False
+
+    # Prepare quality rating options for DPMs
+    quality_rating_options = []
+    if request.user.role == 'DPM' and assignment.is_completed:
+        quality_rating_options = [
+            {
+                'value': 1.0,
+                'stars': [1],
+                'description': 'Poor'
+            },
+            {
+                'value': 2.0,
+                'stars': [1, 2],
+                'description': 'Fair'
+            },
+            {
+                'value': 3.0,
+                'stars': [1, 2, 3],
+                'description': 'Good'
+            },
+            {
+                'value': 4.0,
+                'stars': [1, 2, 3, 4],
+                'description': 'Very Good'
+            },
+            {
+                'value': 5.0,
+                'stars': [1, 2, 3, 4, 5],
+                'description': 'Excellent'
+            }
+        ]
 
     context = {
         'assignment': timesheet_data['assignment'],
         'daily_totals': timesheet_data['daily_totals'],
         'sessions': timesheet_data['sessions'],
         'assignment_summary': timesheet_data['assignment_summary'],
+        'back_url': back_url,
+        'back_text': back_text,
+        'back_is_full_url': back_is_full_url,
+        'quality_rating_options': quality_rating_options,
         'title': f'Timesheet: {timesheet_data["assignment"].assignment_id}'
     }
 
@@ -1214,6 +1303,71 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
     return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
 
+@login_required
+def update_quality_rating_timesheet(request, assignment_id):
+    """
+    Update quality rating for a completed assignment directly from the timesheet.
+    Only accessible by DPMs.
+    """
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. Only Project Managers can rate assignments.")
+        return redirect('home')
+
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
+
+    try:
+        assignment = TaskAssignment.objects.select_related(
+            'task__project', 'assigned_to'
+        ).get(id=assignment_id)
+    except TaskAssignment.DoesNotExist:
+        messages.error(request, "Assignment not found.")
+        return redirect('projects:dpm_assignments_overview')
+
+    # Validate assignment is completed
+    if not assignment.is_completed:
+        messages.error(request, "Can only rate quality of completed assignments")
+        return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
+
+    # Handle clear rating request
+    if request.POST.get('clear_rating'):
+        assignment.quality_rating = None
+        assignment.save()
+        messages.success(request, f"Quality rating cleared for assignment {assignment.assignment_id}")
+        return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
+
+    # Get and validate quality rating
+    quality_rating = request.POST.get('quality_rating')
+    if not quality_rating:
+        messages.error(request, "Please select a quality rating")
+        return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
+
+    try:
+        # Convert to decimal and validate range
+        rating_value = float(quality_rating)
+        if rating_value < 1.0 or rating_value > 5.0:
+            messages.error(request, "Quality rating must be between 1.0 and 5.0")
+            return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
+
+        # Update the quality rating
+        assignment.quality_rating = rating_value
+        assignment.save()
+
+        # Create success message with rating description
+        rating_descriptions = {
+            1.0: 'Poor', 2.0: 'Fair', 3.0: 'Good', 4.0: 'Very Good', 5.0: 'Excellent'
+        }
+        description = rating_descriptions.get(rating_value, 'Unknown')
+        
+        messages.success(request, 
+            f"Quality rating set to {rating_value}/5 ({description}) for assignment {assignment.assignment_id}")
+
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid quality rating value")
+
+    return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
+
 
 @login_required
 def my_projects(request):
@@ -1299,3 +1453,162 @@ def delivery_performance_report(request):
     }
 
     return render(request, 'projects/reports/delivery_performance.html', context)
+
+@login_required
+def dpm_assignments_overview(request):
+    """
+    Display all task assignments for DPM with filtering capabilities.
+    Shows both active and completed assignments with timesheet links.
+    """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+
+    # Handle AJAX request for dynamic filtering
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.POST.get('get_filter_options'):
+            # Get filter parameters from POST
+            assignment_status = request.POST.get('assignment_status', 'all')
+            team_member_id = request.POST.get('team_member', '')
+            dpm_id = request.POST.get('dpm', '')
+            project_id = request.POST.get('project', '')
+            
+            # Convert to objects if provided
+            team_member = None
+            dpm = None
+            project = None
+            try:
+                if team_member_id:
+                    team_member = User.objects.get(id=team_member_id)
+                if dpm_id:
+                    dpm = User.objects.get(id=dpm_id)
+                if project_id:
+                    project = Project.objects.get(id=project_id)
+            except (User.DoesNotExist, Project.DoesNotExist):
+                pass
+            
+            # Get assignments for projects (excluding project filter)
+            success_projects, result_projects = ProjectService.get_dpm_all_task_assignments(
+                assignment_status=assignment_status,
+                team_member=team_member,
+                project=None,  # Don't filter by project for project choices
+                dpm=dpm,
+                start_date=None,
+                end_date=None
+            )
+            
+            # Get assignments for team members (excluding team member filter)
+            success_members, result_members = ProjectService.get_dpm_all_task_assignments(
+                assignment_status=assignment_status,
+                team_member=None,  # Don't filter by team member for team member choices
+                project=project,
+                dpm=dpm,
+                start_date=None,
+                end_date=None
+            )
+            
+            response_data = {}
+            
+            # Get unique projects
+            if success_projects:
+                project_ids = set()
+                for assignment in result_projects:
+                    project_ids.add(assignment.task.project.id)
+                
+                projects = Project.objects.filter(id__in=project_ids).order_by('project_name')
+                response_data['projects'] = [
+                    {'id': p.id, 'name': p.project_name}
+                    for p in projects
+                ]
+            else:
+                response_data['projects'] = []
+            
+            # Get unique team members
+            if success_members:
+                member_ids = set()
+                for assignment in result_members:
+                    member_ids.add(assignment.assigned_to.id)
+                
+                members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER').order_by('first_name', 'last_name', 'username')
+                response_data['team_members'] = [
+                    {
+                        'id': m.id, 
+                        'name': m.get_full_name() if m.get_full_name().strip() else m.username
+                    }
+                    for m in members
+                ]
+            else:
+                response_data['team_members'] = []
+                
+            return JsonResponse(response_data)
+
+    # Regular GET request handling
+    # Create filter form 
+    filter_form = TaskAssignmentFilterForm(data=request.GET)
+    
+    # Default parameters
+    assignment_status = 'all'
+    team_member = None
+    project = None
+    dpm = None
+    start_date = None
+    end_date = None
+    
+    # Apply filters if form is valid
+    if filter_form.is_valid():
+        assignment_status = filter_form.cleaned_data.get('assignment_status', 'all')
+        team_member = filter_form.cleaned_data.get('team_member')
+        project = filter_form.cleaned_data.get('project')
+        dpm = filter_form.cleaned_data.get('dpm')
+        start_date = filter_form.cleaned_data.get('start_date')
+        end_date = filter_form.cleaned_data.get('end_date')
+    
+    # Get assignments using service layer
+    success, result = ProjectService.get_dpm_all_task_assignments(
+        assignment_status=assignment_status,
+        team_member=team_member,
+        project=project,
+        dpm=dpm,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('projects:dpm_task_dashboard')
+    
+    assignments = result
+    
+    # Create summary statistics
+    total_assignments = len(assignments)
+    active_count = sum(1 for a in assignments if not a.is_completed)
+    completed_count = sum(1 for a in assignments if a.is_completed)
+    
+    # Create date range display text for UI
+    date_range_text = ""
+    if start_date or end_date:
+        if assignment_status == 'completed':
+            date_field_name = "completion date"
+        else:
+            date_field_name = "assigned date"
+            
+        if start_date and end_date:
+            date_range_text = f"From {start_date.strftime('%b %d, %Y')} to {end_date.strftime('%b %d, %Y')} ({date_field_name})"
+        elif start_date:
+            date_range_text = f"From {start_date.strftime('%b %d, %Y')} onwards ({date_field_name})"
+        elif end_date:
+            date_range_text = f"Up to {end_date.strftime('%b %d, %Y')} ({date_field_name})"
+    
+    context = {
+        'assignments': assignments,
+        'filter_form': filter_form,
+        'total_assignments': total_assignments,
+        'active_count': active_count,
+        'completed_count': completed_count,
+        'assignment_status': assignment_status,
+        'date_range_text': date_range_text,
+        'title': 'Task Assignments Overview'
+    }
+    
+    return render(request, 'projects/dpm_assignments_overview.html', context)

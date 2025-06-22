@@ -15,6 +15,7 @@ urlpatterns = [
     
     # Task Management URLs
     path('tasks/dashboard/', views.dpm_task_dashboard, name='dpm_task_dashboard'),
+    path('tasks/assignments/', views.dpm_assignments_overview, name='dpm_assignments_overview'),
     path('<uuid:project_id>/manage/', views.project_management, name='project_management'),
     path('<uuid:project_id>/update-configuration/', views.update_project_configuration, name='update_project_configuration'),
     path('<uuid:project_id>/create-task/', views.create_project_task, name='create_project_task'),
@@ -45,6 +46,7 @@ urlpatterns = [
     path('tasks/completed-assignments/', views.completed_assignments_list, name='completed_assignments_list'),
     path('my-projects/', views.my_projects, name='my_projects'), 
     path('assignments/<uuid:assignment_id>/timesheet/', views.assignment_timesheet, name='assignment_timesheet'),
+    path('assignments/<uuid:assignment_id>/rate-quality/', views.update_quality_rating_timesheet, name='update_quality_rating_timesheet'),
     path('daily-roster/', views.daily_roster, name='daily_roster'),
     path('roster/', views.monthly_roster, name='roster'), 
     path('roster/<int:year>/<int:month>/', views.monthly_roster, name='roster_date'),

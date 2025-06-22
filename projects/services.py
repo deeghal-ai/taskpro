@@ -1372,6 +1372,102 @@ class ProjectService:
             logger.exception(f"Error getting all completed assignments: {str(e)}")
             return False, f"An error occurred: {str(e)}"
 
+    @staticmethod
+    def get_dpm_all_task_assignments(assignment_status='all', team_member=None, project=None, dpm=None, start_date=None, end_date=None):
+        """
+        Get all task assignments with filtering options (accessible to any DPM).
+        
+        Args:
+            assignment_status: 'all', 'active', or 'completed'
+            team_member: Optional User object to filter by team member
+            project: Optional Project object to filter by project
+            dpm: Optional DPM User object to filter by DPM
+            start_date: Optional start date for filtering
+            end_date: Optional end date for filtering
+            
+        Returns:
+            tuple: (success, result)
+                - If successful: (True, assignments_queryset)
+                - If failed: (False, error_message)
+        """
+        try:
+            # Base query - get all assignments (no DPM restriction)
+            query = TaskAssignment.objects.select_related(
+                'task',
+                'task__project', 
+                'task__product_task',
+                'assigned_to',
+                'assigned_by'
+            ).prefetch_related(
+                'daily_totals'
+            )
+            
+            # Filter by assignment status
+            if assignment_status == 'active':
+                query = query.filter(is_completed=False)
+            elif assignment_status == 'completed':
+                query = query.filter(is_completed=True)
+            # 'all' doesn't need additional filtering
+            
+            # Filter by team member
+            if team_member:
+                query = query.filter(assigned_to=team_member)
+            
+            # Filter by project
+            if project:
+                query = query.filter(task__project=project)
+            
+            # Filter by DPM
+            if dpm:
+                query = query.filter(task__project__dpm=dpm)
+            
+            # Apply date filtering based on assignment status
+            if start_date or end_date:
+                if assignment_status == 'completed':
+                    # For completed assignments, filter by completion_date
+                    if start_date:
+                        query = query.filter(completion_date__date__gte=start_date)
+                    if end_date:
+                        query = query.filter(completion_date__date__lte=end_date)
+                else:
+                    # For active assignments (or all), filter by assigned_date
+                    if start_date:
+                        query = query.filter(assigned_date__date__gte=start_date)
+                    if end_date:
+                        query = query.filter(assigned_date__date__lte=end_date)
+            
+            # Order by appropriate date field
+            if assignment_status == 'completed':
+                query = query.order_by('-completion_date')
+            else:
+                query = query.order_by('-assigned_date')
+            
+            # Add computed fields for display
+            assignments = []
+            for assignment in query:
+                # Calculate total hours worked
+                total_minutes = sum(dt.total_minutes for dt in assignment.daily_totals.all())
+                total_hours_formatted = ProjectService._format_minutes(total_minutes)
+                
+                # Calculate progress percentage
+                if assignment.projected_hours and assignment.projected_hours > 0:
+                    progress_percentage = min(100, (total_minutes / assignment.projected_hours) * 100)
+                else:
+                    progress_percentage = 0
+                
+                # Add computed fields to assignment object
+                assignment.total_hours_worked = total_hours_formatted
+                assignment.progress_percentage = round(progress_percentage, 1)
+                assignment.projected_hours_formatted = ProjectService._format_minutes(assignment.projected_hours or 0)
+                
+                assignments.append(assignment)
+            
+            return True, assignments
+            
+        except Exception as e:
+            logger.exception(f"Error getting DPM task assignments: {str(e)}")
+            return False, f"An error occurred: {str(e)}"
+
     # Helper methods (private)
     @staticmethod
     def _update_daily_total(assignment, team_member, work_date, additional_minutes):

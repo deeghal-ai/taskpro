@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Visual Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Enhanced Card Styling */
+    .card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #fff 100%);
+        border-bottom: 2px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+    }
+
+    .card-title {
+        margin: 0;
+        color: #2d3748;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        transition: all var(--transition-speed) ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    /* Enhanced Table Styling */
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: var(--light-bg);
+        color: #495057;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+        border-bottom: 2px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: var(--border-color);
+    }
+
+    .table tbody tr {
+        transition: all var(--transition-speed) ease;
+        cursor: pointer;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.02);
+        transform: translateX(2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Badge Styling */
+    .badge {
+        padding: 0.375rem 0.75rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .assignment-id-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-family: 'Courier New', monospace;
+    }
+
+    .project-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .project-name {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 0.95rem;
+    }
+
+    .project-city {
+        color: #6c757d;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .team-member-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .team-member-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    /* Progress Bar */
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: var(--primary-color);
+        transition: width 0.6s ease;
+    }
+
+    .progress-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    /* Status indicators */
+    .status-completed {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .status-active {
+        background-color: var(--info-color);
+        color: white;
+    }
+
+    /* Date display */
+    .date-display {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .date-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .page-header {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-tasks me-2"></i>
+                    Task Assignments Overview
+                </h2>
+                <p class="mb-0 opacity-75">View and manage all task assignments across your projects</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'projects:dpm_task_dashboard' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1);">
+                    <i class="fas fa-list-ul" style="color: var(--primary-color);"></i>
+                </div>
+                <div class="stat-value">{{ total_assignments }}</div>
+                <div class="stat-label">Total Assignments</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(13, 202, 240, 0.1);">
+                    <i class="fas fa-play-circle" style="color: var(--info-color);"></i>
+                </div>
+                <div class="stat-value">{{ active_count }}</div>
+                <div class="stat-label">Active Assignments</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1);">
+                    <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                </div>
+                <div class="stat-value">{{ completed_count }}</div>
+                <div class="stat-label">Completed Assignments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="fas fa-filter me-2"></i>
+                Filter Assignments
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="filter-form">
+                {% csrf_token %}
+                <div class="filter-row">
+                    <div>
+                        <label class="form-label">Assignment Status</label>
+                        {{ filter_form.assignment_status }}
+                    </div>
+                    <div>
+                        <label class="form-label">Team Member</label>  
+                        {{ filter_form.team_member }}
+                    </div>
+                    <div>
+                        <label class="form-label">Project Manager</label>
+                        {{ filter_form.dpm }}
+                    </div>
+                    <div>
+                        <label class="form-label">Project</label>
+                        {{ filter_form.project }}
+                    </div>
+                    <div>
+                        <label class="form-label">Start Date</label>
+                        {{ filter_form.start_date }}
+                    </div>
+                    <div>
+                        <label class="form-label">End Date</label>
+                        {{ filter_form.end_date }}
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>
+                            Apply Filters
+                        </button>
+                        <a href="{% url 'projects:dpm_assignments_overview' %}" class="btn btn-outline-secondary ms-1">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+            
+            {% if date_range_text %}
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fas fa-calendar me-1"></i>
+                    Filtered by: {{ date_range_text }}
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Assignments Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">
+                <i class="fas fa-table me-2"></i>
+                Task Assignments
+                {% if assignment_status != 'all' %}
+                    ({{ assignment_status|capfirst }})
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if assignments %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Assignment ID</th>
+                                <th>Project & Task</th>
+                                <th>Team Member / DPM</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Hours (Worked/Projected)</th>
+                                <th>{% if assignment_status == 'completed' %}Completed{% elif assignment_status == 'active' %}Assigned{% else %}Date{% endif %}</th>
+                                <th>Quality Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in assignments %}
+                            <tr class="clickable-row" data-href="{% url 'projects:assignment_timesheet' assignment.id %}?{{ request.GET.urlencode }}">
+                                <td>
+                                    <span class="assignment-id-badge">{{ assignment.assignment_id }}</span>
+                                </td>
+                                <td>
+                                    <div class="project-info">
+                                        <div class="project-name">{{ assignment.task.project.project_name }}</div>
+                                        <div class="project-city">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            {{ assignment.task.project.city.name }}
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.8rem;">
+                                            <strong>Task:</strong> {{ assignment.task.product_task.name }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="team-member-info">
+                                        <div>
+                                            <div class="team-member-name">{{ assignment.assigned_to.get_full_name|default:assignment.assigned_to.username }}</div>
+                                            <div class="text-muted" style="font-size: 0.8rem;">
+                                                <i class="fas fa-user me-1"></i>{{ assignment.assigned_to.username }}
+                                                <span class="ms-2">
+                                                    <i class="fas fa-user-tie me-1"></i>{{ assignment.task.project.dpm.username }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if assignment.is_completed %}
+                                        <span class="badge status-completed">Completed</span>
+                                    {% else %}
+                                        <span class="badge status-active">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if assignment.projected_hours and assignment.projected_hours > 0 %}
+                                        <div class="progress" style="width: 100px;">
+                                            <div class="progress-bar" style="width: {{ assignment.progress_percentage }}%"></div>
+                                        </div>
+                                        <div class="progress-text">{{ assignment.progress_percentage }}%</div>
+                                    {% else %}
+                                        <span class="text-muted">No projection</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ assignment.total_hours_worked }}</strong> 
+                                        / {{ assignment.projected_hours_formatted }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="date-display">
+                                        {% if assignment.is_completed %}
+                                            <div class="date-label">Completed</div>
+                                            {{ assignment.completion_date|date:"M d, Y" }}
+                                        {% else %}
+                                            <div class="date-label">Assigned</div>
+                                            {{ assignment.assigned_date|date:"M d, Y" }}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if assignment.is_completed %}
+                                        {% if assignment.quality_rating %}
+                                            <span class="badge bg-success">{{ assignment.quality_rating }}/5</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Not Rated</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">In Progress</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h5>No Assignments Found</h5>
+                    <p class="text-muted">
+                        {% if assignment_status == 'active' %}
+                            No active assignments match your current filters.
+                        {% elif assignment_status == 'completed' %}
+                            No completed assignments match your current filters.
+                        {% else %}
+                            No assignments found with the current filters.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'projects:dpm_assignments_overview' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-refresh me-1"></i>
+                        Clear Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Add click handlers and other JavaScript functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading state to filter form
+    document.querySelector('.filter-form').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Applying...';
+        submitBtn.disabled = true;
+    });
+    
+    // Add tooltips for progress bars
+    const progressBars = document.querySelectorAll('.progress');
+    progressBars.forEach(function(progressBar) {
+        const percentage = progressBar.querySelector('.progress-bar').style.width;
+        progressBar.title = `Progress: ${percentage}`;
+    });
+    
+         // Dynamic filtering without page reload
+     const statusField = document.querySelector('#id_assignment_status');
+     const teamMemberField = document.querySelector('#id_team_member');
+     const dpmField = document.querySelector('#id_dpm');
+     const projectField = document.querySelector('#id_project');
+     
+     // Function to update both project and team member dropdowns
+     function updateFilterOptions() {
+         console.log('Updating filter options...');
+         
+         const formData = new FormData();
+         formData.append('get_filter_options', '1');
+         if (statusField && statusField.value) formData.append('assignment_status', statusField.value);
+         if (teamMemberField && teamMemberField.value) formData.append('team_member', teamMemberField.value);
+         if (dpmField && dpmField.value) formData.append('dpm', dpmField.value);
+         if (projectField && projectField.value) formData.append('project', projectField.value);
+         
+         // Get CSRF token
+         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+         if (csrfToken) {
+             formData.append('csrfmiddlewaretoken', csrfToken.value);
+         }
+         
+         fetch(window.location.pathname, {
+             method: 'POST',
+             body: formData,
+             headers: {
+                 'X-Requested-With': 'XMLHttpRequest'
+             }
+         })
+         .then(response => {
+             console.log('Response status:', response.status);
+             return response.json();
+         })
+         .then(data => {
+             console.log('Received data:', data);
+             
+             // Update project dropdown if available
+             if (data.projects && projectField) {
+                 const currentProjectValue = projectField.value;
+                 projectField.innerHTML = '<option value="">All Projects</option>';
+                 
+                 data.projects.forEach(project => {
+                     const option = document.createElement('option');
+                     option.value = project.id;
+                     option.textContent = project.name;
+                     if (project.id == currentProjectValue) {
+                         option.selected = true;
+                     }
+                     projectField.appendChild(option);
+                 });
+             }
+             
+             // Update team member dropdown if available
+             if (data.team_members && teamMemberField) {
+                 const currentTeamMemberValue = teamMemberField.value;
+                 teamMemberField.innerHTML = '<option value="">All Team Members</option>';
+                 
+                 data.team_members.forEach(member => {
+                     const option = document.createElement('option');
+                     option.value = member.id;
+                     option.textContent = member.name;
+                     if (member.id == currentTeamMemberValue) {
+                         option.selected = true;
+                     }
+                     teamMemberField.appendChild(option);
+                 });
+             }
+         })
+         .catch(error => {
+             console.error('Error updating filter options:', error);
+         });
+     }
+     
+     // Add event listeners for dynamic filtering
+     if (statusField) {
+         statusField.addEventListener('change', function() {
+             console.log('Status changed to:', this.value);
+             updateFilterOptions();
+         });
+     }
+     if (teamMemberField) {
+         teamMemberField.addEventListener('change', function() {
+             console.log('Team member changed to:', this.value);
+             updateFilterOptions();
+         });
+     }
+     if (dpmField) {
+         dpmField.addEventListener('change', function() {
+             console.log('DPM changed to:', this.value);
+             updateFilterOptions();
+         });
+     }
+     if (projectField) {
+         projectField.addEventListener('change', function() {
+             console.log('Project changed to:', this.value);
+             updateFilterOptions();
+         });
+     }
+    
+    // Handle clickable rows
+    document.querySelectorAll('.clickable-row').forEach(function(row) {
+        row.addEventListener('click', function() {
+            window.location.href = this.dataset.href;
+        });
+        
+        // Add cursor pointer style
+        row.style.cursor = 'pointer';
+    });
+});
+</script>
+{% endblock %} 
