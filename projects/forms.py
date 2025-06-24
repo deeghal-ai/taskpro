@@ -859,8 +859,7 @@ class EditMiscHoursForm(forms.ModelForm):
     """
     duration = DurationFormField(
         required=True,
-        label="Duration",
-        help_text="Enter duration in HH:MM format."
+        help_text="Duration in HH:MM format (e.g., 02:30 for 2.5 hours)"
     )
 
     class Meta:
@@ -868,7 +867,7 @@ class EditMiscHoursForm(forms.ModelForm):
         fields = ['date', 'activity']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'activity': forms.TextInput(attrs={'class': 'form-control'}),
+            'activity': forms.TextInput(attrs={'class': 'form-control'})
         }
 
     def __init__(self, *args, **kwargs):
@@ -877,21 +876,31 @@ class EditMiscHoursForm(forms.ModelForm):
             self.fields['duration'].initial = self.instance.duration_minutes
 
     def clean_date(self):
+        """
+        Ensure the date is not in the future.
+        """
         date = self.cleaned_data.get('date')
         if date and date > timezone.localtime(timezone.now()).date():
             raise ValidationError("Date cannot be in the future.")
         return date
 
+    def clean_duration(self):
+        """
+        Ensure duration is not more than 24 hours.
+        """
+        duration_minutes = self.cleaned_data.get('duration')
+        if duration_minutes is not None and duration_minutes > 24 * 60:
+            raise ValidationError("Duration cannot exceed 24 hours.")
+        return duration_minutes
+
     def clean(self):
         cleaned_data = super().clean()
-        duration = cleaned_data.get('duration')
-        if duration is not None and duration <= 0:
-            raise ValidationError({'duration': "Duration must be greater than zero."})
+        cleaned_data['duration_minutes'] = cleaned_data.get('duration')
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        instance.duration_minutes = self.cleaned_data['duration']
+        instance.duration_minutes = self.cleaned_data.get('duration_minutes')
         if commit:
             instance.save()
         return instance

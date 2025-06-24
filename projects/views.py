@@ -1991,29 +1991,17 @@ def assignment_graph_view(request):
 @login_required
 def edit_misc_hours(request, misc_hours_id):
     """
-    Handle editing of a miscellaneous hours entry.
-    This view is expected to be called via AJAX from a modal form.
+    Handle editing of miscellaneous hours entries via AJAX.
     """
-    try:
-        misc_entry = MiscHours.objects.get(id=misc_hours_id, team_member=request.user)
-    except MiscHours.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Entry not found or permission denied.'}, status=404)
-
+    misc_entry = get_object_or_404(MiscHours, id=misc_hours_id, team_member=request.user)
+    
     if request.method == 'POST':
         form = EditMiscHoursForm(request.POST, instance=misc_entry)
         if form.is_valid():
             form.save()
-            return JsonResponse({
-                'success': True,
-                'message': 'Miscellaneous hours entry updated successfully.',
-                'entry': {
-                    'id': str(misc_entry.id),
-                    'activity': misc_entry.activity,
-                    'formatted_duration': misc_entry.get_formatted_duration(),
-                    'date': misc_entry.date.strftime('%Y-%m-%d')
-                }
-            })
+            messages.success(request, "Miscellaneous hours entry updated successfully.")
+            return JsonResponse({'success': True})
         else:
-            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+            return JsonResponse({'success': False, 'errors': form.errors.get_json_data()})
     
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)

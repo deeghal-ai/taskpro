@@ -129,9 +129,99 @@
         {% endblock %}
     </div>
 
+    <!-- Generic Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirmationModalBody">
+                    Are you sure?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmationModalConfirm">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Message Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageModalLabel">Notification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="messageModalBody">
+                    <!-- Message content will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
+    <script>
+        /**
+         * Shows a generic confirmation modal.
+         * @param {string} message - The message to display in the modal body.
+         * @param {function} onConfirm - The callback function to execute when the user clicks "OK".
+         * @param {string} [title='Confirm Action'] - The title of the modal.
+         */
+        function showConfirmationModal(message, onConfirm, title = 'Confirm Action') {
+            const modalEl = document.getElementById('confirmationModal');
+            if (!modalEl) return;
+
+            modalEl.querySelector('#confirmationModalLabel').textContent = title;
+            modalEl.querySelector('#confirmationModalBody').textContent = message;
+
+            const confirmBtn = modalEl.querySelector('#confirmationModalConfirm');
+            
+            // Clone and replace the button to remove any old event listeners
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            const modalInstance = new bootstrap.Modal(modalEl);
+
+            newConfirmBtn.addEventListener('click', () => {
+                onConfirm();
+                modalInstance.hide();
+            });
+
+            modalInstance.show();
+        }
+
+        /**
+         * Shows a generic message modal.
+         * @param {string} message - The message to display.
+         * @param {string} [title='Notification'] - The title of the modal.
+         * @param {function} [onHidden] - Optional callback to run after the modal is hidden.
+         */
+        function showMessageModal(message, title = 'Notification', onHidden) {
+            const modalEl = document.getElementById('messageModal');
+            if (!modalEl) return;
+
+            modalEl.querySelector('#messageModalLabel').textContent = title;
+            modalEl.querySelector('#messageModalBody').textContent = message;
+
+            const modalInstance = new bootstrap.Modal(modalEl);
+
+            if (onHidden && typeof onHidden === 'function') {
+                modalEl.addEventListener('hidden.bs.modal', onHidden, { once: true });
+            }
+
+            modalInstance.show();
+        }
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
