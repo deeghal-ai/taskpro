@@ -329,23 +329,36 @@
                                     <i class="bi bi-play-circle-fill fs-2 text-success"></i>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <span class="badge bg-success me-2">
-                                            <i class="bi bi-stopwatch"></i> RUNNING
-                                        </span>
-                                        <span class="timer-display fw-bold fs-5 text-success" 
-                                              id="timer-display"
-                                              data-start-time="{{ active_timer.started_at|date:'c' }}">
-                                            {{ elapsed_time.formatted }}
-                                        </span>
-                                    </div>
-                                    <div class="mb-1">
-                                        <span class="fw-semibold text-dark">{{ active_timer.assignment.task.product_task.name }}</span>
-                                        <span class="badge bg-primary ms-2">{{ active_timer.assignment.assignment_id }}</span>
-                                    </div>
-                                    <div class="text-muted small">
-                                        <i class="bi bi-card-text me-1"></i>
-                                        <span class="fst-italic">{{ active_timer.assignment.sub_task|truncatechars:80 }}</span>
+                                    <div class="d-flex align-items-center">
+                                        <!-- Left: Status Badges -->
+                                        <div class="me-4">
+                                            <div class="mb-1">
+                                                <span class="badge bg-primary">{{ active_timer.assignment.assignment_id }}</span>
+                                            </div>
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-stopwatch"></i> RUNNING
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Center: Timer Display -->
+                                        <div class="text-center me-4">
+                                            <div class="timer-display fw-bold display-6 text-success" 
+                                                 id="timer-display"
+                                                 data-start-time="{{ active_timer.started_at|date:'c' }}">
+                                                {{ elapsed_time.formatted }}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Right: Task Details -->
+                                        <div class="flex-grow-1">
+                                            <div class="mb-1">
+                                                <span class="fw-semibold text-dark">{{ active_timer.assignment.task.product_task.name }}</span>
+                                            </div>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-card-text me-1"></i>
+                                                <span class="fst-italic">{{ active_timer.assignment.sub_task|truncatechars:70 }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
