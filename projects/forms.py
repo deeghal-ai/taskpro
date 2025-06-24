@@ -613,9 +613,9 @@ class ManualTimeEntryForm(forms.Form):
         widget=forms.DateInput(attrs={
             'class': 'form-control',
             'type': 'date',
-            'max': date.today().isoformat()  # Can't add future dates
+            'max': timezone.localtime(timezone.now()).date().isoformat()  # Can't add future dates
         }),
-        initial=date.today,
+        initial=lambda: timezone.localtime(timezone.now()).date(),
         help_text="The date when you performed this work"
     )
     
@@ -670,9 +670,9 @@ class ManualTimeEntryForm(forms.Form):
         if hours == 0 and minutes == 0:
             raise ValidationError("Please enter at least 1 minute of work time.")
         
-        # Check that date is not in the future
+        # Check that date is not in the future (use local timezone)
         work_date = cleaned_data.get('date')
-        if work_date and work_date > date.today():
+        if work_date and work_date > timezone.localtime(timezone.now()).date():
             raise ValidationError("Work date cannot be in the future.")
         
         return cleaned_data
@@ -765,7 +765,7 @@ class DailyRosterFilterForm(forms.Form):
             'class': 'form-control',
             'type': 'date'
         }),
-        initial=date.today,
+        initial=lambda: timezone.localtime(timezone.now()).date(),
         help_text="Select date to view time breakdown"
     )
     
@@ -783,9 +783,9 @@ class AddMiscHoursForm(forms.Form):
         widget=forms.DateInput(attrs={
             'class': 'form-control',
             'type': 'date',
-            'max': date.today().isoformat()  # Can't add future dates
+            'max': timezone.localtime(timezone.now()).date().isoformat()  # Can't add future dates
         }),
-        initial=date.today,
+        initial=lambda: timezone.localtime(timezone.now()).date(),
         help_text="Date when the miscellaneous work was performed"
     )
     
@@ -834,8 +834,8 @@ class AddMiscHoursForm(forms.Form):
         if hours == 0 and minutes == 0:
             raise ValidationError("Duration must be at least 1 minute.")
         
-        # Check that date is not in the future
-        if work_date and work_date > date.today():
+        # Check that date is not in the future (use local timezone)
+        if work_date and work_date > timezone.localtime(timezone.now()).date():
             raise ValidationError("Work date cannot be in the future.")
         
         return cleaned_data

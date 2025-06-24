@@ -1027,12 +1027,12 @@ class DailyRoster(models.Model):
     # Keep only actual user-entered data
     misc_hours = models.PositiveIntegerField(
         default=0,
-        help_text="Miscellaneous hours worked (manual entry)"
+        help_text="Miscellaneous hours worked (manual entry) - DEPRECATED: Use MiscHours model instead"
     )
     misc_description = models.CharField(
         max_length=200,
         blank=True,
-        help_text="Description of miscellaneous work"
+        help_text="Description of miscellaneous work - DEPRECATED: Use MiscHours model instead"
     )
 
     # Metadata
@@ -1069,9 +1069,17 @@ class DailyRoster(models.Model):
         ).aggregate(total=Sum('total_minutes'))['total'] or 0
 
     @property
+    def misc_hours_new(self):
+        """Calculate misc hours dynamically from MiscHours model"""
+        return MiscHours.objects.filter(
+            team_member=self.team_member,
+            date=self.date
+        ).aggregate(total=Sum('duration_minutes'))['total'] or 0
+
+    @property
     def total_hours(self):
-        """Total hours worked (assignment + misc)"""
-        return self.assignment_hours + self.misc_hours
+        """Total hours worked (assignment + misc from both old and new models)"""
+        return self.assignment_hours + self.misc_hours + self.misc_hours_new
 
     def get_total_hours_formatted(self):
         """Get total hours in HH:MM format"""
@@ -1092,6 +1100,59 @@ class DailyRoster(models.Model):
         minutes = self.misc_hours % 60
         return f"{hours:02d}:{minutes:02d}"
 
+    def get_misc_hours_new_formatted(self):
+        """Get new misc hours in HH:MM format"""
+        hours = self.misc_hours_new // 60
+        minutes = self.misc_hours_new % 60
+        return f"{hours:02d}:{minutes:02d}"
+
+
+class MiscHours(models.Model):
+    """
+    Individual misc hour entries for team members.
+    This allows multiple separate entries per day.
+    """
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    team_member = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='misc_hours_entries',
+        help_text="Team member who worked these misc hours"
+    )
+    date = models.DateField(
+        help_text="Date when the misc work was performed"
+    )
+    activity = models.CharField(
+        max_length=200,
+        help_text="Description of the misc activity"
+    )
+    duration_minutes = models.PositiveIntegerField(
+        help_text="Duration of the misc work in minutes"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        verbose_name = 'Misc Hours Entry'
+        verbose_name_plural = 'Misc Hours Entries'
+        indexes = [
+            models.Index(fields=['team_member', 'date']),
+            models.Index(fields=['date']),
+        ]
+
+    def __str__(self):
+        return f"{self.team_member.username} - {self.date} - {self.activity} ({self.get_formatted_duration()})"
+
+    def get_formatted_duration(self):
+        """Get duration in HH:MM format"""
+        hours = self.duration_minutes // 60
+        minutes = self.duration_minutes % 60
+        return f"{hours:02d}:{minutes:02d}"
 
 
 class Holiday(models.Model):

@@ -381,6 +381,30 @@
     
     .assignment-row {
         animation: slideIn 0.3s ease-out;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Misc hours styling */
+    .misc-hours-row {
+        background-color: #f8f9fa;
+        border-left: 4px solid #17a2b8;
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 8px;
+    }
+    
+    /* Ensure links are clickable */
+    .assignment-row a {
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+    }
+    
+    .assignment-row .btn {
+        position: relative;
+        z-index: 3;
+        pointer-events: auto !important;
     }
 </style>
 {% endblock %}
@@ -457,7 +481,7 @@
             </h5>
         </div>
         <div class="card-body">
-            {% if daily_totals %}
+            {% if daily_totals or misc_hours_entries %}
                 {% if show_week %}
                     <!-- Week View -->
                     <div class="alert alert-info">
@@ -477,11 +501,14 @@
                                 {% for daily_total in day_group.list %}
                                     <div class="assignment-row">
                                         <div class="row align-items-center">
-                                            <div class="col-md-6">
+                                            <div class="col-md-5">
                                                 <div class="fw-bold mb-1">
                                                     <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
                                                         {{ daily_total.assignment.assignment_id }}
                                                     </a>
+                                                    <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                                        {{ daily_total.assignment.task.task_type }}
+                                                    </span>
                                                 </div>
                                                 <div class="text-muted">
                                                     <small>
@@ -493,23 +520,66 @@
                                                     </small>
                                                 </div>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <div class="text-muted small mb-1">Sub-task:</div>
-                                                <div class="text-truncate" style="max-width: 250px;" 
+                                                <div class="text-truncate" style="max-width: 200px;" 
                                                      title="{{ daily_total.assignment.sub_task }}">
                                                     {{ daily_total.assignment.sub_task }}
                                                 </div>
                                             </div>
                                             <div class="col-md-3 text-md-end text-start">
                                                 <div class="time-display">{{ daily_total.get_formatted_total }}</div>
-                                                {% if daily_total.is_manually_edited %}
-                                                    <span class="badge bg-info ms-2">
-                                                        <i class="bi bi-pencil"></i> Edited
-                                                    </span>
-                                                {% endif %}
+                                                <div class="mt-2">
+                                                    <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
+                                                       class="btn btn-sm btn-outline-primary view-details-btn">
+                                                        <i class="bi bi-eye"></i> View Timesheet
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                {% endfor %}
+                                
+                                <!-- Add individual misc hours entries for this day -->
+                                {% for misc_entry in misc_hours_entries %}
+                                    {% if misc_entry.date == day_group.grouper %}
+                                        <div class="assignment-row misc-hours-row">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2">
+                                                    <span class="badge bg-info">MISC</span>
+                                                </div>
+                                                <div class="col-md-7 text-center">
+                                                    <div class="fw-semibold fs-5">
+                                                        {{ misc_entry.activity }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <!-- Legacy misc hours for backward compatibility -->
+                                {% for roster_date, day_roster in daily_rosters.items %}
+                                    {% if roster_date == day_group.grouper and day_roster.misc_hours > 0 %}
+                                        <div class="assignment-row misc-hours-row">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2">
+                                                    <span class="badge bg-warning">MISC (Legacy)</span>
+                                                </div>
+                                                <div class="col-md-7 text-center">
+                                                    <div class="fw-semibold fs-5">
+                                                        {{ day_roster.misc_description|default:"Administrative tasks" }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <div class="time-display">{{ day_roster.get_misc_hours_formatted }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -524,6 +594,9 @@
                                         <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
                                             {{ daily_total.assignment.assignment_id }}
                                         </a>
+                                        <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                            {{ daily_total.assignment.task.task_type }}
+                                        </span>
                                     </div>
                                     <div class="text-muted">
                                         <small>
@@ -542,28 +615,61 @@
                                     </div>
                                 </div>
                                 <div class="col-md-3 text-md-end text-start">
-                                    <div class="time-display mb-2">{{ daily_total.get_formatted_total }}</div>
-                                    <div>
-                                        {% if daily_total.is_manually_edited %}
-                                            <span class="badge bg-info">
-                                                <i class="bi bi-pencil"></i> Manually Edited
-                                            </span>
-                                        {% else %}
-                                            <span class="badge bg-success">
-                                                <i class="bi bi-calculator"></i> Auto-calculated
-                                            </span>
-                                        {% endif %}
-                                    </div>
+                                    <div class="time-display">{{ daily_total.get_formatted_total }}</div>
                                     <div class="mt-2">
                                         <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i> View Details
+                                           class="btn btn-sm btn-outline-primary view-details-btn">
+                                            <i class="bi bi-eye"></i> View Timesheet
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
+                    
+                    <!-- Add individual misc hours for single day view -->
+                    {% if not show_week %}
+                        {% for misc_entry in misc_hours_entries %}
+                            {% if misc_entry.date == selected_date %}
+                                <div class="assignment-row misc-hours-row">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <span class="badge bg-info">MISC</span>
+                                        </div>
+                                        <div class="col-md-7 text-center">
+                                            <div class="fw-semibold fs-5">
+                                                {{ misc_entry.activity }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- Legacy misc hours for single day view -->
+                        {% for roster_date, day_roster in daily_rosters.items %}
+                            {% if roster_date == selected_date and day_roster.misc_hours > 0 %}
+                                <div class="assignment-row misc-hours-row">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <span class="badge bg-warning">MISC (Legacy)</span>
+                                        </div>
+                                        <div class="col-md-7 text-center">
+                                            <div class="fw-semibold fs-5">
+                                                {{ day_roster.misc_description|default:"Administrative tasks" }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <div class="time-display">{{ day_roster.get_misc_hours_formatted }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <!-- Empty State -->
@@ -583,7 +689,7 @@
     </div>
 
     <!-- Summary Section -->
-    {% if daily_totals %}
+    {% if daily_totals or misc_hours_entries %}
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="summary-card">
@@ -702,35 +808,13 @@
         }
     };
     
-    // Animation Handler
+    // Animation Handler - Simplified to avoid interference
     const AnimationHandler = {
         init() {
-            this.observeElements();
-        },
-        
-        observeElements() {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry, index) => {
-                    if (entry.isIntersecting) {
-                        setTimeout(() => {
-                            entry.target.style.opacity = '1';
-                            entry.target.style.transform = 'translateX(0)';
-                        }, index * 50);
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-            
+            // Simplified animation - just ensure elements are visible
             document.querySelectorAll('.assignment-row').forEach((row, index) => {
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(-20px)';
-                row.style.transition = 'all 0.3s ease';
-                observer.observe(row);
+                row.style.opacity = '1';
+                row.style.transform = 'translateX(0)';
             });
         }
     };

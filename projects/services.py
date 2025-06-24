@@ -1283,8 +1283,21 @@ class ProjectService:
                     'formatted': ProjectService._format_minutes(elapsed_minutes)
                 }
 
-            # Get today's roster data for misc hours and total hours
+            # Get today's roster data for legacy misc hours
             today_roster, _ = ProjectService.get_or_create_daily_roster(team_member, today)
+            
+            # Get today's new individual misc hours entries
+            from .models import MiscHours
+            today_misc_entries = MiscHours.objects.filter(
+                team_member=team_member,
+                date=today
+            )
+            
+            # Calculate total misc hours from both sources
+            legacy_misc_minutes = today_roster.misc_hours
+            new_misc_minutes = sum(entry.duration_minutes for entry in today_misc_entries)
+            total_misc_minutes = legacy_misc_minutes + new_misc_minutes
+            total_minutes = today_total_minutes + total_misc_minutes
             
             dashboard_data = {
                 'active_assignments': active_assignments,
@@ -1293,11 +1306,11 @@ class ProjectService:
                 'elapsed_time': elapsed_time,
                 'today_summary': {
                     'assignment_minutes': today_total_minutes,
-                    'misc_minutes': today_roster.misc_hours,
-                    'total_minutes': today_roster.total_hours,
+                    'misc_minutes': total_misc_minutes,
+                    'total_minutes': total_minutes,
                     'formatted_assignment': ProjectService._format_minutes(today_total_minutes),
-                    'formatted_misc': ProjectService._format_minutes(today_roster.misc_hours),
-                    'formatted_total': ProjectService._format_minutes(today_roster.total_hours)
+                    'formatted_misc': ProjectService._format_minutes(total_misc_minutes),
+                    'formatted_total': ProjectService._format_minutes(total_minutes)
                 }
             }
 
@@ -1702,7 +1715,7 @@ class ProjectService:
     @staticmethod
     def get_daily_roster_data(team_member, selected_date, show_week=False):
         """
-        Get daily roster data for team member.
+        Get daily roster data for team member, including misc hours.
 
         Args:
             team_member: User object of the team member
@@ -1725,21 +1738,48 @@ class ProjectService:
                 start_date = end_date = selected_date
                 date_range = selected_date.strftime('%B %d, %Y')
 
-            # Get daily totals
+            # Get daily totals for assignments
             daily_totals = DailyTimeTotal.objects.filter(
                 team_member=team_member,
                 date_worked__gte=start_date,
                 date_worked__lte=end_date
             ).select_related('assignment__task__project').order_by('date_worked', 'assignment__assignment_id')
 
-            # Calculate total
-            total_minutes = sum(dt.total_minutes for dt in daily_totals)
+            # Get daily roster entries for status
+            daily_rosters = {}
+            roster_entries = DailyRoster.objects.filter(
+                team_member=team_member,
+                date__gte=start_date,
+                date__lte=end_date
+            )
+            for roster in roster_entries:
+                daily_rosters[roster.date] = roster
+
+            # Get individual misc hours entries
+            from .models import MiscHours
+            misc_hours_entries = MiscHours.objects.filter(
+                team_member=team_member,
+                date__gte=start_date,
+                date__lte=end_date
+            ).order_by('date', 'created_at')
+
+            # Calculate totals including both old and new misc hours
+            assignment_minutes = sum(dt.total_minutes for dt in daily_totals)
+            old_misc_minutes = sum(roster.misc_hours for roster in roster_entries)
+            new_misc_minutes = sum(misc.duration_minutes for misc in misc_hours_entries)
+            total_misc_minutes = old_misc_minutes + new_misc_minutes
+            total_minutes = assignment_minutes + total_misc_minutes
+            
             total_formatted = ProjectService._format_minutes(total_minutes)
 
             roster_data = {
                 'daily_totals': daily_totals,
+                'daily_rosters': daily_rosters,
+                'misc_hours_entries': misc_hours_entries,
                 'date_range': date_range,
                 'total_formatted': total_formatted,
+                'assignment_minutes': assignment_minutes,
+                'misc_minutes': total_misc_minutes,
                 'show_week': show_week
             }
 
@@ -1904,7 +1944,7 @@ class ProjectService:
         """
         Add miscellaneous hours to a team member's daily roster.
         These are HR activities (meetings, training, admin) not related to task work.
-        UPDATED: Now safe from race conditions using atomic updates.
+        UPDATED: Now creates individual MiscHours entries for separate tracking.
 
         Args:
             team_member: User object
@@ -1915,7 +1955,7 @@ class ProjectService:
 
         Returns:
             tuple: (success, result)
-                - If successful: (True, roster_object)
+                - If successful: (True, misc_hours_object)
                 - If failed: (False, error_message)
         """
         with transaction.atomic():
@@ -1929,39 +1969,23 @@ class ProjectService:
                 if total_minutes > 1440:  # 24 hours
                     return False, "Duration cannot exceed 24 hours"
 
-                # Get or create daily roster
-                roster, created = ProjectService.get_or_create_daily_roster(team_member, work_date)
-
-
-                # Format the activity description
-                formatted_duration = ProjectService._format_minutes(total_minutes)
-                new_activity = f"{activity} ({formatted_duration})"
-
-                # SAFE: Use atomic updates with F() expressions to prevent race conditions
-                from django.db.models import F, Case, When, Value
-                from django.db.models.functions import Concat
-
-                # Atomic update of misc_hours and description
-                updated_rows = DailyRoster.objects.filter(id=roster.id).update(
-                    misc_hours=F('misc_hours') + total_minutes,
-                    misc_description=Case(
-                        # If description is empty or null, use new activity
-                        When(misc_description='', then=Value(new_activity)),
-                        When(misc_description__isnull=True, then=Value(new_activity)),
-                        # Otherwise, append to existing description
-                        default=Concat('misc_description', Value(f'; {new_activity}'))
-                    ),
-                    is_auto_created=False  # Mark as manually edited
+                # Create individual misc hours entry
+                from .models import MiscHours
+                misc_hours_entry = MiscHours.objects.create(
+                    team_member=team_member,
+                    date=work_date,
+                    activity=activity,
+                    duration_minutes=total_minutes
                 )
 
-                if updated_rows == 0:
-                    return False, "Failed to update roster - it may have been deleted"
+                # Ensure daily roster exists (but don't update misc_hours field - it's deprecated)
+                roster, created = ProjectService.get_or_create_daily_roster(team_member, work_date)
+                if created or roster.is_auto_created:
+                    roster.is_auto_created = False
+                    roster.save()
 
-                # Refresh the roster object to get updated values for return
-                roster.refresh_from_db()
-
-                logger.info(f"Misc hours added for {team_member.username} on {work_date}: {total_minutes} minutes")
-                return True, roster
+                logger.info(f"Misc hours added for {team_member.username} on {work_date}: {total_minutes} minutes - {activity}")
+                return True, misc_hours_entry
 
             except Exception as e:
                 logger.exception(f"Error adding misc hours: {str(e)}")

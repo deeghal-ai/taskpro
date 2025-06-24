@@ -1131,11 +1131,15 @@ def daily_roster(request):
 
     context = {
         'daily_totals': roster_data['daily_totals'],
+        'daily_rosters': roster_data['daily_rosters'],
+        'misc_hours_entries': roster_data['misc_hours_entries'],
         'filter_form': filter_form,
         'selected_date': selected_date,
         'show_week': show_week,
         'date_range': roster_data['date_range'],
         'total_formatted': roster_data['total_formatted'],
+        'assignment_minutes': roster_data['assignment_minutes'],
+        'misc_minutes': roster_data['misc_minutes'],
         'title': f'Daily Roster - {roster_data["date_range"]}'
     }
 
