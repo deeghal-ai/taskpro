@@ -1,0 +1,440 @@
+{% extends "projects/daily_roster.html" %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Style for back button */
+    .back-to-monthly {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-weight: 500;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .back-to-monthly:hover {
+        background: #0a58ca;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Read-only indicator */
+    .read-only-badge {
+        background: #6c757d;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    /* Hide filter form for read-only view */
+    .filter-card {
+        display: none;
+    }
+    
+    /* Hide edit buttons for read-only view */
+    .edit-misc-btn {
+        display: none !important;
+    }
+    
+    /* Style view-only timesheet buttons */
+    .view-details-btn {
+        pointer-events: none;
+        background: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Enhanced Header with Team Member Info -->
+    <div class="roster-header-card">
+        <div class="card-header text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">
+                        <i class="bi bi-clock-history"></i> Daily Time Breakdown
+                    </h4>
+                    <small class="text-white-50">
+                        {{ team_member.get_full_name|default:team_member.username }}
+                        <span class="read-only-badge ms-2">View Only</span>
+                    </small>
+                </div>
+                <div>
+                    {% with selected_date|date:"Y" as year and selected_date|date:"n" as month %}
+                    <a href="{% url 'projects:team_member_monthly_roster_date' team_member_id=team_member.id year=year month=month %}" 
+                       class="back-to-monthly">
+                        <i class="bi bi-arrow-left"></i>
+                        Back to Monthly Roster
+                    </a>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-0">{{ date_range }}</h5>
+                    <p class="text-muted mb-0">Time breakdown for {{ team_member.get_full_name|default:team_member.username }}</p>
+                </div>
+                <div class="col-md-4 text-md-end text-center">
+                    <div class="total-time">
+                        <i class="bi bi-clock-fill"></i> {{ total_formatted }}
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge bg-primary">Tasks: {{ assignment_minutes|floatformat:0 }} min</span>
+                        <span class="badge bg-success ms-2">Misc: {{ misc_minutes|floatformat:0 }} min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="text-center mb-4">
+        <div class="btn-group" role="group">
+            {% if show_week %}
+                <!-- Week navigation -->
+                {% load report_filters %}
+                {% with selected_date|add_days:-7 as prev_week %}
+                <a href="?team_member={{ team_member.id }}&date={{ prev_week|date:'Y-m-d' }}&week_view=on" 
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-chevron-left"></i> Previous Week
+                </a>
+                {% endwith %}
+                
+                <button type="button" class="btn btn-primary" disabled>
+                    Week of {{ selected_date|date:"F d, Y" }}
+                </button>
+                
+                {% with selected_date|add_days:7 as next_week %}
+                <a href="?team_member={{ team_member.id }}&date={{ next_week|date:'Y-m-d' }}&week_view=on" 
+                   class="btn btn-outline-primary">
+                    Next Week <i class="bi bi-chevron-right"></i>
+                </a>
+                {% endwith %}
+            {% else %}
+                <!-- Day navigation -->
+                {% with selected_date|add_days:-1 as prev_day %}
+                <a href="?team_member={{ team_member.id }}&date={{ prev_day|date:'Y-m-d' }}" 
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-chevron-left"></i> Previous Day
+                </a>
+                {% endwith %}
+                
+                <button type="button" class="btn btn-primary" disabled>
+                    {{ selected_date|date:"F d, Y" }}
+                </button>
+                
+                {% with selected_date|add_days:1 as next_day %}
+                <a href="?team_member={{ team_member.id }}&date={{ next_day|date:'Y-m-d' }}" 
+                   class="btn btn-outline-primary">
+                    Next Day <i class="bi bi-chevron-right"></i>
+                </a>
+                {% endwith %}
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- View Toggle -->
+    <div class="text-center mb-4">
+        {% if show_week %}
+            <a href="?team_member={{ team_member.id }}&date={{ selected_date|date:'Y-m-d' }}" 
+               class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-day"></i> Switch to Day View
+            </a>
+        {% else %}
+            <a href="?team_member={{ team_member.id }}&date={{ selected_date|date:'Y-m-d' }}&week_view=on" 
+               class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-week"></i> Switch to Week View
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Time Breakdown Section - inherit from parent -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-clock-history text-primary"></i> Time Breakdown
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if daily_totals or misc_hours_entries %}
+                {% if show_week %}
+                    <!-- Week View -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill"></i> 
+                        Showing time entries for the selected week (Read-only view).
+                    </div>
+                    
+                    {% load report_filters %}
+                    {% regroup daily_totals by date_worked as daily_groups %}
+                    {% for day_group in daily_groups %}
+                        <div class="mb-4">
+                            <h6 class="week-day-header d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-calendar-date"></i> 
+                                    {{ day_group.grouper|date:"l, F d, Y" }}
+                                </span>
+                                {% with daily_total=daily_summaries|get_item:day_group.grouper %}
+                                    {% if daily_total %}
+                                        <span class="text-muted" style="font-family: 'Roboto Mono', monospace; font-weight: 600; font-size: 0.9rem;">
+                                            Total: {{ daily_total }}
+                                        </span>
+                                    {% endif %}
+                                {% endwith %}
+                            </h6>
+                            
+                            <div class="week-day-content">
+                                {% for daily_total in day_group.list %}
+                                    <div class="assignment-row">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-5">
+                                                <div class="fw-bold mb-1">
+                                                    {{ daily_total.assignment.assignment_id }}
+                                                    <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                                        {{ daily_total.assignment.task.task_type }}
+                                                    </span>
+                                                </div>
+                                                <div class="text-muted">
+                                                    <small>
+                                                        <i class="bi bi-folder2"></i> {{ daily_total.assignment.task.project.project_name }}
+                                                    </small>
+                                                    <br>
+                                                    <small>
+                                                        <i class="bi bi-card-list"></i> {{ daily_total.assignment.task.product_task.name }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="text-muted small mb-1">Sub-task:</div>
+                                                <div class="text-truncate" style="max-width: 200px;" 
+                                                     title="{{ daily_total.assignment.sub_task }}">
+                                                    {{ daily_total.assignment.sub_task }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 text-md-end text-start">
+                                                <div class="time-display">{{ daily_total.get_formatted_total }}</div>
+                                                <div class="mt-2">
+                                                    <span class="btn btn-sm btn-outline-secondary disabled">
+                                                        <i class="bi bi-eye"></i> View Only
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                
+                                <!-- Add individual misc hours entries for this day -->
+                                {% for misc_entry in misc_hours_entries %}
+                                    {% if misc_entry.date == day_group.grouper %}
+                                        <div class="assignment-row misc-hours-row">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-9">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <span class="badge bg-info">MISC</span>
+                                                        <div class="fw-semibold fs-5">
+                                                            {{ misc_entry.activity }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-md-end text-start ps-md-0 pe-md-4">
+                                                    <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
+                                                    <div class="mt-2">
+                                                        <span class="btn btn-sm btn-outline-secondary disabled">
+                                                            <i class="bi bi-eye"></i> View Only
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <!-- Legacy misc hours for backward compatibility -->
+                                {% for roster_date, day_roster in daily_rosters.items %}
+                                    {% if roster_date == day_group.grouper and day_roster.misc_hours > 0 %}
+                                        <div class="assignment-row misc-hours-row">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2">
+                                                    <span class="badge bg-warning">MISC (Legacy)</span>
+                                                </div>
+                                                <div class="col-md-7 text-center">
+                                                    <div class="fw-semibold fs-5">
+                                                        {{ day_roster.misc_description|default:"Administrative tasks" }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <div class="time-display">{{ day_roster.get_misc_hours_formatted }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Single Day View -->
+                    {% for daily_total in daily_totals %}
+                        <div class="assignment-row">
+                            <div class="row align-items-center">
+                                <div class="col-md-5">
+                                    <div class="fw-bold mb-1">
+                                        {{ daily_total.assignment.assignment_id }}
+                                        <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                            {{ daily_total.assignment.task.task_type }}
+                                        </span>
+                                    </div>
+                                    <div class="text-muted">
+                                        <small>
+                                            <i class="bi bi-folder2"></i> {{ daily_total.assignment.task.project.project_name }}
+                                        </small>
+                                        <br>
+                                        <small>
+                                            <i class="bi bi-card-list"></i> {{ daily_total.assignment.task.product_task.name }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-muted small mb-1">Sub-task:</div>
+                                    <div class="text-truncate" title="{{ daily_total.assignment.sub_task }}">
+                                        {{ daily_total.assignment.sub_task }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-md-end text-start">
+                                    <div class="time-display">{{ daily_total.get_formatted_total }}</div>
+                                    <div class="mt-2">
+                                        <span class="btn btn-sm btn-outline-secondary disabled">
+                                            <i class="bi bi-eye"></i> View Only
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <!-- Add individual misc hours for single day view -->
+                    {% for misc_entry in misc_hours_entries %}
+                        {% if misc_entry.date == selected_date %}
+                            <div class="assignment-row misc-hours-row">
+                                <div class="row align-items-center">
+                                    <div class="col-md-9">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge bg-info">MISC</span>
+                                            <div class="fw-semibold fs-5">
+                                                {{ misc_entry.activity }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-md-end text-start ps-md-0 pe-md-4">
+                                        <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
+                                        <div class="mt-2">
+                                            <span class="btn btn-sm btn-outline-secondary disabled">
+                                                <i class="bi bi-eye"></i> View Only
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- Legacy misc hours for single day view -->
+                    {% for roster_date, day_roster in daily_rosters.items %}
+                        {% if roster_date == selected_date and day_roster.misc_hours > 0 %}
+                            <div class="assignment-row misc-hours-row">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <span class="badge bg-warning">MISC (Legacy)</span>
+                                    </div>
+                                    <div class="col-md-7 text-center">
+                                        <div class="fw-semibold fs-5">
+                                            {{ day_roster.misc_description|default:"Administrative tasks" }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-end">
+                                        <div class="time-display">{{ day_roster.get_misc_hours_formatted }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <i class="bi bi-clock empty-state-icon"></i>
+                    <h5>No Time Entries</h5>
+                    <p>
+                        No time has been logged for the selected 
+                        {% if show_week %}week{% else %}date{% endif %}.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    {% if daily_totals or misc_hours_entries %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="summary-card">
+                <h5 class="text-center">
+                    <i class="bi bi-graph-up text-primary"></i> Summary
+                </h5>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="summary-stat">
+                            <h4 class="text-primary">{{ daily_totals|length }}</h4>
+                            <div class="text-muted">Assignment{{ daily_totals|length|pluralize }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="summary-stat">
+                            <h4 class="text-success">{{ total_formatted }}</h4>
+                            <div class="text-muted">Total Time</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="summary-card">
+                <h5 class="text-center">
+                    <i class="bi bi-pie-chart text-info"></i> Breakdown
+                </h5>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="summary-stat">
+                            <h4 class="text-primary">{{ assignment_minutes|floatformat:0 }}</h4>
+                            <div class="text-muted">Task Minutes</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="summary-stat">
+                            <h4 class="text-info">{{ misc_minutes|floatformat:0 }}</h4>
+                            <div class="text-muted">Misc Minutes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Remove any edit-related JavaScript -->
+{% endblock %} 

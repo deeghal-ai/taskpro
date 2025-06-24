@@ -56,6 +56,13 @@ urlpatterns = [
     
     # API endpoints
     path('api/cities/', views.get_cities, name='api_cities'),
+    
+    # Team Roster URLs (for DPMs)
+    path('team-roster/', views.team_roster_list, name='team_roster_list'),
+    path('team-roster/<uuid:team_member_id>/', views.team_member_monthly_roster, name='team_member_monthly_roster'),
+    path('team-roster/<uuid:team_member_id>/<int:year>/<int:month>/', views.team_member_monthly_roster, name='team_member_monthly_roster_date'),
+    path('team-roster/daily/', views.team_member_daily_roster, name='team_member_daily_roster'),
+    
     # Reporting URLs
     path('reports/my-report/', report_views.team_member_report, name='my_report'),
     path('reports/team-member/<uuid:team_member_id>/', report_views.team_member_report, name='team_member_report'),

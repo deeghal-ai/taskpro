@@ -2005,3 +2005,188 @@ def edit_misc_hours(request, misc_hours_id):
             return JsonResponse({'success': False, 'errors': form.errors.get_json_data()})
     
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
+
+# Team Roster Views (for DPMs)
+@login_required
+def team_roster_list(request):
+    """
+    Display list of all team members for DPMs to view their rosters.
+    """
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
+    # Get all team members (excluding DPMs)
+    team_members = User.objects.filter(role='TEAM_MEMBER').order_by('first_name', 'last_name')
+    
+    # Get current month summary for each team member
+    today = date.today()
+    team_member_data = []
+    
+    for member in team_members:
+        # Get monthly summary
+        success, result = ProjectService.get_monthly_roster(member, today.year, today.month)
+        
+        if success:
+            summary = result['summary']
+        else:
+            summary = {
+                'present_days': 0,
+                'leave_days': 0,
+                'task_hours': '00:00',
+                'misc_hours': '00:00',
+                'total_hours': '00:00'
+            }
+        
+        team_member_data.append({
+            'member': member,
+            'summary': summary
+        })
+    
+    context = {
+        'team_members': team_member_data,
+        'current_month': today.strftime('%B %Y'),
+        'title': 'Team Roster'
+    }
+    
+    return render(request, 'projects/team_roster_list.html', context)
+
+
+@login_required
+def team_member_monthly_roster(request, team_member_id, year=None, month=None):
+    """
+    Display monthly roster for a specific team member (read-only for DPMs).
+    """
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
+    try:
+        team_member = User.objects.get(id=team_member_id, role='TEAM_MEMBER')
+    except User.DoesNotExist:
+        messages.error(request, "Team member not found.")
+        return redirect('projects:team_roster_list')
+    
+    # Default to current month if not specified
+    if not year or not month:
+        today = date.today()
+        year, month = today.year, today.month
+    
+    # Get monthly roster data
+    success, result = ProjectService.get_monthly_roster(team_member, year, month)
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('projects:team_roster_list')
+    
+    monthly_data = result
+    
+    # Calculate navigation dates
+    current_date = date(year, month, 1)
+    prev_month = current_date - timedelta(days=1)
+    next_month_day = current_date.replace(day=28) + timedelta(days=4)
+    next_month = next_month_day - timedelta(days=next_month_day.day-1)
+    
+    context = {
+        'monthly_data': monthly_data,
+        'current_date': current_date,
+        'prev_month': prev_month,
+        'next_month': next_month,
+        'team_member': team_member,
+        'is_read_only': True,  # Flag for template to hide edit features
+        'title': f'{team_member.get_full_name()} - Roster - {monthly_data["month_name"]} {year}'
+    }
+    
+    return render(request, 'projects/team_member_monthly_roster.html', context)
+
+
+@login_required
+def team_member_daily_roster(request):
+    """
+    Display daily roster for a specific team member (read-only for DPMs).
+    """
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
+    # Get team member from query params
+    team_member_id = request.GET.get('team_member')
+    if not team_member_id:
+        messages.error(request, "Team member not specified.")
+        return redirect('projects:team_roster_list')
+    
+    try:
+        team_member = User.objects.get(id=team_member_id, role='TEAM_MEMBER')
+    except User.DoesNotExist:
+        messages.error(request, "Team member not found.")
+        return redirect('projects:team_roster_list')
+    
+    # Get filter parameters
+    try:
+        default_date = timezone.localtime(timezone.now()).date()
+        date_str = request.GET.get('date')
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else default_date
+    except (ValueError, TypeError):
+        selected_date = default_date
+    
+    show_week = request.GET.get('week_view') == 'on'
+    
+    # Get roster data
+    success, roster_data = ProjectService.get_daily_roster_data(
+        team_member, selected_date, show_week
+    )
+    
+    if not success:
+        messages.error(request, roster_data)
+        roster_data = {
+            'daily_totals': [],
+            'daily_rosters': {},
+            'misc_hours_entries': [],
+            'date_range': 'Error loading data',
+            'total_formatted': '00:00',
+            'assignment_minutes': 0,
+            'misc_minutes': 0,
+        }
+    
+    # Calculate daily summaries if in week view
+    daily_summaries = {}
+    if show_week and success:
+        day_totals_map = {}
+        for dt in roster_data['daily_totals']:
+            day_key = dt.date_worked
+            day_totals_map.setdefault(day_key, 0)
+            day_totals_map[day_key] += dt.total_minutes
+        
+        for me in roster_data['misc_hours_entries']:
+            day_key = me.date
+            day_totals_map.setdefault(day_key, 0)
+            day_totals_map[day_key] += me.duration_minutes
+        
+        for day, total_minutes in day_totals_map.items():
+            daily_summaries[day] = ProjectService._format_minutes(total_minutes)
+    
+    # Create filter form for rendering
+    filter_form = DailyRosterFilterForm(initial={
+        'date': selected_date,
+        'week_view': show_week,
+    })
+    
+    context = {
+        'daily_totals': roster_data['daily_totals'],
+        'daily_rosters': roster_data['daily_rosters'],
+        'misc_hours_entries': roster_data['misc_hours_entries'],
+        'filter_form': filter_form,
+        'selected_date': selected_date,
+        'show_week': show_week,
+        'date_range': roster_data['date_range'],
+        'total_formatted': roster_data['total_formatted'],
+        'assignment_minutes': roster_data['assignment_minutes'],
+        'misc_minutes': roster_data['misc_minutes'],
+        'daily_summaries': daily_summaries,
+        'team_member': team_member,
+        'is_read_only': True,  # Flag for template to hide edit features
+        'title': f'{team_member.get_full_name()} - Daily Roster - {roster_data["date_range"]}'
+    }
+    
+    return render(request, 'projects/team_member_daily_roster.html', context)

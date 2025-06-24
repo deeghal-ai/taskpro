@@ -2,6 +2,7 @@
 # Create projects/templatetags/report_filters.py
 
 from django import template
+from datetime import timedelta
 
 register = template.Library()
 
@@ -38,3 +39,11 @@ def get_item(dictionary, key):
     if isinstance(dictionary, dict):
         return dictionary.get(key)
     return None
+
+@register.filter
+def add_days(value, days):
+    """Add days to a date."""
+    try:
+        return value + timedelta(days=int(days))
+    except (ValueError, TypeError):
+        return value

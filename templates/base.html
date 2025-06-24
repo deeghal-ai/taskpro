@@ -62,6 +62,11 @@
                                     </li>
                                 </ul>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'projects:team_roster_list' %}">
+                                    <i class="bi bi-people"></i> Team Roster
+                                </a>
+                            </li>
                         {% endif %}
                         {% if user.role == 'TEAM_MEMBER' %}
                             <li class="nav-item">
