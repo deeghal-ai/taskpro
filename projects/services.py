@@ -1283,14 +1283,21 @@ class ProjectService:
                     'formatted': ProjectService._format_minutes(elapsed_minutes)
                 }
 
+            # Get today's roster data for misc hours and total hours
+            today_roster, _ = ProjectService.get_or_create_daily_roster(team_member, today)
+            
             dashboard_data = {
                 'active_assignments': active_assignments,
                 'completed_assignments': completed_assignments,
                 'active_timer': active_timer,
                 'elapsed_time': elapsed_time,
                 'today_summary': {
-                    'total_minutes': today_total_minutes,
-                    'formatted_total': ProjectService._format_minutes(today_total_minutes)
+                    'assignment_minutes': today_total_minutes,
+                    'misc_minutes': today_roster.misc_hours,
+                    'total_minutes': today_roster.total_hours,
+                    'formatted_assignment': ProjectService._format_minutes(today_total_minutes),
+                    'formatted_misc': ProjectService._format_minutes(today_roster.misc_hours),
+                    'formatted_total': ProjectService._format_minutes(today_roster.total_hours)
                 }
             }
 

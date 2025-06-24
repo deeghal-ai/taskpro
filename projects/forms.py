@@ -460,7 +460,7 @@ class TaskAssignmentForm(forms.ModelForm):
             }),
             'sub_task': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3
+                'rows': 2
             }),
             'rework_type': forms.Select(attrs={
                 'class': 'form-select'

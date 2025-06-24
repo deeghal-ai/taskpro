@@ -273,23 +273,41 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <!-- Today's Total Time -->
-                        <div class="col-md-3">
+                    <div class="row g-3 mb-4">
+                        <!-- Combined Today's Time Card -->
+                        <div class="col-md-8">
                             <div class="card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="mb-2">
-                                        <i class="bi bi-clock display-4 text-primary"></i>
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted mb-3">
+                                        <i class="bi bi-clock-history me-2"></i>Today's Time Breakdown
+                                    </h5>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="border-end">
+                                                <i class="bi bi-clock display-6 text-primary d-block mb-2"></i>
+                                                <h4 class="mb-1 text-primary">{{ today_summary.formatted_assignment }}</h4>
+                                                <small class="text-muted">Assignment Hours</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="border-end">
+                                                <i class="bi bi-plus-circle display-6 text-warning d-block mb-2"></i>
+                                                <h4 class="mb-1 text-warning">{{ today_summary.formatted_misc }}</h4>
+                                                <small class="text-muted">Misc Work</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <i class="bi bi-clock-fill display-6 text-success d-block mb-2"></i>
+                                            <h4 class="mb-1 text-success">{{ today_summary.formatted_total }}</h4>
+                                            <small class="text-muted">Total Time</small>
+                                        </div>
                                     </div>
-                                    <h5 class="card-title text-muted mb-1">Today's Time</h5>
-                                    <h3 class="mb-0 text-primary">{{ today_summary.formatted_total }}</h3>
-                                    <p class="text-muted mb-0 small">Hours Logged</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Active Assignments Count -->
-                        <div class="col-md-3">
+                        <!-- Active Tasks Card -->
+                        <div class="col-md-4">
                             <div class="card border-0 bg-light h-100">
                                 <div class="card-body text-center">
                                     <div class="mb-2">
@@ -301,54 +319,52 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Active Timer Section -->
-                        {% if active_timer %}
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-light h-100 pulse">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title text-success mb-3">
-                                        <i class="bi bi-play-circle-fill"></i> 
-                                        Timer Running
-                                    </h5>
-                                    <div class="timer-display mb-2" 
-                                         id="timer-display"
-                                         data-start-time="{{ active_timer.started_at|date:'c' }}">
-                                        {{ elapsed_time.formatted }}
-                                    </div>
-                                    <p class="text-muted mb-2">
-                                        <strong>{{ active_timer.assignment.task.product_task.name }}</strong>
-                                        <br>
-                                        {{ active_timer.assignment.sub_task }}
-                                        <br>
-                                        <small>{{ active_timer.assignment.assignment_id }}</small>
-                                    </p>
-                                    
-                                    <!-- Timer Stop Button -->
-                                    <button type="button" 
-                                            class="btn btn-danger btn-timer-stop" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#stopTimerModal">
-                                        <i class="bi bi-stop-circle-fill"></i> Stop Timer
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-light h-100">
-                                <div class="card-body text-center">
-                                    <div class="mb-2">
-                                        <i class="bi bi-pause-circle display-1 text-muted"></i>
-                                    </div>
-                                    <h5 class="card-title text-muted mb-1">Timer Status</h5>
-                                    <p class="text-muted mb-0">No active timer</p>
-                                    <small class="text-muted">Start a timer on any task below</small>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
+                    <!-- Timer Status Section -->
+                    {% if active_timer %}
+                    <div class="alert alert-success border-0 shadow-sm mb-0">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-play-circle-fill fs-2 text-success"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge bg-success me-2">
+                                            <i class="bi bi-stopwatch"></i> RUNNING
+                                        </span>
+                                        <span class="timer-display fw-bold fs-5 text-success" 
+                                              id="timer-display"
+                                              data-start-time="{{ active_timer.started_at|date:'c' }}">
+                                            {{ elapsed_time.formatted }}
+                                        </span>
+                                    </div>
+                                    <div class="mb-1">
+                                        <span class="fw-semibold text-dark">{{ active_timer.assignment.task.product_task.name }}</span>
+                                        <span class="badge bg-primary ms-2">{{ active_timer.assignment.assignment_id }}</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-card-text me-1"></i>
+                                        <span class="fst-italic">{{ active_timer.assignment.sub_task|truncatechars:80 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ms-3">
+                                <button type="button" 
+                                        class="btn btn-danger btn-timer-stop" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#stopTimerModal">
+                                    <i class="bi bi-stop-circle-fill me-1"></i>Stop Timer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3 border-top">
+                        <i class="bi bi-pause-circle fs-4 me-2 text-secondary"></i>
+                        <span class="fs-6">No active timer - Start tracking time on any task below</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
