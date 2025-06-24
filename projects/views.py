@@ -1132,12 +1132,12 @@ def daily_roster(request):
     })
 
     # Use the determined values to fetch data from the service layer
-    success, result = ProjectService.get_daily_roster_data(
+    success, roster_data = ProjectService.get_daily_roster_data(
         request.user, selected_date, show_week
     )
 
     if not success:
-        messages.error(request, result)
+        messages.error(request, roster_data)
         roster_data = {
             'daily_totals': [],
             'daily_rosters': {},
@@ -1147,8 +1147,25 @@ def daily_roster(request):
             'assignment_minutes': 0,
             'misc_minutes': 0,
         }
-    else:
-        roster_data = result
+    
+    # Calculate daily summaries if in week view
+    daily_summaries = {}
+    if show_week and success:
+        # Group assignment and misc totals by day
+        day_totals_map = {}
+        for dt in roster_data['daily_totals']:
+            day_key = dt.date_worked
+            day_totals_map.setdefault(day_key, 0)
+            day_totals_map[day_key] += dt.total_minutes
+
+        for me in roster_data['misc_hours_entries']:
+            day_key = me.date
+            day_totals_map.setdefault(day_key, 0)
+            day_totals_map[day_key] += me.duration_minutes
+
+        # Format totals into HH:MM strings
+        for day, total_minutes in day_totals_map.items():
+            daily_summaries[day] = ProjectService._format_minutes(total_minutes)
 
     context = {
         'daily_totals': roster_data['daily_totals'],
@@ -1161,6 +1178,7 @@ def daily_roster(request):
         'total_formatted': roster_data['total_formatted'],
         'assignment_minutes': roster_data['assignment_minutes'],
         'misc_minutes': roster_data['misc_minutes'],
+        'daily_summaries': daily_summaries,
         'title': f'Daily Roster - {roster_data["date_range"]}'
     }
 

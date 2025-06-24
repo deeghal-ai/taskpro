@@ -28,3 +28,13 @@ def abs(value):
         return abs(float(value))
     except (ValueError, TypeError):
         return 0
+
+@register.filter
+def get_item(dictionary, key):
+    """
+    Returns the value of a dictionary for a given key.
+    Usage: {{ my_dict|get_item:my_key }}
+    """
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load report_filters %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -492,9 +493,18 @@
                     {% regroup daily_totals by date_worked as daily_groups %}
                     {% for day_group in daily_groups %}
                         <div class="mb-4">
-                            <h6 class="week-day-header">
-                                <i class="bi bi-calendar-date"></i> 
-                                {{ day_group.grouper|date:"l, F d, Y" }}
+                            <h6 class="week-day-header d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-calendar-date"></i> 
+                                    {{ day_group.grouper|date:"l, F d, Y" }}
+                                </span>
+                                {% with daily_total=daily_summaries|get_item:day_group.grouper %}
+                                    {% if daily_total %}
+                                        <span class="text-muted" style="font-family: 'Roboto Mono', monospace; font-weight: 600; font-size: 0.9rem;">
+                                            Total: {{ daily_total }}
+                                        </span>
+                                    {% endif %}
+                                {% endwith %}
                             </h6>
                             
                             <div class="week-day-content">
@@ -545,26 +555,28 @@
                                     {% if misc_entry.date == day_group.grouper %}
                                         <div class="assignment-row misc-hours-row" data-misc-id="{{ misc_entry.id }}">
                                             <div class="row align-items-center">
-                                                <div class="col-md-6 d-flex align-items-center gap-3">
-                                                    <span class="badge bg-info">MISC</span>
-                                                    <div class="fw-semibold fs-5">
-                                                        {{ misc_entry.activity }}
+                                                <div class="col-md-9">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <span class="badge bg-info">MISC</span>
+                                                        <div class="fw-semibold fs-5">
+                                                            {{ misc_entry.activity }}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-3 text-center">
+                                                <div class="col-md-3 text-md-end text-start ps-md-0 pe-md-4">
                                                     <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
-                                                </div>
-                                                <div class="col-md-3 text-end">
-                                                    <button class="btn btn-sm btn-outline-primary edit-misc-btn"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editMiscHoursModal"
-                                                            data-id="{{ misc_entry.id }}"
-                                                            data-date="{{ misc_entry.date|date:'Y-m-d' }}"
-                                                            data-activity="{{ misc_entry.activity }}"
-                                                            data-duration="{{ misc_entry.get_formatted_duration }}"
-                                                            data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
-                                                        <i class="bi bi-pencil-square"></i> Edit
-                                                    </button>
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-sm btn-outline-primary edit-misc-btn"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#editMiscHoursModal"
+                                                                data-id="{{ misc_entry.id }}"
+                                                                data-date="{{ misc_entry.date|date:'Y-m-d' }}"
+                                                                data-activity="{{ misc_entry.activity }}"
+                                                                data-duration="{{ misc_entry.get_formatted_duration }}"
+                                                                data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
+                                                            <i class="bi bi-pencil-square"></i> Edit
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -643,26 +655,28 @@
                             {% if misc_entry.date == selected_date %}
                                 <div class="assignment-row misc-hours-row" data-misc-id="{{ misc_entry.id }}">
                                     <div class="row align-items-center">
-                                        <div class="col-md-6 d-flex align-items-center gap-3">
-                                            <span class="badge bg-info">MISC</span>
-                                            <div class="fw-semibold fs-5">
-                                                {{ misc_entry.activity }}
+                                        <div class="col-md-9">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="badge bg-info">MISC</span>
+                                                <div class="fw-semibold fs-5">
+                                                    {{ misc_entry.activity }}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-3 text-center">
+                                        <div class="col-md-3 text-md-end text-start ps-md-0 pe-md-4">
                                             <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
-                                        </div>
-                                        <div class="col-md-3 text-end">
-                                            <button class="btn btn-sm btn-outline-primary edit-misc-btn"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editMiscHoursModal"
-                                                    data-id="{{ misc_entry.id }}"
-                                                    data-date="{{ misc_entry.date|date:'Y-m-d' }}"
-                                                    data-activity="{{ misc_entry.activity }}"
-                                                    data-duration="{{ misc_entry.get_formatted_duration }}"
-                                                    data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
-                                                <i class="bi bi-pencil-square"></i> Edit
-                                            </button>
+                                            <div class="mt-2">
+                                                <button class="btn btn-sm btn-outline-primary edit-misc-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editMiscHoursModal"
+                                                        data-id="{{ misc_entry.id }}"
+                                                        data-date="{{ misc_entry.date|date:'Y-m-d' }}"
+                                                        data-activity="{{ misc_entry.activity }}"
+                                                        data-duration="{{ misc_entry.get_formatted_duration }}"
+                                                        data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
+                                                    <i class="bi bi-pencil-square"></i> Edit
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
