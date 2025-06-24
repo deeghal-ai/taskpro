@@ -5,6 +5,7 @@ from .models import Project, ProductSubcategory, Product, ProjectStatusOption, P
 from locations.models import Region, City
 from accounts.models import User
 from datetime import timedelta, date
+from django.utils import timezone
 from .services import ProjectService
 
 class DurationWidget(forms.TextInput):
@@ -192,6 +193,15 @@ class ProjectStatusUpdateForm(forms.Form):
         help_text="Select the new status for this project"
     )
     
+    status_date = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        initial=timezone.now().date(),
+        help_text="Date when this status change occurred (defaults to today)"
+    )
+    
     comments = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
@@ -201,6 +211,15 @@ class ProjectStatusUpdateForm(forms.Form):
         required=False,
         help_text="Optional: Add any relevant comments about this status change"
     )
+
+    def clean_status_date(self):
+        """
+        Validate that the status date is not in the future.
+        """
+        status_date = self.cleaned_data.get('status_date')
+        if status_date and status_date > timezone.now().date():
+            raise forms.ValidationError("Status date cannot be in the future.")
+        return status_date
 
 
 class ProjectFilterForm(forms.Form):

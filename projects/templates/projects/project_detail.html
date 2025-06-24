@@ -537,6 +537,15 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label for="id_status_date" class="form-label">
+                                Status Date <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="status_date" id="id_status_date" class="form-control" 
+                                   value="{{ today|date:'Y-m-d' }}" required>
+                            <div class="form-text">Date when this status change occurred (defaults to today)</div>
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="id_comments" class="form-label">
                                 Comments
                             </label>

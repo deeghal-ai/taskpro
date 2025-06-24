@@ -102,6 +102,7 @@ def project_detail(request, project_id):
         'status_history': status_history,
         'status_options': status_options,
         'form': form,
+        'today': timezone.now().date(),
         'title': f'Project: {project.project_name}'
     }
 
@@ -144,12 +145,14 @@ def update_project_status(request, project_id):
         if form.is_valid():
             status_id = form.cleaned_data['status'].id
             comments = form.cleaned_data['comments']
+            status_date = form.cleaned_data['status_date']
 
             success, result = ProjectService.update_project_status(
                 project_id=project_id,
                 status_id=status_id,
                 user=request.user,
-                comments=comments
+                comments=comments,
+                status_date=status_date
             )
 
             if success:
@@ -181,6 +184,7 @@ def update_project_status(request, project_id):
     return render(request, 'projects/status_update.html', {
         'form': form,
         'project': project,
+        'today': timezone.now().date(),
         'title': f'Update Status: {project.project_name}'
     })
 

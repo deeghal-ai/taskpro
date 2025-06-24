@@ -394,6 +394,15 @@ class Project(models.Model):
 
         # After saving, create the initial status history, but skip if it's a bulk import
         if not is_bulk_import and (is_new or status_changed):
+            # Get the custom status date if provided, otherwise use current datetime
+            status_change_date = getattr(self, '_status_change_date', None)
+            if status_change_date:
+                # Convert date to datetime with current time
+                from datetime import datetime, time
+                changed_at = timezone.make_aware(datetime.combine(status_change_date, time.min))
+            else:
+                changed_at = timezone.now()
+            
             ProjectStatusHistory.objects.create(
                 project=self,
                 status=self.current_status,
@@ -401,6 +410,7 @@ class Project(models.Model):
                 comments=getattr(self, '_status_change_comment', 'Project Created'),
                 category_one_snapshot=self.current_status.category_one,
                 category_two_snapshot=self.current_status.category_two,
+                changed_at=changed_at
             )
 
 @receiver(pre_save, sender=Project)

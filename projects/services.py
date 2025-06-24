@@ -144,7 +144,7 @@ class ProjectService:
             return False, f"An error occurred: {str(e)}"
 
     @staticmethod
-    def update_project_status(project_id, status_id, user, comments=""):
+    def update_project_status(project_id, status_id, user, comments="", status_date=None):
         """
         Updates a project's status and creates a history record.
 
@@ -153,6 +153,7 @@ class ProjectService:
             status_id: UUID of the new status
             user: User making the change
             comments: Optional comments about the status change
+            status_date: Optional date when the status change occurred (defaults to now)
 
         Returns:
             tuple: (success, result)
@@ -175,6 +176,9 @@ class ProjectService:
                 project.current_status = new_status
                 project._current_user = user
                 project._status_change_comment = comments
+                # Pass the custom status date to the project save method
+                if status_date:
+                    project._status_change_date = status_date
                 project.save()
 
                 logger.info(f"Updated status for project {project_id} to {new_status.name} by {user.username}")
