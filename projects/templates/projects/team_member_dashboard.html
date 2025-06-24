@@ -726,7 +726,7 @@
                             Date <span class="text-danger">*</span>
                         </label>
                         <input type="date" class="form-control" name="date" id="manualTimeDate" 
-                               max="{{ now|date:'Y-m-d' }}" required>
+                               max="{{ now|date:'Y-m-d' }}" value="{{ time_entry_form.date.value|date:'Y-m-d' }}" required>
                         <div class="form-text">When did you perform this work?</div>
                     </div>
                     
@@ -896,8 +896,8 @@
                     document.getElementById('manualTimeCompleted').checked = false;
                     
                     // Set today's date
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('manualTimeDate').value = today;
+                    // const today = new Date().toISOString().split('T')[0];
+                    // document.getElementById('manualTimeDate').value = today;
                 });
             }
         }

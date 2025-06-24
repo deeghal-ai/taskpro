@@ -1,7 +1,11 @@
 # projects/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Project, ProductSubcategory, Product, ProjectStatusOption, ProductTask, ProjectTask, TaskAssignment, TaskAssignment, ActiveTimer, TimeSession, DailyTimeTotal
+from .models import (
+    Project, ProductSubcategory, Product, ProjectStatusOption,
+    ProjectTask, TaskAssignment, ActiveTimer, TimeSession, DailyTimeTotal,
+    MiscHours
+)
 from locations.models import Region, City
 from accounts.models import User
 from datetime import timedelta, date
@@ -612,8 +616,7 @@ class ManualTimeEntryForm(forms.Form):
     date = forms.DateField(
         widget=forms.DateInput(attrs={
             'class': 'form-control',
-            'type': 'date',
-            'max': timezone.localtime(timezone.now()).date().isoformat()  # Can't add future dates
+            'type': 'date'
         }),
         initial=lambda: timezone.localtime(timezone.now()).date(),
         help_text="The date when you performed this work"
@@ -849,6 +852,50 @@ class AddMiscHoursForm(forms.Form):
             minutes = self.cleaned_data.get('duration_minutes', 0)
             return (hours * 60) + minutes
         return 0
+
+class EditMiscHoursForm(forms.ModelForm):
+    """
+    Form for editing an existing miscellaneous hours entry.
+    """
+    duration = DurationFormField(
+        required=True,
+        label="Duration",
+        help_text="Enter duration in HH:MM format."
+    )
+
+    class Meta:
+        model = MiscHours
+        fields = ['date', 'activity']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'activity': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['duration'].initial = self.instance.duration_minutes
+
+    def clean_date(self):
+        date = self.cleaned_data.get('date')
+        if date and date > timezone.localtime(timezone.now()).date():
+            raise ValidationError("Date cannot be in the future.")
+        return date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        duration = cleaned_data.get('duration')
+        if duration is not None and duration <= 0:
+            raise ValidationError({'duration': "Duration must be greater than zero."})
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.duration_minutes = self.cleaned_data['duration']
+        if commit:
+            instance.save()
+        return instance
+
 
 class TaskAssignmentFilterForm(forms.Form):
     """

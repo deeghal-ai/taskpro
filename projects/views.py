@@ -4,12 +4,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from urllib.parse import quote
-from .forms import ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, TaskAssignmentForm, TaskAssignmentUpdateForm, ProjectManagementForm, AddMiscHoursForm, TimerStopForm, ManualTimeEntryForm, EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm
+from .forms import (
+    ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, 
+    TaskAssignmentForm, TaskAssignmentUpdateForm, ProjectManagementForm, 
+    AddMiscHoursForm, EditMiscHoursForm, TimerStopForm, ManualTimeEntryForm, 
+    EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm
+)
 from .services import ProjectService
 from accounts.models import User
 from locations.models import Region, City
 from django.http import JsonResponse
-from .models import Project, ProjectStatusOption, ProjectTask, TaskAssignment, ProjectStatusHistory, ActiveTimer, TimeSession, DailyTimeTotal, ProjectDelivery, Product
+from .models import (
+    Project, ProjectStatusOption, ProjectTask, TaskAssignment, 
+    ProjectStatusHistory, ActiveTimer, TimeSession, DailyTimeTotal, 
+    ProjectDelivery, Product, MiscHours
+)
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Subquery, OuterRef, F, Avg, Count, Q
@@ -835,7 +844,7 @@ def team_member_dashboard(request):
 
     # Create forms for the modals
     timer_stop_form = TimerStopForm()
-    time_entry_form = ManualTimeEntryForm()
+    time_entry_form = ManualTimeEntryForm(initial={'date': timezone.localtime(timezone.now()).date()})
 
     context = {
         'active_assignments': dashboard_data['active_assignments'],
@@ -1106,28 +1115,40 @@ def daily_roster(request):
         messages.error(request, "Access denied")
         return redirect('home')
 
-    # Get filter form
-    filter_form = DailyRosterFilterForm(request.GET)
+    # Get filter parameters directly from request GET, with defaults
+    try:
+        default_date = timezone.localtime(timezone.now()).date()
+        date_str = request.GET.get('date')
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else default_date
+    except (ValueError, TypeError):
+        selected_date = default_date
 
-    # Default to today
-    selected_date = date.today()
-    show_week = False
+    show_week = request.GET.get('week_view') == 'on'
 
-    if filter_form.is_valid():
-        if filter_form.cleaned_data['date']:
-            selected_date = filter_form.cleaned_data['date']
-        show_week = filter_form.cleaned_data.get('week_view', False)
+    # Create a filter form instance, initialized with the current values for rendering
+    filter_form = DailyRosterFilterForm(initial={
+        'date': selected_date,
+        'week_view': show_week,
+    })
 
-    # ✅ NOW USING SERVICE LAYER:
+    # Use the determined values to fetch data from the service layer
     success, result = ProjectService.get_daily_roster_data(
         request.user, selected_date, show_week
     )
 
     if not success:
         messages.error(request, result)
-        return redirect('home')
-
-    roster_data = result
+        roster_data = {
+            'daily_totals': [],
+            'daily_rosters': {},
+            'misc_hours_entries': [],
+            'date_range': 'Error loading data',
+            'total_formatted': '00:00',
+            'assignment_minutes': 0,
+            'misc_minutes': 0,
+        }
+    else:
+        roster_data = result
 
     context = {
         'daily_totals': roster_data['daily_totals'],
@@ -1948,3 +1969,33 @@ def assignment_graph_view(request):
     }
     
     return render(request, 'projects/assignment_graph_view.html', context)
+
+@login_required
+def edit_misc_hours(request, misc_hours_id):
+    """
+    Handle editing of a miscellaneous hours entry.
+    This view is expected to be called via AJAX from a modal form.
+    """
+    try:
+        misc_entry = MiscHours.objects.get(id=misc_hours_id, team_member=request.user)
+    except MiscHours.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Entry not found or permission denied.'}, status=404)
+
+    if request.method == 'POST':
+        form = EditMiscHoursForm(request.POST, instance=misc_entry)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Miscellaneous hours entry updated successfully.',
+                'entry': {
+                    'id': str(misc_entry.id),
+                    'activity': misc_entry.activity,
+                    'formatted_duration': misc_entry.get_formatted_duration(),
+                    'date': misc_entry.date.strftime('%Y-%m-%d')
+                }
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)

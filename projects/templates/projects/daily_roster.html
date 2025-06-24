@@ -543,18 +543,28 @@
                                 <!-- Add individual misc hours entries for this day -->
                                 {% for misc_entry in misc_hours_entries %}
                                     {% if misc_entry.date == day_group.grouper %}
-                                        <div class="assignment-row misc-hours-row">
+                                        <div class="assignment-row misc-hours-row" data-misc-id="{{ misc_entry.id }}">
                                             <div class="row align-items-center">
-                                                <div class="col-md-2">
+                                                <div class="col-md-6 d-flex align-items-center gap-3">
                                                     <span class="badge bg-info">MISC</span>
-                                                </div>
-                                                <div class="col-md-7 text-center">
                                                     <div class="fw-semibold fs-5">
                                                         {{ misc_entry.activity }}
                                                     </div>
                                                 </div>
-                                                <div class="col-md-3 text-end">
+                                                <div class="col-md-3 text-center">
                                                     <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <button class="btn btn-sm btn-outline-primary edit-misc-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editMiscHoursModal"
+                                                            data-id="{{ misc_entry.id }}"
+                                                            data-date="{{ misc_entry.date|date:'Y-m-d' }}"
+                                                            data-activity="{{ misc_entry.activity }}"
+                                                            data-duration="{{ misc_entry.get_formatted_duration }}"
+                                                            data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
+                                                        <i class="bi bi-pencil-square"></i> Edit
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -631,18 +641,28 @@
                     {% if not show_week %}
                         {% for misc_entry in misc_hours_entries %}
                             {% if misc_entry.date == selected_date %}
-                                <div class="assignment-row misc-hours-row">
+                                <div class="assignment-row misc-hours-row" data-misc-id="{{ misc_entry.id }}">
                                     <div class="row align-items-center">
-                                        <div class="col-md-2">
+                                        <div class="col-md-6 d-flex align-items-center gap-3">
                                             <span class="badge bg-info">MISC</span>
-                                        </div>
-                                        <div class="col-md-7 text-center">
                                             <div class="fw-semibold fs-5">
                                                 {{ misc_entry.activity }}
                                             </div>
                                         </div>
-                                        <div class="col-md-3 text-end">
+                                        <div class="col-md-3 text-center">
                                             <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <button class="btn btn-sm btn-outline-primary edit-misc-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editMiscHoursModal"
+                                                    data-id="{{ misc_entry.id }}"
+                                                    data-date="{{ misc_entry.date|date:'Y-m-d' }}"
+                                                    data-activity="{{ misc_entry.activity }}"
+                                                    data-duration="{{ misc_entry.get_formatted_duration }}"
+                                                    data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
+                                                <i class="bi bi-pencil-square"></i> Edit
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -729,6 +749,41 @@
         </div>
     </div>
     {% endif %}
+</div>
+
+<!-- Edit Misc Hours Modal -->
+<div class="modal fade" id="editMiscHoursModal" tabindex="-1" aria-labelledby="editMiscHoursModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editMiscHoursModalLabel">Edit Miscellaneous Hours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editMiscHoursForm" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="edit-misc-form-errors" class="alert alert-danger" style="display:none;"></div>
+                    <input type="hidden" name="id" id="edit-misc-id">
+                    <div class="mb-3">
+                        <label for="edit-misc-date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="edit-misc-date" name="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-misc-activity" class="form-label">Activity</label>
+                        <input type="text" class="form-control" id="edit-misc-activity" name="activity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-misc-duration" class="form-label">Duration (HH:MM)</label>
+                        <input type="text" class="form-control" id="edit-misc-duration" name="duration" placeholder="HH:MM" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -824,7 +879,75 @@
         FormHandler.init();
         PrintHandler.init();
         AnimationHandler.init();
+
+        const editMiscModalEl = document.getElementById('editMiscHoursModal');
+        if (!editMiscModalEl) return;
+
+        const editMiscModal = new bootstrap.Modal(editMiscModalEl);
+        const editMiscForm = document.getElementById('editMiscHoursForm');
+        const editMiscFormErrors = document.getElementById('edit-misc-form-errors');
+
+        document.querySelectorAll('.edit-misc-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const miscId = this.dataset.id;
+                const miscDate = this.dataset.date;
+                const miscActivity = this.dataset.activity;
+                const miscDuration = this.dataset.duration;
+                const formUrl = this.dataset.url;
+
+                editMiscForm.action = formUrl;
+                document.getElementById('edit-misc-id').value = miscId;
+                document.getElementById('edit-misc-date').value = miscDate;
+                document.getElementById('edit-misc-activity').value = miscActivity;
+                document.getElementById('edit-misc-duration').value = miscDuration;
+                
+                // Hide previous errors
+                editMiscFormErrors.style.display = 'none';
+                editMiscFormErrors.innerHTML = '';
+            });
+        });
+
+        editMiscForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const url = this.action;
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    editMiscModal.hide();
+                    
+                    // Show a success message and reload to see changes
+                    alert(data.message);
+                    location.reload(); 
+                } else {
+                    let errorHtml = '<strong>Please correct the following errors:</strong><ul>';
+                    for (const field in data.errors) {
+                        const fieldName = field.replace(/_/g, ' ').replace(/^\\w/, c => c.toUpperCase());
+                        const messages = data.errors[field].map(err => err.message || err).join(', ');
+                        errorHtml += `<li><strong>${fieldName}:</strong> ${messages}</li>`;
+                    }
+                    errorHtml += '</ul>';
+                    editMiscFormErrors.innerHTML = errorHtml;
+                    editMiscFormErrors.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                editMiscFormErrors.innerHTML = 'An unexpected error occurred. Please try again.';
+                editMiscFormErrors.style.display = 'block';
+            });
+        });
     });
 })();
 </script>
-{% endblock %}
+{% endblock extra_js %}

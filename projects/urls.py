@@ -52,6 +52,7 @@ urlpatterns = [
     path('roster/', views.monthly_roster, name='roster'), 
     path('roster/<int:year>/<int:month>/', views.monthly_roster, name='roster_date'),
     path('roster/update-day/', views.update_roster_day, name='update_roster_day'),
+    path('misc-hours/<uuid:misc_hours_id>/edit/', views.edit_misc_hours, name='edit_misc_hours'),
     
     # API endpoints
     path('api/cities/', views.get_cities, name='api_cities'),
