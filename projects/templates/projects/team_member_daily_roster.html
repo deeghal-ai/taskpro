@@ -92,8 +92,8 @@
                         <i class="bi bi-clock-fill"></i> {{ total_formatted }}
                     </div>
                     <div class="mt-2">
-                        <span class="badge bg-primary">Tasks: {{ assignment_minutes|floatformat:0 }} min</span>
-                        <span class="badge bg-success ms-2">Misc: {{ misc_minutes|floatformat:0 }} min</span>
+                        <span class="badge bg-primary">Tasks: {{ assignment_minutes_formatted }}</span>
+                        <span class="badge bg-success ms-2">Misc: {{ misc_minutes_formatted }}</span>
                     </div>
                 </div>
             </div>
@@ -417,14 +417,14 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="summary-stat">
-                            <h4 class="text-primary">{{ assignment_minutes|floatformat:0 }}</h4>
-                            <div class="text-muted">Task Minutes</div>
+                            <h4 class="text-primary">{{ assignment_minutes_formatted }}</h4>
+                            <div class="text-muted">Task Hours</div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="summary-stat">
-                            <h4 class="text-info">{{ misc_minutes|floatformat:0 }}</h4>
-                            <div class="text-muted">Misc Minutes</div>
+                            <h4 class="text-info">{{ misc_minutes_formatted }}</h4>
+                            <div class="text-muted">Misc Hours</div>
                         </div>
                     </div>
                 </div>

@@ -2182,6 +2182,8 @@ def team_member_daily_roster(request):
         'total_formatted': roster_data['total_formatted'],
         'assignment_minutes': roster_data['assignment_minutes'],
         'misc_minutes': roster_data['misc_minutes'],
+        'assignment_minutes_formatted': ProjectService._format_minutes(roster_data['assignment_minutes']),
+        'misc_minutes_formatted': ProjectService._format_minutes(roster_data['misc_minutes']),
         'daily_summaries': daily_summaries,
         'team_member': team_member,
         'is_read_only': True,  # Flag for template to hide edit features
