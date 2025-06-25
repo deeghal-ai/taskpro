@@ -2259,10 +2259,13 @@ class ProjectService:
                 weekoff_days=Count('id', filter=Q(status='WEEK_OFF'))
             )
             
-            # Calculate assignment hours (aggregate from existing roster entries)
-            assignment_minutes = roster_entries.aggregate(
-                total=Sum('assignment_hours')
-            )['total'] or 0
+            # Calculate assignment hours from DailyTimeTotal (real source of assignment hours)
+            from .models import DailyTimeTotal
+            assignment_minutes = DailyTimeTotal.objects.filter(
+                team_member=team_member,
+                date_worked__gte=start_date,
+                date_worked__lte=end_date
+            ).aggregate(total=Sum('total_minutes'))['total'] or 0
             
             # Calculate legacy misc hours
             legacy_misc_minutes = roster_entries.aggregate(
