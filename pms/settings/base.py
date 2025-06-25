@@ -180,19 +180,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Configure warnings to help debug timezone issues
-# Convert timezone warnings to errors to get better stack traces
-if DEBUG:  # Only in development/debug mode
-    warnings.filterwarnings(
-        'error',
-        r"DateTimeField .* received a naive datetime",
-        RuntimeWarning,
-        r'django\.db\.models\.fields'
-    )
-else:
-    # In production, just log the warnings
-    warnings.filterwarnings(
-        'default',
-        r"DateTimeField .* received a naive datetime",
-        RuntimeWarning,
-        r'django\.db\.models\.fields'
-    )
+# Just log warnings normally for now
+warnings.filterwarnings(
+    'default',
+    r"DateTimeField .* received a naive datetime",
+    RuntimeWarning,
+    r'django\.db\.models\.fields'
+)

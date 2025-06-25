@@ -1244,11 +1244,13 @@ class ProjectService:
             ).order_by('expected_delivery_date')
 
             # Get completed assignments (last 7 days) - VERIFY select_related includes product path
-            week_ago = today - timedelta(days=7)
+            week_ago_date = today - timedelta(days=7)
+            # Convert to timezone-aware datetime to avoid naive datetime warnings
+            week_ago_datetime = timezone.make_aware(datetime.combine(week_ago_date, datetime.min.time()))
             completed_assignments = TaskAssignment.objects.filter(
                 assigned_to=team_member,
                 is_completed=True,
-                completion_date__gte=week_ago
+                completion_date__gte=week_ago_datetime
             ).select_related(
                 'task__project',           # For project info
                 'task__project__product',  # ADD: For product name
