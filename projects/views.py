@@ -2025,15 +2025,14 @@ def team_roster_list(request):
     team_member_data = []
     
     for member in team_members:
-        # Get monthly summary
-        success, result = ProjectService.get_monthly_roster(member, today.year, today.month)
+        # Get monthly summary (optimized version)
+        success, summary = ProjectService.get_monthly_roster_summary_only(member, today.year, today.month)
         
-        if success:
-            summary = result['summary']
-        else:
+        if not success:
             summary = {
                 'present_days': 0,
                 'leave_days': 0,
+                'weekoff_days': 0,
                 'task_hours': '00:00',
                 'misc_hours': '00:00',
                 'total_hours': '00:00'

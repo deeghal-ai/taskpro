@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from .models import (
     Project, ProductSubcategory, Product, ProjectStatusOption,
     ProjectTask, TaskAssignment, ActiveTimer, TimeSession, DailyTimeTotal,
-    MiscHours
+    MiscHours, ProductTask
 )
 from locations.models import Region, City
 from accounts.models import User

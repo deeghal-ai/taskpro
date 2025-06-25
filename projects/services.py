@@ -2,7 +2,7 @@
 import logging
 from django.core.exceptions import ValidationError
 from .models import Project, DailyRoster, ProjectStatusHistory, ProjectStatusOption, ProductTask, ProjectTask, TaskAssignment, Product, ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, ProjectDelivery
-from django.db.models import Sum, Q, Subquery, OuterRef, F, Prefetch
+from django.db.models import Sum, Q, Subquery, OuterRef, F, Prefetch, Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
@@ -2229,6 +2229,70 @@ class ProjectService:
         except Exception as e:
             logger.exception(f"Error retrieving team member projects: {str(e)}")
             return False, f"An error occurred: {str(e)}"
+
+    @staticmethod
+    def get_monthly_roster_summary_only(team_member, year, month):
+        """
+        Get ONLY the monthly summary data for a team member - optimized for roster list view.
+        This avoids expensive calendar generation and daily roster creation.
+        """
+        try:
+            from django.db.models import Sum, Count, Q
+            from .models import DailyRoster, MiscHours
+            
+            # Get the date range for the month
+            _, last_day = calendar.monthrange(year, month)
+            start_date = date(year, month, 1)
+            end_date = date(year, month, last_day)
+            
+            # Fetch existing roster entries in a single query
+            roster_entries = DailyRoster.objects.filter(
+                team_member=team_member,
+                date__gte=start_date,
+                date__lte=end_date
+            ).select_related('team_member')
+            
+            # Calculate status counts
+            status_counts = roster_entries.aggregate(
+                present_days=Count('id', filter=Q(status='PRESENT')),
+                leave_days=Count('id', filter=Q(status__in=['LEAVE', 'SICK_LEAVE'])),
+                weekoff_days=Count('id', filter=Q(status='WEEK_OFF'))
+            )
+            
+            # Calculate assignment hours (aggregate from existing roster entries)
+            assignment_minutes = roster_entries.aggregate(
+                total=Sum('assignment_hours')
+            )['total'] or 0
+            
+            # Calculate legacy misc hours
+            legacy_misc_minutes = roster_entries.aggregate(
+                total=Sum('misc_hours')
+            )['total'] or 0
+            
+            # Calculate new misc hours in a single query
+            new_misc_minutes = MiscHours.objects.filter(
+                team_member=team_member,
+                date__gte=start_date,
+                date__lte=end_date
+            ).aggregate(total=Sum('duration_minutes'))['total'] or 0
+            
+            total_misc_minutes = legacy_misc_minutes + new_misc_minutes
+            
+            summary = {
+                'present_days': status_counts['present_days'],
+                'leave_days': status_counts['leave_days'],
+                'weekoff_days': status_counts['weekoff_days'],
+                'task_hours': ProjectService._format_minutes(assignment_minutes),
+                'misc_hours': ProjectService._format_minutes(total_misc_minutes),
+                'total_hours': ProjectService._format_minutes(assignment_minutes + total_misc_minutes)
+            }
+            
+            return True, summary
+
+        except Exception as e:
+            logger.exception(f"Error getting monthly roster summary: {str(e)}")
+            return False, f"An error occurred: {str(e)}"
+
 
 class ReportingService:
     """
