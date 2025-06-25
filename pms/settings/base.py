@@ -6,6 +6,7 @@ from pathlib import Path
 import os
 from decouple import config
 import logging.handlers
+import warnings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -177,3 +178,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Configure warnings to help debug timezone issues (temporarily disabled for debugging)
+# warnings.filterwarnings(
+#     'error',
+#     r"DateTimeField .* received a naive datetime",
+#     RuntimeWarning,
+#     r'django\.db\.models\.fields'
+# )
