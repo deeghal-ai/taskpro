@@ -47,3 +47,11 @@ def add_days(value, days):
         return value + timedelta(days=int(days))
     except (ValueError, TypeError):
         return value
+
+@register.filter
+def dict_get(dictionary, key):
+    """
+    Template filter to get value from dictionary by key.
+    Usage: {{ dictionary|dict_get:key }}
+    """
+    return dictionary.get(key, [])

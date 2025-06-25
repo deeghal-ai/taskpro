@@ -1847,6 +1847,23 @@ class ProjectService:
                     roster.total_hours_formatted = ProjectService._format_minutes(roster.total_hours)
                     roster_dict[single_date.day] = roster
 
+            # Get new MiscHours entries for the month
+            from .models import MiscHours
+            start_date = date(year, month, 1)
+            end_date = date(year, month, last_day)
+            misc_hours_entries = MiscHours.objects.filter(
+                team_member=team_member,
+                date__gte=start_date,
+                date__lte=end_date
+            ).order_by('date', 'created_at')
+
+            # Create a dictionary to map dates to misc hours for easier template access
+            misc_hours_by_date = {}
+            for misc_entry in misc_hours_entries:
+                if misc_entry.date not in misc_hours_by_date:
+                    misc_hours_by_date[misc_entry.date] = []
+                misc_hours_by_date[misc_entry.date].append(misc_entry)
+
             # Create calendar grid structure with Sunday as first day
             cal = calendar.Calendar(firstweekday=calendar.SUNDAY)
             calendar_weeks = []
@@ -1863,13 +1880,17 @@ class ProjectService:
                         week_data.append(roster_data)
                 calendar_weeks.append(week_data)
 
-            # Calculate monthly summary from actual roster entries
+            # Calculate monthly summary from actual roster entries AND new misc hours
             roster_entries = list(roster_dict.values())
             total_present_days = len([r for r in roster_entries if r.status == 'PRESENT'])
             total_leave_days = len([r for r in roster_entries if r.status in ['LEAVE', 'SICK_LEAVE']])
             total_weekoffs = len([r for r in roster_entries if r.status == 'WEEK_OFF'])
             total_assignment_hours = sum(r.assignment_hours for r in roster_entries)
-            total_misc_hours = sum(r.misc_hours for r in roster_entries)
+            
+            # Calculate misc hours from both legacy and new sources
+            legacy_misc_minutes = sum(r.misc_hours for r in roster_entries)
+            new_misc_minutes = sum(misc.duration_minutes for misc in misc_hours_entries)
+            total_misc_minutes = legacy_misc_minutes + new_misc_minutes
 
             monthly_data = {
                 'year': year,
@@ -1878,14 +1899,15 @@ class ProjectService:
                 'calendar_weeks': calendar_weeks,
                 'roster_entries': roster_entries,
                 'month_dates': month_dates,
+                'misc_hours_by_date': misc_hours_by_date,  # Add this for template access
                 'summary': {
                     'total_days': len(month_dates),
                     'present_days': total_present_days,
                     'leave_days': total_leave_days,
                     'weekoff_days': total_weekoffs,
                     'task_hours': ProjectService._format_minutes(total_assignment_hours),
-                    'misc_hours': ProjectService._format_minutes(total_misc_hours),
-                    'total_hours': ProjectService._format_minutes(total_assignment_hours + total_misc_hours)
+                    'misc_hours': ProjectService._format_minutes(total_misc_minutes),
+                    'total_hours': ProjectService._format_minutes(total_assignment_hours + total_misc_minutes)
                 }
             }
 

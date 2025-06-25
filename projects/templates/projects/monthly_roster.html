@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load report_filters %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -558,11 +559,24 @@
                                                 <i class="bi bi-clock-fill"></i> {{ day_roster.task_hours_formatted }}
                                             </div>
                                         {% endif %}
+                                        
+                                        {# Legacy misc hours #}
                                         {% if day_roster.misc_hours > 0 %}
                                             <div class="misc-hours">
                                                 <i class="bi bi-plus-circle-fill"></i> {{ day_roster.misc_hours_formatted }}
                                             </div>
                                         {% endif %}
+                                        
+                                        {# New misc hours entries #}
+                                        {% if monthly_data.misc_hours_by_date %}
+                                            {% for misc_entry in monthly_data.misc_hours_by_date|dict_get:day_roster.date %}
+                                                <div class="misc-hours">
+                                                    <i class="bi bi-plus-circle-fill"></i> {{ misc_entry.get_formatted_duration }}
+                                                    <small class="text-muted">({{ misc_entry.activity }})</small>
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        
                                         {% if day_roster.total_hours > 0 %}
                                             <div class="total-hours">{{ day_roster.total_hours_formatted }}</div>
                                         {% endif %}

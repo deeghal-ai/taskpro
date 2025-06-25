@@ -10,6 +10,7 @@
 ### Additional Issues Discovered
 4. **Inconsistent date display pattern** - misc hours only showing on certain dates (24th working, 23rd/25th not working)
 5. **Dashboard showing 00:00 for misc work** despite having actual misc hours entries
+6. **Monthly roster not showing new misc hours entries** - only displaying legacy misc hours from `DailyRoster.misc_hours` field
 
 ## Root Cause Analysis
 
@@ -75,6 +76,82 @@ default=timezone.localtime(timezone.now()).date()
 ```
 **Result**: All forms now use consistent local timezone
 
+### 4. Monthly Roster Service Fix
+**File**: `projects/services.py` → `get_monthly_roster()`
+```python
+# BEFORE - Only legacy misc hours
+total_misc_hours = sum(r.misc_hours for r in roster_entries)
+
+# AFTER - Both legacy and new misc hours
+# Get new MiscHours entries for the month
+from .models import MiscHours
+start_date = date(year, month, 1)
+end_date = date(year, month, last_day)
+misc_hours_entries = MiscHours.objects.filter(
+    team_member=team_member,
+    date__gte=start_date,
+    date__lte=end_date
+).order_by('date', 'created_at')
+
+# Create a dictionary to map dates to misc hours for easier template access
+misc_hours_by_date = {}
+for misc_entry in misc_hours_entries:
+    if misc_entry.date not in misc_hours_by_date:
+        misc_hours_by_date[misc_entry.date] = []
+    misc_hours_by_date[misc_entry.date].append(misc_entry)
+
+# Calculate misc hours from both legacy and new sources
+legacy_misc_minutes = sum(r.misc_hours for r in roster_entries)
+new_misc_minutes = sum(misc.duration_minutes for misc in misc_hours_entries)
+total_misc_minutes = legacy_misc_minutes + new_misc_minutes
+```
+**Result**: Monthly summary now includes both legacy and new misc hours data
+
+### 5. Monthly Roster Template Fix
+**Files**: 
+- `projects/templates/projects/monthly_roster.html`
+- `projects/templates/projects/team_member_monthly_roster.html`
+
+```html
+<!-- BEFORE - Only legacy misc hours -->
+{% if day_roster.misc_hours > 0 %}
+    <div class="misc-hours">
+        <i class="bi bi-plus-circle-fill"></i> {{ day_roster.misc_hours_formatted }}
+    </div>
+{% endif %}
+
+<!-- AFTER - Both legacy and new misc hours -->
+{# Legacy misc hours #}
+{% if day_roster.misc_hours > 0 %}
+    <div class="misc-hours">
+        <i class="bi bi-plus-circle-fill"></i> {{ day_roster.misc_hours_formatted }}
+    </div>
+{% endif %}
+
+{# New misc hours entries #}
+{% if misc_hours_by_date %}
+    {% for misc_entry in misc_hours_by_date|dict_get:day_roster.date %}
+        <div class="misc-hours">
+            <i class="bi bi-plus-circle-fill"></i> {{ misc_entry.get_formatted_duration }}
+        </div>
+    {% endfor %}
+{% endif %}
+```
+**Result**: Individual days in monthly calendar now show both legacy and new misc hours entries
+
+### 6. Template Filter Addition
+**File**: `projects/templatetags/report_filters.py`
+```python
+@register.filter
+def dict_get(dictionary, key):
+    """
+    Template filter to get value from dictionary by key.
+    Usage: {{ dictionary|dict_get:key }}
+    """
+    return dictionary.get(key, [])
+```
+**Result**: Enables template access to dictionary values for misc_hours_by_date lookup
+
 ## Data Structure
 
 ### Current State
@@ -99,11 +176,14 @@ LEGACY DailyRoster misc hours:
 ## Files Modified
 
 1. **`projects/models.py`** - Added `MiscHours` model
-2. **`projects/services.py`** - Updated dashboard service and misc hours logic  
+2. **`projects/services.py`** - Updated dashboard service, daily roster logic, and **monthly roster logic**
 3. **`projects/views.py`** - Updated daily roster view
 4. **`projects/templates/projects/daily_roster.html`** - Fixed template logic
-5. **`projects/forms.py`** - Fixed timezone handling
-6. **`projects/migrations/0024_add_misc_hours_model.py`** - Database migration
+5. **`projects/templates/projects/monthly_roster.html`** - **Fixed template logic for new misc hours**
+6. **`projects/templates/projects/team_member_monthly_roster.html`** - **Fixed template logic for new misc hours**
+7. **`projects/forms.py`** - Fixed timezone handling
+8. **`projects/templatetags/report_filters.py`** - **Added dict_get filter**
+9. **`projects/migrations/0024_add_misc_hours_model.py`** - Database migration
 
 ## Testing Results
 
@@ -128,24 +208,27 @@ Today's summary:
 
 ### ✅ All Issues Resolved
 1. **Individual Cards**: Each misc hours entry now displays as separate card with specific activity and duration
-2. **Date Coverage**: All dates (21st, 22nd, 23rd, 24th, 25th) now show misc hours correctly
+2. **Date Coverage**: All dates (21st, 22nd, 23rd, 24th, 25th) now show misc hours correctly in **both daily and monthly rosters**
 3. **Dashboard Accuracy**: Shows correct misc hours totals (e.g., "02:00" instead of "00:00")
-4. **Timezone Consistency**: All forms use local timezone consistently
-5. **Backward Compatibility**: Legacy aggregated entries still display alongside new individual entries
+4. **Monthly Roster Summary**: Summary cards show accurate totals including both legacy and new misc hours
+5. **Monthly Calendar**: Individual days show all misc hours entries (both legacy and new)
+6. **Timezone Consistency**: All forms use local timezone consistently
+7. **Backward Compatibility**: Legacy aggregated entries still display alongside new individual entries
 
 ### Current Functionality
 - **Daily Roster**: Shows individual misc hours cards with activity names
+- **Monthly Roster**: Shows accurate misc hours in summary AND individual day cells
 - **Dashboard**: Displays accurate misc hours totals  
 - **Forms**: Accept dates without timezone validation errors
 - **Legacy Support**: Old entries marked as "MISC (Legacy)" still visible
-- **Data Integrity**: Total calculations include both old and new misc hours
+- **Data Integrity**: Total calculations include both old and new misc hours across all views
 
 ## Migration Strategy Applied
 ✅ **Successful dual-system approach**:
 - New misc hours added as individual `MiscHours` entries
 - Legacy aggregated data preserved and still displayed  
-- Service layer combines both sources for accurate totals
-- Templates handle both data types gracefully
+- Service layer combines both sources for accurate totals in **all views**
+- Templates handle both data types gracefully across **daily and monthly rosters**
 - No data loss, full backward compatibility maintained
 
-This fix ensures the system works correctly during the transition period and provides a foundation for eventually migrating all legacy data to the new format if desired. 
+This fix ensures the system works correctly during the transition period and provides a foundation for eventually migrating all legacy data to the new format if desired. **The monthly roster now correctly displays misc hours from both the legacy `DailyRoster.misc_hours` field and the new `MiscHours` model entries.** 
