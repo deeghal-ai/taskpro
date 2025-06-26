@@ -379,7 +379,9 @@ class ProjectTaskForm(forms.ModelForm):
         ]
         widgets = {
             'product_task': forms.Select(attrs={
-                'class': 'form-select'
+                'class': 'form-select searchable-select',
+                'data-search': 'true',
+                'data-placeholder': 'Search and select a task...'
             }),
             'task_type': forms.Select(attrs={
                 'class': 'form-select'
