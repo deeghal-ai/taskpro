@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ProductSubcategory, Product, ProjectStatusOption, Project, ProjectStatusHistory, ProductTask, ProjectTask, TaskAssignment
-from .models import ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, DailyRoster, Holiday, ProjectDelivery
+from .models import ActiveTimer, TimeSession, DailyTimeTotal, TimerActionLog, DailyRoster, Holiday, ProjectDelivery, MiscHours
 
 
 @admin.register(ProductSubcategory)
@@ -486,3 +486,20 @@ class ProjectDeliveryAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('project', 'project_incharge')
+
+
+
+@admin.register(MiscHours)
+class MiscHoursAdmin(admin.ModelAdmin):
+    list_display = ('team_member', 'date', 'activity', 'get_formatted_duration', 'created_at')
+    list_filter = ('date', 'team_member', 'created_at')
+    search_fields = ('team_member__username', 'team_member__first_name', 'team_member__last_name', 'activity')
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-date', '-created_at')
+    
+    def get_formatted_duration(self, obj):
+        """Display duration in HH:MM format"""
+        hours = obj.duration_minutes // 60
+        minutes = obj.duration_minutes % 60
+        return f"{hours:02d}:{minutes:02d}"
+    get_formatted_duration.short_description = 'Duration'
