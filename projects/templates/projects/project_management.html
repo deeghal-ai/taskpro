@@ -819,13 +819,14 @@
                 const $select = $(this);
                 const placeholder = $select.data('placeholder') || 'Search and select...';
                 
-                $select.select2({
+                const select2Instance = $select.select2({
                     theme: 'bootstrap-5',
                     placeholder: placeholder,
                     allowClear: true,
                     width: '100%',
                     dropdownParent: $select.closest('.col-md-4, .form-group, .task-form-section'),
                     minimumResultsForSearch: 0, // Always show search box
+                    selectOnClose: false,
                     escapeMarkup: function(markup) {
                         return markup; // Don't escape HTML
                     },
@@ -853,39 +854,8 @@
                     }
                 });
                 
-                // Add custom search behavior - auto-focus search field
-                $select.on('select2:open', function() {
-                    // Focus the search field when dropdown opens
-                    const selectId = this.id;
-                    setTimeout(function() {
-                        // More specific selector to target the search field for this dropdown
-                        const searchField = $(`#select2-${selectId}-results`).closest('.select2-dropdown').find('.select2-search__field');
-                        if (searchField.length > 0) {
-                            searchField.focus();
-                        } else {
-                            // Fallback to generic selector
-                            $('.select2-dropdown:visible .select2-search__field').last().focus();
-                        }
-                    }, 150);
-                });
-                
-                // Additional event to ensure focus works reliably
-                $select.on('select2:opening', function() {
-                    const selectId = this.id;
-                    // Set focus after a longer delay to ensure DOM is ready
-                    setTimeout(function() {
-                        const searchField = $('.select2-dropdown:visible .select2-search__field').last();
-                        if (searchField.length > 0) {
-                            searchField.focus();
-                            // Also set cursor to end of text if any
-                            const input = searchField[0];
-                            if (input && input.setSelectionRange) {
-                                const len = input.value.length;
-                                input.setSelectionRange(len, len);
-                            }
-                        }
-                    }, 200);
-                });
+                // Auto-focus is handled by the global event listener below
+                // (Individual handler removed to avoid redundancy)
                 
                 // Add loading state
                 $select.on('select2:opening', function() {
@@ -902,6 +872,16 @@
                 setTimeout(function() {
                     $('.searchable-select').trigger('change');
                 }, 100);
+            });
+            
+            // Global auto-focus for all Select2 dropdowns
+            $(document).on('select2:open', function() {
+                setTimeout(function() {
+                    const searchField = document.querySelector('.select2-dropdown:not([style*="display: none"]) .select2-search__field');
+                    if (searchField) {
+                        searchField.focus();
+                    }
+                }, 50);
             });
         },
         
