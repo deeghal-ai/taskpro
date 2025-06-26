@@ -853,12 +853,38 @@
                     }
                 });
                 
-                // Add custom search behavior
+                // Add custom search behavior - auto-focus search field
                 $select.on('select2:open', function() {
                     // Focus the search field when dropdown opens
+                    const selectId = this.id;
                     setTimeout(function() {
-                        $('.select2-search__field').focus();
-                    }, 100);
+                        // More specific selector to target the search field for this dropdown
+                        const searchField = $(`#select2-${selectId}-results`).closest('.select2-dropdown').find('.select2-search__field');
+                        if (searchField.length > 0) {
+                            searchField.focus();
+                        } else {
+                            // Fallback to generic selector
+                            $('.select2-dropdown:visible .select2-search__field').last().focus();
+                        }
+                    }, 150);
+                });
+                
+                // Additional event to ensure focus works reliably
+                $select.on('select2:opening', function() {
+                    const selectId = this.id;
+                    // Set focus after a longer delay to ensure DOM is ready
+                    setTimeout(function() {
+                        const searchField = $('.select2-dropdown:visible .select2-search__field').last();
+                        if (searchField.length > 0) {
+                            searchField.focus();
+                            // Also set cursor to end of text if any
+                            const input = searchField[0];
+                            if (input && input.setSelectionRange) {
+                                const len = input.value.length;
+                                input.setSelectionRange(len, len);
+                            }
+                        }
+                    }, 200);
                 });
                 
                 // Add loading state
