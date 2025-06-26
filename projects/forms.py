@@ -646,14 +646,21 @@ class ManualTimeEntryForm(forms.Form):
         help_text="Minutes worked"
     )
     
+    reason = forms.ChoiceField(
+        choices=[('', 'Select a reason...')] + list(TimeSession.REASON_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Why are you adding time manually?",
+        required=True
+    )
+    
     description = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'rows': 3,
-            'placeholder': 'Optional: Describe what you worked on'
+            'rows': 2,
+            'placeholder': 'Optional: Brief description of work done'
         }),
         required=False,
-        help_text="Optional description of work completed"
+        help_text="Optional details about the work"
     )
     
     is_completed = forms.BooleanField(

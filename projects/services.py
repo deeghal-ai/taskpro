@@ -997,7 +997,7 @@ class ProjectService:
                 return False, f"An error occurred: {str(e)}"
 
     @staticmethod
-    def add_manual_time(assignment_id, team_member, date_worked, hours, minutes, description=""):
+    def add_manual_time(assignment_id, team_member, date_worked, hours, minutes, description="", reason=None):
         """
         Add manual time entry for an assignment.
 
@@ -1008,6 +1008,7 @@ class ProjectService:
             hours: Integer hours worked
             minutes: Integer minutes worked
             description: Optional description of work done
+            reason: Reason for manual time entry (required for new entries)
 
         Returns:
             tuple: (success, result)
@@ -1028,6 +1029,10 @@ class ProjectService:
                 if total_minutes <= 0:
                     return False, "Duration must be greater than 0 minutes."
 
+                # Validate that reason is provided for manual entries
+                if not reason:
+                    return False, "A reason is required for manual time entries."
+
                 # Create time session
                 time_session = TimeSession.objects.create(
                     assignment=assignment,
@@ -1037,21 +1042,23 @@ class ProjectService:
                     duration_minutes=total_minutes,
                     date_worked=date_worked,
                     description=description,
-                    session_type='MANUAL'
+                    session_type='MANUAL',
+                    reason=reason
                 )
 
                 # Update daily total
                 ProjectService._update_daily_total(assignment, team_member, date_worked, total_minutes)
 
-                # Log the action
+                # Log the action with reason included
+                reason_display = dict(TimeSession.REASON_CHOICES).get(reason, reason)
                 TimerActionLog.objects.create(
                     assignment=assignment,
                     team_member=team_member,
                     action='MANUAL_ADD',
-                    details=f"Added {ProjectService._format_minutes(total_minutes)} for {date_worked}, Description: {description}"
+                    details=f"Added {ProjectService._format_minutes(total_minutes)} for {date_worked}, Reason: {reason_display}, Description: {description}"
                 )
 
-                logger.info(f"Manual time added for {team_member.username} on {assignment.assignment_id}: {total_minutes} minutes")
+                logger.info(f"Manual time added for {team_member.username} on {assignment.assignment_id}: {total_minutes} minutes, Reason: {reason_display}")
                 return True, time_session
 
             except TaskAssignment.DoesNotExist:

@@ -715,7 +715,7 @@
                 <input type="hidden" name="assignment_id" id="manualTimeAssignmentId">
                 
                 <div class="modal-body">
-                    <div class="alert alert-info alert-sm">
+                    <div class="alert alert-info alert-sm mb-3">
                         <i class="bi bi-info-circle"></i> 
                         <strong>Assignment:</strong> <span id="manualTimeAssignmentName"></span>
                     </div>
@@ -731,15 +731,29 @@
                     
                     <div class="row mb-3">
                         <div class="col-6">
-                            <label for="manualTimeHours" class="form-label">Hours</label>
+                            <label for="manualTimeHours" class="form-label">Hours <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="duration_hours" 
                                    id="manualTimeHours" min="0" max="23" value="0" required>
                         </div>
                         <div class="col-6">
-                            <label for="manualTimeMinutes" class="form-label">Minutes</label>
+                            <label for="manualTimeMinutes" class="form-label">Minutes <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="duration_minutes" 
                                    id="manualTimeMinutes" min="0" max="59" value="0" required>
                         </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="manualTimeReason" class="form-label">
+                            Reason <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" name="reason" id="manualTimeReason" required>
+                            <option value="">Select a reason...</option>
+                            <option value="FORGOT_TIMER">Forgot to start timer</option>
+                            <option value="LATE_ASSIGNMENT">Received late assignment</option>
+                            <option value="TIMER_ISSUE">Timer technical issue</option>
+                            <option value="OFFLINE_WORK">Work done offline</option>
+                        </select>
+                        <div class="form-text">Why are you adding time manually?</div>
                     </div>
                     
                     <div class="mb-3">
@@ -747,7 +761,8 @@
                             Description <small class="text-muted">(Optional)</small>
                         </label>
                         <textarea class="form-control" name="description" id="manualTimeDescription" 
-                                  rows="3" placeholder="What did you work on?"></textarea>
+                                  rows="2" placeholder="Optional: Brief description of work done"></textarea>
+                        <div class="form-text">Optional details about the work</div>
                     </div>
                     
                     <div class="form-check">
@@ -887,6 +902,7 @@
                     // Reset form
                     document.getElementById('manualTimeHours').value = 0;
                     document.getElementById('manualTimeMinutes').value = 0;
+                    document.getElementById('manualTimeReason').value = '';
                     document.getElementById('manualTimeDescription').value = '';
                     document.getElementById('manualTimeCompleted').checked = false;
                     

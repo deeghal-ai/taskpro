@@ -867,6 +867,7 @@
                                         <th>End</th>
                                         <th>Duration</th>
                                         <th>Type</th>
+                                        <th>Reason</th>
                                         <th>Description</th>
                                         {% if not assignment.is_completed %}
                                             <th class="text-center">Actions</th>
@@ -903,6 +904,21 @@
                                                 <span class="badge bg-warning edited-badge">
                                                     <i class="bi bi-pencil-fill"></i> Edited
                                                 </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if session.reason %}
+                                                <span class="text-truncate d-inline-block" style="max-width: 150px;" 
+                                                      title="{{ session.get_reason_display }}"
+                                                      data-bs-toggle="tooltip">
+                                                    <small class="text-muted">{{ session.get_reason_display }}</small>
+                                                </span>
+                                            {% else %}
+                                                {% if session.session_type == 'MANUAL' %}
+                                                    <small class="text-muted">No reason specified</small>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
                                             {% endif %}
                                         </td>
                                         <td>

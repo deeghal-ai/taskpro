@@ -816,6 +816,15 @@ class TimeSession(models.Model):
     Individual work sessions (each start/stop cycle creates one session).
     Multiple sessions per day per assignment are allowed.
     """
+    
+    # Reason choices for manual time entries
+    REASON_CHOICES = [
+        ('FORGOT_TIMER', 'Forgot to start timer'),
+        ('LATE_ASSIGNMENT', 'Received late assignment'), 
+        ('TIMER_ISSUE', 'Timer technical issue'),
+        ('OFFLINE_WORK', 'Work done offline'),
+    ]
+    
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -859,6 +868,13 @@ class TimeSession(models.Model):
             ('MANUAL', 'Manual Entry')
         ],
         default='TIMER'
+    )
+    reason = models.CharField(
+        max_length=20,
+        choices=REASON_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Reason for manual time entry"
     )
     is_edited = models.BooleanField(
         default=False,

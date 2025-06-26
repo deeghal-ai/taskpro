@@ -799,7 +799,8 @@ def team_member_dashboard(request):
                     date_worked=form.cleaned_data['date'],
                     hours=form.cleaned_data['duration_hours'],
                     minutes=form.cleaned_data['duration_minutes'],
-                    description=form.cleaned_data['description']
+                    description=form.cleaned_data['description'],
+                    reason=form.cleaned_data['reason']
                 )
 
                 if success:
