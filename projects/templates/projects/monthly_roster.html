@@ -84,11 +84,21 @@
     .summary-card.total-hours h3 { color: var(--warning-color); }
     
     /* Enhanced Calendar */
+    .calendar-container {
+        margin-bottom: 3rem; /* Add bottom spacing */
+    }
+    
     .calendar-card {
         border: none;
         box-shadow: var(--shadow-sm);
         border-radius: 0.75rem;
         overflow: hidden;
+    }
+    
+    .calendar-wrapper {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
     
     .calendar-card .card-header {
@@ -362,9 +372,14 @@
     
     /* Responsive Design */
     @media (max-width: 768px) {
+        .roster-calendar {
+            min-width: 700px; /* Ensure calendar doesn't get too cramped */
+        }
+        
         .roster-calendar td {
             height: 80px;
             font-size: 0.75rem;
+            min-width: 100px;
         }
         
         .day-cell {
@@ -392,6 +407,7 @@
             flex-wrap: wrap;
             gap: 0.75rem;
         }
+        
     }
     
     /* Loading State */
@@ -425,6 +441,7 @@
     .roster-calendar td:last-child {
         background: rgba(108, 117, 125, 0.05);
     }
+
 </style>
 {% endblock %}
 
@@ -434,9 +451,14 @@
     <div class="roster-header-card">
         <div class="card-header text-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="bi bi-calendar3"></i> Monthly Roster
-                </h4>
+                <div class="d-flex align-items-center gap-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-calendar3"></i> Monthly Roster
+                    </h4>
+                    <a href="{% url 'projects:daily_roster' %}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-calendar-day"></i> Daily Roster
+                    </a>
+                </div>
                 <div>
                     <button type="button" class="btn btn-outline-light btn-sm me-2" 
                             data-bs-toggle="modal" data-bs-target="#addMiscHoursModal">
@@ -509,97 +531,103 @@
     </div>
 
     <!-- Enhanced Calendar -->
-    <div class="calendar-card">
-        <div class="card-header">
-            <h5>
-                <i class="bi bi-calendar3 text-primary"></i> Monthly Calendar
-            </h5>
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <span class="legend-dot task-hours" style="background: var(--primary-color);"></span>
-                    <span>Task Hours</span>
+    <div class="calendar-container">
+        <div class="calendar-card">
+            <div class="card-header">
+                <h5>
+                    <i class="bi bi-calendar3 text-primary"></i> Monthly Calendar
+                </h5>
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <span class="legend-dot task-hours" style="background: var(--primary-color);"></span>
+                        <span>Task Hours</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot misc-hours" style="background: var(--success-color);"></span>
+                        <span>Misc Hours</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot total-hours" style="background: var(--danger-color);"></span>
+                        <span>Total Hours</span>
+                    </div>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-dot misc-hours" style="background: var(--success-color);"></span>
-                    <span>Misc Hours</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot total-hours" style="background: var(--danger-color);"></span>
-                    <span>Total Hours</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="calendar-wrapper">
+                    <table class="roster-calendar">
+                        <thead>
+                            <tr>
+                                <th>Sunday</th>
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
+                                <th>Saturday</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in monthly_data.calendar_weeks %}
+                            <tr>
+                                {% for day_roster in week %}
+                                <td class="{% if not day_roster %}empty-cell{% endif %}">
+                                    {% if day_roster %}
+                                        <div class="day-cell" data-date="{{ day_roster.date|date:'Y-m-d' }}">
+                                            <div class="day-number">{{ day_roster.date.day }}</div>
+                                            <div class="day-status status-{{ day_roster.status|lower }}">
+                                                {{ day_roster.get_status_display }}
+                                            </div>
+                                            <div class="day-hours">
+                                                {% if day_roster.assignment_hours > 0 %}
+                                                    <div class="task-hours">
+                                                        <i class="bi bi-clock-fill"></i> {{ day_roster.task_hours_formatted }}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {# Legacy misc hours #}
+                                                {% if day_roster.misc_hours > 0 %}
+                                                    <div class="misc-hours">
+                                                        <i class="bi bi-plus-circle-fill"></i> {{ day_roster.misc_hours_formatted }}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {# New misc hours entries #}
+                                                {% if monthly_data.misc_hours_by_date %}
+                                                    {% for misc_entry in monthly_data.misc_hours_by_date|dict_get:day_roster.date %}
+                                                        <div class="misc-hours">
+                                                            <i class="bi bi-plus-circle-fill"></i> {{ misc_entry.get_formatted_duration }}
+                                                            <small class="text-muted">
+                                                                ({{ misc_entry.get_activity_type_display_with_fallback }}: {{ misc_entry.activity }})
+                                                            </small>
+                                                        </div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                
+                                                {% if day_roster.total_hours > 0 %}
+                                                    <div class="total-hours">{{ day_roster.total_hours_formatted }}</div>
+                                                {% endif %}
+                                                {% if day_roster.total_hours == 0 %}
+                                                    <div class="text-muted">-</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="day-cell empty-cell">
+                                            <div class="day-number">&nbsp;</div>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <table class="roster-calendar">
-                <thead>
-                    <tr>
-                        <th>Sunday</th>
-                        <th>Monday</th>
-                        <th>Tuesday</th>
-                        <th>Wednesday</th>
-                        <th>Thursday</th>
-                        <th>Friday</th>
-                        <th>Saturday</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for week in monthly_data.calendar_weeks %}
-                    <tr>
-                        {% for day_roster in week %}
-                        <td class="{% if not day_roster %}empty-cell{% endif %}">
-                            {% if day_roster %}
-                                <div class="day-cell" data-date="{{ day_roster.date|date:'Y-m-d' }}">
-                                    <div class="day-number">{{ day_roster.date.day }}</div>
-                                    <div class="day-status status-{{ day_roster.status|lower }}">
-                                        {{ day_roster.get_status_display }}
-                                    </div>
-                                    <div class="day-hours">
-                                        {% if day_roster.assignment_hours > 0 %}
-                                            <div class="task-hours">
-                                                <i class="bi bi-clock-fill"></i> {{ day_roster.task_hours_formatted }}
-                                            </div>
-                                        {% endif %}
-                                        
-                                        {# Legacy misc hours #}
-                                        {% if day_roster.misc_hours > 0 %}
-                                            <div class="misc-hours">
-                                                <i class="bi bi-plus-circle-fill"></i> {{ day_roster.misc_hours_formatted }}
-                                            </div>
-                                        {% endif %}
-                                        
-                                        {# New misc hours entries #}
-                                        {% if monthly_data.misc_hours_by_date %}
-                                            {% for misc_entry in monthly_data.misc_hours_by_date|dict_get:day_roster.date %}
-                                                <div class="misc-hours">
-                                                    <i class="bi bi-plus-circle-fill"></i> {{ misc_entry.get_formatted_duration }}
-                                                    <small class="text-muted">
-                                                        ({{ misc_entry.get_activity_type_display_with_fallback }}: {{ misc_entry.activity }})
-                                                    </small>
-                                                </div>
-                                            {% endfor %}
-                                        {% endif %}
-                                        
-                                        {% if day_roster.total_hours > 0 %}
-                                            <div class="total-hours">{{ day_roster.total_hours_formatted }}</div>
-                                        {% endif %}
-                                        {% if day_roster.total_hours == 0 %}
-                                            <div class="text-muted">-</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="day-cell empty-cell">
-                                    <div class="day-number">&nbsp;</div>
-                                </div>
-                            {% endif %}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
     </div>
+
+
 
     <!-- Status Edit Modal -->
     <div class="modal fade" id="editDayModal" tabindex="-1" aria-labelledby="editDayModalLabel" aria-hidden="true">
@@ -732,13 +760,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Floating Add Button (Mobile) -->
-    <button type="button" class="btn btn-success add-misc-btn d-md-none" 
-            data-bs-toggle="modal" data-bs-target="#addMiscHoursModal"
-            title="Add Misc Hours">
-        <i class="bi bi-plus-lg"></i>
-    </button>
 </div>
 {% endblock %}
 
