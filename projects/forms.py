@@ -792,13 +792,21 @@ class AddMiscHoursForm(forms.Form):
         help_text="Date when the miscellaneous work was performed"
     )
     
+    activity_type = forms.ChoiceField(
+        choices=MiscHours.ACTIVITY_TYPE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        }),
+        help_text="Category of the misc activity"
+    )
+    
     activity = forms.CharField(
         max_length=200,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'e.g., Team meeting, Training, Admin work'
+            'placeholder': 'e.g., landscape detail reading and searching 3d model'
         }),
-        help_text="Brief description of the activity"
+        help_text="Brief description of the specific activity"
     )
     
     duration_hours = forms.IntegerField(
@@ -864,9 +872,10 @@ class EditMiscHoursForm(forms.ModelForm):
 
     class Meta:
         model = MiscHours
-        fields = ['date', 'activity']
+        fields = ['date', 'activity_type', 'activity']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'activity_type': forms.Select(attrs={'class': 'form-select'}),
             'activity': forms.TextInput(attrs={'class': 'form-control'})
         }
 

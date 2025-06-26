@@ -1964,7 +1964,7 @@ class ProjectService:
 
 
     @staticmethod
-    def add_misc_hours(team_member, work_date, activity, duration_hours, duration_minutes):
+    def add_misc_hours(team_member, work_date, activity, duration_hours, duration_minutes, activity_type=None):
         """
         Add miscellaneous hours to a team member's daily roster.
         These are HR activities (meetings, training, admin) not related to task work.
@@ -1976,6 +1976,7 @@ class ProjectService:
             activity: String description of the activity
             duration_hours: Integer hours
             duration_minutes: Integer minutes
+            activity_type: String activity type from choices (optional for backward compatibility)
 
         Returns:
             tuple: (success, result)
@@ -1999,6 +2000,7 @@ class ProjectService:
                     team_member=team_member,
                     date=work_date,
                     activity=activity,
+                    activity_type=activity_type,
                     duration_minutes=total_minutes
                 )
 

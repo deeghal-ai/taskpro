@@ -55,3 +55,22 @@ def dict_get(dictionary, key):
     Usage: {{ dictionary|dict_get:key }}
     """
     return dictionary.get(key, [])
+
+@register.simple_tag
+def get_all_dates_with_time(daily_totals, misc_hours_entries):
+    """
+    Get all unique dates that have either assignments or misc hours.
+    Returns sorted list of dates.
+    """
+    all_dates = set()
+    
+    # Add dates from assignments
+    for daily_total in daily_totals:
+        all_dates.add(daily_total.date_worked)
+    
+    # Add dates from misc hours
+    for misc_entry in misc_hours_entries:
+        all_dates.add(misc_entry.date)
+    
+    # Return sorted list of dates
+    return sorted(all_dates)

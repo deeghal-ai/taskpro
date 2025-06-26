@@ -1179,6 +1179,7 @@ def daily_roster(request):
         'assignment_minutes': roster_data['assignment_minutes'],
         'misc_minutes': roster_data['misc_minutes'],
         'daily_summaries': daily_summaries,
+        'misc_activity_type_choices': MiscHours.ACTIVITY_TYPE_CHOICES,
         'title': f'Daily Roster - {roster_data["date_range"]}'
     }
 
@@ -1205,7 +1206,8 @@ def monthly_roster(request, year=None, month=None):
                 work_date=form.cleaned_data['date'],
                 activity=form.cleaned_data['activity'],
                 duration_hours=form.cleaned_data['duration_hours'],
-                duration_minutes=form.cleaned_data['duration_minutes']
+                duration_minutes=form.cleaned_data['duration_minutes'],
+                activity_type=form.cleaned_data['activity_type']
             )
 
             if success:

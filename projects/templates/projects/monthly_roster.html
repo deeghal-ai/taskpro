@@ -572,7 +572,9 @@
                                             {% for misc_entry in monthly_data.misc_hours_by_date|dict_get:day_roster.date %}
                                                 <div class="misc-hours">
                                                     <i class="bi bi-plus-circle-fill"></i> {{ misc_entry.get_formatted_duration }}
-                                                    <small class="text-muted">({{ misc_entry.activity }})</small>
+                                                    <small class="text-muted">
+                                                        ({{ misc_entry.get_activity_type_display_with_fallback }}: {{ misc_entry.activity }})
+                                                    </small>
                                                 </div>
                                             {% endfor %}
                                         {% endif %}
@@ -679,8 +681,16 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label for="{{ misc_hours_form.activity_type.id_for_label }}" class="form-label">
+                                Activity Type <span class="text-danger">*</span>
+                            </label>
+                            {{ misc_hours_form.activity_type }}
+                            <div class="form-text">{{ misc_hours_form.activity_type.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="{{ misc_hours_form.activity.id_for_label }}" class="form-label">
-                                Activity <span class="text-danger">*</span>
+                                Activity Description <span class="text-danger">*</span>
                             </label>
                             {{ misc_hours_form.activity }}
                             <div class="form-text">{{ misc_hours_form.activity.help_text }}</div>

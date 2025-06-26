@@ -491,14 +491,19 @@
                     </div>
                     
                     {% regroup daily_totals by date_worked as daily_groups %}
-                    {% for day_group in daily_groups %}
+                    
+                    {# Create a list of all dates that have either assignments or misc hours #}
+                    {% load report_filters %}
+                    {% get_all_dates_with_time daily_totals misc_hours_entries as all_work_dates %}
+                    
+                    {% for work_date in all_work_dates %}
                         <div class="mb-4">
                             <h6 class="week-day-header d-flex justify-content-between align-items-center">
                                 <span>
                                     <i class="bi bi-calendar-date"></i> 
-                                    {{ day_group.grouper|date:"l, F d, Y" }}
+                                    {{ work_date|date:"l, F d, Y" }}
                                 </span>
-                                {% with daily_total=daily_summaries|get_item:day_group.grouper %}
+                                {% with daily_total=daily_summaries|get_item:work_date %}
                                     {% if daily_total %}
                                         <span class="text-muted" style="font-family: 'Roboto Mono', monospace; font-weight: 600; font-size: 0.9rem;">
                                             Total: {{ daily_total }}
@@ -508,57 +513,61 @@
                             </h6>
                             
                             <div class="week-day-content">
-                                {% for daily_total in day_group.list %}
-                                    <div class="assignment-row">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-5">
-                                                <div class="fw-bold mb-1">
-                                                    <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
-                                                        {{ daily_total.assignment.assignment_id }}
-                                                    </a>
-                                                    <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
-                                                        {{ daily_total.assignment.task.task_type }}
-                                                    </span>
+                                {# Display assignments for this date #}
+                                {% for daily_total in daily_totals %}
+                                    {% if daily_total.date_worked == work_date %}
+                                        <div class="assignment-row">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-5">
+                                                    <div class="fw-bold mb-1">
+                                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
+                                                            {{ daily_total.assignment.assignment_id }}
+                                                        </a>
+                                                        <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                                            {{ daily_total.assignment.task.task_type }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-muted">
+                                                        <small>
+                                                            <i class="bi bi-folder2"></i> {{ daily_total.assignment.task.project.project_name }}
+                                                        </small>
+                                                        <br>
+                                                        <small>
+                                                            <i class="bi bi-card-list"></i> {{ daily_total.assignment.task.product_task.name }}
+                                                        </small>
+                                                    </div>
                                                 </div>
-                                                <div class="text-muted">
-                                                    <small>
-                                                        <i class="bi bi-folder2"></i> {{ daily_total.assignment.task.project.project_name }}
-                                                    </small>
-                                                    <br>
-                                                    <small>
-                                                        <i class="bi bi-card-list"></i> {{ daily_total.assignment.task.product_task.name }}
-                                                    </small>
+                                                <div class="col-md-4">
+                                                    <div class="text-muted small mb-1">Sub-task:</div>
+                                                    <div class="text-truncate" style="max-width: 200px;" 
+                                                         title="{{ daily_total.assignment.sub_task }}">
+                                                        {{ daily_total.assignment.sub_task }}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="text-muted small mb-1">Sub-task:</div>
-                                                <div class="text-truncate" style="max-width: 200px;" 
-                                                     title="{{ daily_total.assignment.sub_task }}">
-                                                    {{ daily_total.assignment.sub_task }}
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3 text-md-end text-start">
-                                                <div class="time-display">{{ daily_total.get_formatted_total }}</div>
-                                                <div class="mt-2">
-                                                    <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
-                                                       class="btn btn-sm btn-outline-primary view-details-btn">
-                                                        <i class="bi bi-eye"></i> View Timesheet
-                                                    </a>
+                                                <div class="col-md-3 text-md-end text-start">
+                                                    <div class="time-display">{{ daily_total.get_formatted_total }}</div>
+                                                    <div class="mt-2">
+                                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
+                                                           class="btn btn-sm btn-outline-primary view-details-btn">
+                                                            <i class="bi bi-eye"></i> View Timesheet
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    {% endif %}
                                 {% endfor %}
                                 
-                                <!-- Add individual misc hours entries for this day -->
+                                {# Display misc hours for this date #}
                                 {% for misc_entry in misc_hours_entries %}
-                                    {% if misc_entry.date == day_group.grouper %}
+                                    {% if misc_entry.date == work_date %}
                                         <div class="assignment-row misc-hours-row" data-misc-id="{{ misc_entry.id }}">
                                             <div class="row align-items-center">
                                                 <div class="col-md-9">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <span class="badge bg-info">MISC</span>
                                                         <div class="fw-semibold fs-5">
+                                                            <span class="text-muted small">{{ misc_entry.get_activity_type_display_with_fallback }}:</span>
                                                             {{ misc_entry.activity }}
                                                         </div>
                                                     </div>
@@ -572,6 +581,7 @@
                                                                 data-id="{{ misc_entry.id }}"
                                                                 data-date="{{ misc_entry.date|date:'Y-m-d' }}"
                                                                 data-activity="{{ misc_entry.activity }}"
+                                                                data-activity-type="{{ misc_entry.activity_type|default:'' }}"
                                                                 data-duration="{{ misc_entry.get_formatted_duration }}"
                                                                 data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
                                                             <i class="bi bi-pencil-square"></i> Edit
@@ -583,9 +593,9 @@
                                     {% endif %}
                                 {% endfor %}
                                 
-                                <!-- Legacy misc hours for backward compatibility -->
+                                {# Display legacy misc hours for this date #}
                                 {% for roster_date, day_roster in daily_rosters.items %}
-                                    {% if roster_date == day_group.grouper and day_roster.misc_hours > 0 %}
+                                    {% if roster_date == work_date and day_roster.misc_hours > 0 %}
                                         <div class="assignment-row misc-hours-row">
                                             <div class="row align-items-center">
                                                 <div class="col-md-2">
@@ -604,6 +614,15 @@
                                     {% endif %}
                                 {% endfor %}
                             </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            <i class="bi bi-clock empty-state-icon"></i>
+                            <h5>No Time Entries</h5>
+                            <p>No time has been logged for the selected week.</p>
+                            <a href="{% url 'projects:team_member_dashboard' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Start Working on Tasks
+                            </a>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -656,12 +675,13 @@
                                 <div class="assignment-row misc-hours-row" data-misc-id="{{ misc_entry.id }}">
                                     <div class="row align-items-center">
                                         <div class="col-md-9">
-                                            <div class="d-flex align-items-center gap-3">
-                                                <span class="badge bg-info">MISC</span>
-                                                <div class="fw-semibold fs-5">
-                                                    {{ misc_entry.activity }}
-                                                </div>
-                                            </div>
+                                                                            <div class="d-flex align-items-center gap-3">
+                                    <span class="badge bg-info">MISC</span>
+                                    <div class="fw-semibold fs-5">
+                                        <span class="text-muted small">{{ misc_entry.get_activity_type_display_with_fallback }}:</span>
+                                        {{ misc_entry.activity }}
+                                    </div>
+                                </div>
                                         </div>
                                         <div class="col-md-3 text-md-end text-start ps-md-0 pe-md-4">
                                             <div class="time-display">{{ misc_entry.get_formatted_duration }}</div>
@@ -672,6 +692,7 @@
                                                         data-id="{{ misc_entry.id }}"
                                                         data-date="{{ misc_entry.date|date:'Y-m-d' }}"
                                                         data-activity="{{ misc_entry.activity }}"
+                                                        data-activity-type="{{ misc_entry.activity_type|default:'' }}"
                                                         data-duration="{{ misc_entry.get_formatted_duration }}"
                                                         data-url="{% url 'projects:edit_misc_hours' misc_entry.id %}">
                                                     <i class="bi bi-pencil-square"></i> Edit
@@ -783,7 +804,16 @@
                         <input type="date" class="form-control" id="edit-misc-date" name="date" required>
                     </div>
                     <div class="mb-3">
-                        <label for="edit-misc-activity" class="form-label">Activity</label>
+                        <label for="edit-misc-activity-type" class="form-label">Activity Type</label>
+                        <select class="form-select" id="edit-misc-activity-type" name="activity_type">
+                            <option value="">-- Select Activity Type --</option>
+                            {% for choice_value, choice_label in misc_activity_type_choices %}
+                                <option value="{{ choice_value }}">{{ choice_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-misc-activity" class="form-label">Activity Description</label>
                         <input type="text" class="form-control" id="edit-misc-activity" name="activity" required>
                     </div>
                     <div class="mb-3">
@@ -906,6 +936,7 @@
                 const miscId = this.dataset.id;
                 const miscDate = this.dataset.date;
                 const miscActivity = this.dataset.activity;
+                const miscActivityType = this.dataset.activityType;
                 const miscDuration = this.dataset.duration;
                 const formUrl = this.dataset.url;
 
@@ -913,6 +944,7 @@
                 document.getElementById('edit-misc-id').value = miscId;
                 document.getElementById('edit-misc-date').value = miscDate;
                 document.getElementById('edit-misc-activity').value = miscActivity;
+                document.getElementById('edit-misc-activity-type').value = miscActivityType || '';
                 document.getElementById('edit-misc-duration').value = miscDuration;
                 
                 // Hide previous errors

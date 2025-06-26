@@ -1112,6 +1112,19 @@ class MiscHours(models.Model):
     Individual misc hour entries for team members.
     This allows multiple separate entries per day.
     """
+    
+    # Hardcoded activity type choices
+    ACTIVITY_TYPE_CHOICES = [
+        ('HR_ACTIVITY', 'HR Activity(Organization)'),
+        ('TRAINING', 'Training'),
+        ('RND', 'R&D'),
+        ('TECHNICAL_ISSUE', 'Technical Issue(Software & Internet)'),
+        ('TEAM_ACTIVITY', 'Team Activity'),
+        ('REA_UNIVERSITY', 'REA University'),
+        ('TASK_ISSUE', 'Task Issue'),
+        ('INTERNAL_WORK', 'Internal Work'),
+    ]
+    
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -1125,6 +1138,13 @@ class MiscHours(models.Model):
     )
     date = models.DateField(
         help_text="Date when the misc work was performed"
+    )
+    activity_type = models.CharField(
+        max_length=20,
+        choices=ACTIVITY_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Category of the misc activity"
     )
     activity = models.CharField(
         max_length=200,
@@ -1153,6 +1173,12 @@ class MiscHours(models.Model):
         hours = self.duration_minutes // 60
         minutes = self.duration_minutes % 60
         return f"{hours:02d}:{minutes:02d}"
+
+    def get_activity_type_display_with_fallback(self):
+        """Return activity type display name, or 'Uncategorized' if not set"""
+        if self.activity_type:
+            return self.get_activity_type_display()
+        return "Uncategorized"
 
 
 class Holiday(models.Model):

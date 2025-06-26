@@ -491,11 +491,24 @@ class ProjectDeliveryAdmin(admin.ModelAdmin):
 
 @admin.register(MiscHours)
 class MiscHoursAdmin(admin.ModelAdmin):
-    list_display = ('team_member', 'date', 'activity', 'get_formatted_duration', 'created_at')
-    list_filter = ('date', 'team_member', 'created_at')
+    list_display = ('team_member', 'date', 'activity_type', 'activity', 'get_formatted_duration', 'created_at')
+    list_filter = ('date', 'activity_type', 'team_member', 'created_at')
     search_fields = ('team_member__username', 'team_member__first_name', 'team_member__last_name', 'activity')
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('-date', '-created_at')
+    
+    fieldsets = (
+        ('Activity Information', {
+            'fields': ('team_member', 'date', 'activity_type', 'activity')
+        }),
+        ('Duration', {
+            'fields': ('duration_minutes',)
+        }),
+        ('System Information', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
     
     def get_formatted_duration(self, obj):
         """Display duration in HH:MM format"""
