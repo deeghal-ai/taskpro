@@ -320,16 +320,16 @@ class ProjectManagementForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter project_incharge choices to show only team members
-        team_members = User.objects.filter(
-            role='TEAM_MEMBER',
+        # Filter project_incharge choices to show both team members and project managers
+        eligible_users = User.objects.filter(
+            role__in=['TEAM_MEMBER', 'DPM'],
             is_active=True
-        ).order_by('first_name', 'last_name')
-        self.fields['project_incharge'].queryset = team_members
+        ).order_by('role', 'first_name', 'last_name')
+        self.fields['project_incharge'].queryset = eligible_users
         
         # Add help texts
         self.fields['project_incharge'].help_text = (
-            "Select the team member who will be in charge of this project"
+            "Select the team member or project manager who will be in charge of this project"
         )
         self.fields['expected_completion_date'].help_text = (
             "When do you expect this project to be completed?"
