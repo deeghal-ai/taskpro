@@ -28,6 +28,12 @@
         margin-bottom: 2rem;
     }
     
+    /* Special styling for the daily roster button */
+    a[href*="daily_roster"]:hover {
+        background-color: rgba(13, 202, 240, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.8) !important;
+    }
+    
     .roster-header-card .card-header {
         background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
         border: none;
@@ -455,7 +461,7 @@
                     <h4 class="mb-0">
                         <i class="bi bi-calendar3"></i> Monthly Roster
                     </h4>
-                    <a href="{% url 'projects:daily_roster' %}" class="btn btn-outline-light btn-sm">
+                    <a href="{% url 'projects:daily_roster' %}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(13, 202, 240, 0.1); transition: all 0.3s ease;">
                         <i class="bi bi-calendar-day"></i> Daily Roster
                     </a>
                 </div>
