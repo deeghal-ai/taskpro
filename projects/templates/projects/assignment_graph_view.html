@@ -319,9 +319,15 @@
                 <p class="mb-0 opacity-75">Visual representation of projected hours allocated to each team member</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{% url 'projects:dpm_assignments_overview' %}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(25, 135, 84, 0.1); transition: all 0.3s ease;">
-                    <i class="fas fa-table me-1"></i> Table View
-                </a>
+                {% if request.GET.prev_assignment_status or request.GET.prev_team_member or request.GET.prev_dpm or request.GET.prev_project or request.GET.prev_start_date or request.GET.prev_end_date %}
+                    <a href="{% url 'projects:dpm_assignments_overview' %}?assignment_status={{ request.GET.prev_assignment_status }}&team_member={{ request.GET.prev_team_member }}&dpm={{ request.GET.prev_dpm }}&project={{ request.GET.prev_project }}&start_date={{ request.GET.prev_start_date }}&end_date={{ request.GET.prev_end_date }}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(25, 135, 84, 0.1); transition: all 0.3s ease;">
+                        <i class="fas fa-table me-1"></i> Table View
+                    </a>
+                {% else %}
+                    <a href="{% url 'projects:dpm_assignments_overview' %}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(25, 135, 84, 0.1); transition: all 0.3s ease;">
+                        <i class="fas fa-table me-1"></i> Table View
+                    </a>
+                {% endif %}
                 <a href="{% url 'projects:dpm_task_dashboard' %}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>

@@ -1896,8 +1896,15 @@ def assignment_graph_view(request):
             return JsonResponse(chart_data)
 
     # Regular GET request handling
-    # Create filter form 
-    filter_form = TaskAssignmentFilterForm(data=request.GET)
+    # Create filter form, excluding previous filter parameters to ensure graph view uses defaults
+    graph_filters = request.GET.copy()
+    
+    # Remove previous filter parameters so graph view uses its own defaults
+    prev_params = ['prev_assignment_status', 'prev_team_member', 'prev_dpm', 'prev_project', 'prev_start_date', 'prev_end_date']
+    for param in prev_params:
+        graph_filters.pop(param, None)
+    
+    filter_form = TaskAssignmentFilterForm(data=graph_filters)
     
     # Default to active assignments for graph view
     assignment_status = 'active'

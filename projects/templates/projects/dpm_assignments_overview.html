@@ -310,7 +310,7 @@
                 <p class="mb-0 opacity-75">View and manage all task assignments across your projects</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{% url 'projects:assignment_graph_view' %}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(13, 202, 240, 0.1); transition: all 0.3s ease;">
+                <a href="{% url 'projects:assignment_graph_view' %}?prev_assignment_status={{ request.GET.assignment_status }}&prev_team_member={{ request.GET.team_member }}&prev_dpm={{ request.GET.dpm }}&prev_project={{ request.GET.project }}&prev_start_date={{ request.GET.start_date }}&prev_end_date={{ request.GET.end_date }}" class="btn btn-outline-light btn-sm" style="border-color: rgba(255, 255, 255, 0.6); color: rgba(255, 255, 255, 0.9); background-color: rgba(13, 202, 240, 0.1); transition: all 0.3s ease;">
                     <i class="fas fa-chart-bar me-1"></i> Graph View
                 </a>
                 <a href="{% url 'projects:dpm_task_dashboard' %}" class="btn btn-outline-light btn-sm">
