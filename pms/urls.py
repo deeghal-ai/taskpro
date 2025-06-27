@@ -23,12 +23,19 @@ from django.contrib import admin
 from django.http import HttpResponse
 
 
-def simple_home(request):
-    # Temporary simple response to test if the site loads
-    return HttpResponse("<h1>TaskPro - Site is Working!</h1><p><a href='/accounts/login/'>Login</a> | <a href='/admin/'>Admin</a></p>")
+def home_redirect(request):
+    """Proper home redirect without loops"""
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'role'):
+            if request.user.role == 'DPM':
+                return redirect('/projects/')  # Use direct URL instead of name
+            elif request.user.role == 'TEAM_MEMBER':
+                return redirect('/projects/tasks/my-assignments/')  # Direct URL
+        return redirect('/projects/')  # Default for authenticated users
+    return redirect('/accounts/login/')  # Direct URL for unauthenticated
 
 urlpatterns = [
-    path('', simple_home, name='home'),
+    path('', home_redirect, name='home'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('projects/', include('projects.urls')),

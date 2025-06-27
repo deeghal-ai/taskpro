@@ -21,7 +21,7 @@ SECRET_KEY = config('SECRET_KEY', default="django-insecure-6ewem_++8uha190@)agh)
 
 # Auth settings
 LOGIN_URL = 'accounts:login'  # URL name for the login page
-LOGIN_REDIRECT_URL = 'home'  # URL name instead of hard path
+LOGIN_REDIRECT_URL = '/'  # Direct URL to avoid named URL loops
 LOGOUT_REDIRECT_URL = 'accounts:login'  # Where to redirect after logout
 
 # Ensure session handling is properly configured
