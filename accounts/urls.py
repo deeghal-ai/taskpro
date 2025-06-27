@@ -32,7 +32,7 @@ urlpatterns = [
     ), name='password_change_done'),
     
     # Password Reset URLs (for logged-out users who forgot password)
-    path('password/reset/', views.CustomPasswordResetView.as_view(
+    path('password/reset/', auth_views.PasswordResetView.as_view(
         template_name='accounts/password_reset.html',
         email_template_name='accounts/password_reset_email.txt',
         html_email_template_name='accounts/password_reset_email.html',
