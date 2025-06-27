@@ -3,10 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.views import PasswordResetView
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
+
 from .forms import CustomPasswordChangeForm, UserProfileForm
 import logging
 
@@ -49,40 +46,4 @@ def password_change_view(request):
     
     return render(request, 'accounts/password_change.html', {'form': form})
 
-class CustomPasswordResetView(PasswordResetView):
-    """Custom password reset view that sends proper HTML emails"""
-    
-    def send_mail(self, subject_template_name, email_template_name,
-                  context, from_email, to_email, html_email_template_name=None):
-        """
-        Send a django.core.mail.EmailMultiAlternatives to `to_email` with proper HTML formatting.
-        """
-        subject = render_to_string(subject_template_name, context)
-        # Email subject must not contain newlines
-        subject = ''.join(subject.splitlines())
-        
-        # Render the HTML template
-        html_content = render_to_string(html_email_template_name, context)
-        
-        # Create a plain text version from HTML (fallback)
-        text_content = strip_tags(html_content)
-        
-        # Create the email
-        email_message = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,  # Plain text version
-            from_email=from_email,
-            to=[to_email]
-        )
-        
-        # Attach the HTML version
-        email_message.attach_alternative(html_content, "text/html")
-        
-        # Send the email with logging
-        try:
-            result = email_message.send()
-            logger.info(f"Password reset email sent to {to_email}. Result: {result}")
-            return result
-        except Exception as e:
-            logger.error(f"Failed to send password reset email to {to_email}: {str(e)}")
-            raise
+
