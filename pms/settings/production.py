@@ -35,19 +35,21 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_REDIRECT_EXEMPT = []
-SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # CSRF settings
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False  # Disable for HTTP domains
 CSRF_TRUSTED_ORIGINS = [
     'https://' + config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
+    'http://taskspro.in',
+    'http://www.taskspro.in',
     'https://taskspro.in',
     'https://www.taskspro.in',
 ]
 
 # Session settings
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False  # Disable for HTTP domains
 SESSION_COOKIE_HTTPONLY = True
 
 # Email settings (with fallback to your Gmail credentials)
