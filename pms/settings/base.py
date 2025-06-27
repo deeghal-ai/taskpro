@@ -179,6 +179,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Email settings
+DEFAULT_FROM_EMAIL = 'TaskPro <noreply@taskspro.in>'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Password reset token expiry (default is 3 days, we'll keep it)
+PASSWORD_RESET_TIMEOUT = 259200  # 3 days in seconds
+
 # Configure warnings to help debug timezone issues
 # Just log warnings normally for now
 warnings.filterwarnings(

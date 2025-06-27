@@ -1,62 +1,55 @@
 #accounts/admin.py
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import AdminPasswordChangeForm
+from django.urls import path, reverse
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 from .models import User
 
-class CustomUserCreationForm(UserCreationForm):
-    """
-    Custom form for creating new users. This extends Django's built-in
-    UserCreationForm to include our custom fields like 'role'.
-    """
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ('username', 'email', 'role', 'first_name', 'last_name')
-
-class CustomUserChangeForm(UserChangeForm):
-    """
-    Custom form for modifying existing users. This extends Django's built-in
-    UserChangeForm to include our custom fields.
-    """
-    class Meta(UserChangeForm.Meta):
-        model = User
-        fields = ('username', 'email', 'role', 'first_name', 'last_name')
-
-class CustomUserAdmin(BaseUserAdmin):
-    """
-    Custom admin interface configuration for our User model. This builds upon
-    Django's built-in UserAdmin while adding support for our custom fields.
-    """
-    form = CustomUserChangeForm
-    add_form = CustomUserCreationForm
+class CustomUserAdmin(UserAdmin):
+    """Custom admin for User model with password reset capabilities"""
     
-    # Fields to display in the user list
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_staff')
+    list_display = ('username', 'email', 'role', 'is_active', 'has_email_for_reset')
+    list_filter = ('role', 'is_active', 'is_staff')
+    search_fields = ('username', 'email', 'first_name', 'last_name')
     
-    # Fields available for filtering in the right sidebar
-    list_filter = ('role', 'is_staff', 'is_superuser', 'is_active', 'groups')
+    # Add custom field to show if user can reset password
+    def has_email_for_reset(self, obj):
+        return bool(obj.email)
+    has_email_for_reset.boolean = True
+    has_email_for_reset.short_description = 'Can Reset Password'
     
-    # Organization of fields in the user detail form
+    # Add fieldsets for better organization
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Role', {'fields': ('role',)}),
+        ('TaskPro Settings', {'fields': ('role',)}),
         ('Permissions', {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     
-    # Fields shown when creating a new user
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'email', 'role', 'password1', 'password2'),
-        }),
-    )
+    actions = ['reset_password_for_selected_users']
     
-    search_fields = ('username', 'first_name', 'last_name', 'email')
-    ordering = ('username',)
+    def reset_password_for_selected_users(self, request, queryset):
+        """Custom admin action to reset passwords for users without email"""
+        count = 0
+        for user in queryset:
+            # Generate a temporary password
+            temp_password = f"temp{user.username}123"
+            user.set_password(temp_password)
+            user.save()
+            count += 1
+            
+        self.message_user(
+            request,
+            f"Reset passwords for {count} users. Temporary password format: temp[username]123",
+            messages.SUCCESS
+        )
+    
+    reset_password_for_selected_users.short_description = "Reset password (for users without email)"
 
-# Register the new admin class with our custom User model
 admin.site.register(User, CustomUserAdmin)

@@ -95,6 +95,11 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                                 <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                        <i class="bi bi-person"></i> My Profile
+                                    </a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item" href="{% url 'accounts:password_change' %}">
                                         <i class="bi bi-lock"></i> Change Password
                                     </a>

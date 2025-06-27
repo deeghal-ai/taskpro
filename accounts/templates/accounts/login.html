@@ -34,6 +34,12 @@
                         
                         <input type="hidden" name="next" value="{{ next }}">
                     </form>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">
+                            Forgot your password?
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
