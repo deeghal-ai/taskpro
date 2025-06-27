@@ -10,7 +10,6 @@ ALLOWED_HOSTS = [
     'www.taskspro.in',
     'localhost',
     '127.0.0.1',
-    'testserver',  # For testing password reset functionality
 ]
 
 # Database for production (MySQL - Free on PythonAnywhere)
