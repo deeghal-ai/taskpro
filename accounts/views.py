@@ -8,6 +8,9 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .forms import CustomPasswordChangeForm, UserProfileForm
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -75,5 +78,11 @@ class CustomPasswordResetView(PasswordResetView):
         # Attach the HTML version
         email_message.attach_alternative(html_content, "text/html")
         
-        # Send the email
-        email_message.send()
+        # Send the email with logging
+        try:
+            result = email_message.send()
+            logger.info(f"Password reset email sent to {to_email}. Result: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Failed to send password reset email to {to_email}: {str(e)}")
+            raise
