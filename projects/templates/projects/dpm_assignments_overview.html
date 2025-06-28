@@ -58,46 +58,85 @@
     }
 
     /* Statistics Cards */
-    .stat-card {
+    .stats-overview-card {
         background: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        text-align: center;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
         border: 1px solid var(--border-color);
         transition: all var(--transition-speed) ease;
-        height: 100%;
+        box-shadow: var(--shadow-sm);
     }
 
-    .stat-card:hover {
-        transform: translateY(-3px);
+    .stats-overview-card:hover {
+        transform: translateY(-1px);
         box-shadow: var(--shadow-md);
         border-color: var(--primary-color);
     }
 
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .stat-item:hover {
+        background: rgba(13, 110, 253, 0.02);
+    }
+
     .stat-icon {
-        width: 60px;
-        height: 60px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 1rem;
-        font-size: 1.5rem;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
     }
 
     .stat-value {
-        font-size: 2rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: #2d3748;
-        margin-bottom: 0.25rem;
+        line-height: 1;
     }
 
     .stat-label {
         color: #6c757d;
-        font-size: 0.875rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 500;
+        line-height: 1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            justify-content: center;
+            text-align: center;
+        }
     }
 
     /* Filter Section */
@@ -320,33 +359,37 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1);">
-                    <i class="fas fa-list-ul" style="color: var(--primary-color);"></i>
+    <!-- Statistics Overview -->
+    <div class="mb-3">
+        <div class="stats-overview-card">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1);">
+                        <i class="fas fa-list-ul" style="color: var(--primary-color);"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ total_assignments }}</div>
+                        <div class="stat-label">Total Assignments</div>
+                    </div>
                 </div>
-                <div class="stat-value">{{ total_assignments }}</div>
-                <div class="stat-label">Total Assignments</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: rgba(13, 202, 240, 0.1);">
-                    <i class="fas fa-play-circle" style="color: var(--info-color);"></i>
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(13, 202, 240, 0.1);">
+                        <i class="fas fa-play-circle" style="color: var(--info-color);"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ active_count }}</div>
+                        <div class="stat-label">Active Assignments</div>
+                    </div>
                 </div>
-                <div class="stat-value">{{ active_count }}</div>
-                <div class="stat-label">Active Assignments</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1);">
-                    <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1);">
+                        <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ completed_count }}</div>
+                        <div class="stat-label">Completed Assignments</div>
+                    </div>
                 </div>
-                <div class="stat-value">{{ completed_count }}</div>
-                <div class="stat-label">Completed Assignments</div>
             </div>
         </div>
     </div>
