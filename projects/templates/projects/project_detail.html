@@ -335,15 +335,17 @@
         </div>
     </div>
 
-    <!-- Manage Tasks Button (DPM only) -->
-    {% if user == project.dpm %}
+    <!-- Manage/View Tasks Button -->
     <div class="mb-4 d-flex justify-content-end">
         <a href="{% url 'projects:project_management' project.id %}" 
         class="btn btn-primary btn-sm shadow-sm" style="font-weight:500;">
-            <i class="bi bi-kanban"></i> Manage Tasks
+            {% if user == project.dpm %}
+                <i class="bi bi-kanban"></i> Manage Tasks
+            {% else %}
+                <i class="bi bi-eye"></i> View Tasks
+            {% endif %}
         </a>
     </div>
-    {% endif %}
 
     <!-- Main Info Sections -->
     <div class="row mb-4">
