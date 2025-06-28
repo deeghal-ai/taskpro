@@ -1652,11 +1652,20 @@ def dpm_assignments_overview(request):
             return JsonResponse(response_data)
 
     # Regular GET request handling
-    # Create filter form 
-    filter_form = TaskAssignmentFilterForm(data=request.GET)
+    # Check if this is a fresh load (no GET parameters) and redirect to defaults
+    if not request.GET:
+        from datetime import date, timedelta
+        today = date.today()
+        start_default = today - timedelta(days=15)
+        
+        # Redirect with default parameters
+        return redirect(f"{request.path}?assignment_status=active&start_date={start_default}&end_date={today}")
+    
+    # Create filter form with defaults enabled
+    filter_form = TaskAssignmentFilterForm(data=request.GET, use_defaults=True)
     
     # Default parameters
-    assignment_status = 'all'
+    assignment_status = 'active'  # Changed default from 'all' to 'active'
     team_member = None
     project = None
     dpm = None
@@ -1665,7 +1674,7 @@ def dpm_assignments_overview(request):
     
     # Apply filters if form is valid
     if filter_form.is_valid():
-        assignment_status = filter_form.cleaned_data.get('assignment_status', 'all')
+        assignment_status = filter_form.cleaned_data.get('assignment_status', 'active')
         team_member = filter_form.cleaned_data.get('team_member')
         project = filter_form.cleaned_data.get('project')
         dpm = filter_form.cleaned_data.get('dpm')
@@ -1708,6 +1717,11 @@ def dpm_assignments_overview(request):
         elif end_date:
             date_range_text = f"Up to {end_date.strftime('%b %d, %Y')} ({date_field_name})"
     
+    # Calculate default dates for template use
+    from datetime import date, timedelta
+    today = date.today()
+    default_start_date = today - timedelta(days=15)
+    
     context = {
         'assignments': assignments,
         'filter_form': filter_form,
@@ -1716,7 +1730,9 @@ def dpm_assignments_overview(request):
         'completed_count': completed_count,
         'assignment_status': assignment_status,
         'date_range_text': date_range_text,
-        'title': 'Task Assignments Overview'
+        'title': 'Task Assignments Overview',
+        'default_start_date': default_start_date.strftime('%Y-%m-%d'),
+        'default_end_date': today.strftime('%Y-%m-%d')
     }
     
     return render(request, 'projects/dpm_assignments_overview.html', context)

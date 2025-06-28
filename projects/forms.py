@@ -936,7 +936,7 @@ class TaskAssignmentFilterForm(forms.Form):
             ('active', 'Active Assignments'),
             ('completed', 'Completed Assignments')
         ],
-        initial='all',
+        initial='active',
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Filter by assignment completion status"
     )
@@ -988,7 +988,20 @@ class TaskAssignmentFilterForm(forms.Form):
     )
     
     def __init__(self, *args, **kwargs):
+        # Extract use_defaults parameter if provided
+        use_defaults = kwargs.pop('use_defaults', False)
+        
         super().__init__(*args, **kwargs)
+        
+        # Set default date range if use_defaults is True and no data is provided
+        if use_defaults and not self.data:
+            from datetime import date, timedelta
+            today = date.today()
+            start_default = today - timedelta(days=15)
+            
+            # Set initial values for date fields
+            self.fields['start_date'].initial = start_default
+            self.fields['end_date'].initial = today
         
         # Get current filter values if form is bound
         if self.is_bound:
