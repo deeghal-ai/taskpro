@@ -1054,9 +1054,10 @@ def assignment_timesheet(request, assignment_id):
         back_text = 'Back to Dashboard'
         back_is_full_url = False
 
-    # Prepare quality rating options for DPMs
+    # Prepare quality rating options for DPMs (only for the project's DPM)
     quality_rating_options = []
-    if request.user.role == 'DPM' and assignment.is_completed:
+    if (request.user.role == 'DPM' and assignment.is_completed and 
+        request.user == timesheet_data['assignment'].task.project.dpm):
         quality_rating_options = [
             {
                 'value': 1.0,

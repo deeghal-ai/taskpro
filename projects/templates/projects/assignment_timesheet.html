@@ -605,6 +605,14 @@
                         {{ assignment.sub_task }}
                     </span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">Assigned To</span>
+                    <span class="info-value">
+                        <i class="bi bi-person-fill me-1 text-primary"></i>
+                        {{ assignment.assigned_to.get_full_name|default:assignment.assigned_to.username }}
+                        <small class="text-muted ms-1">({{ assignment.assigned_to.get_role_display }})</small>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
@@ -730,7 +738,7 @@
     </div>
 
     <!-- Quality Rating Section for DPMs on Completed Assignments -->
-    {% if assignment.is_completed and user.role == 'DPM' %}
+    {% if assignment.is_completed and user.role == 'DPM' and user == assignment.task.project.dpm %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="data-card">
