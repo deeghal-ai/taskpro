@@ -1484,7 +1484,7 @@ class ProjectService:
                 
                 # Calculate progress percentage
                 if assignment.projected_hours and assignment.projected_hours > 0:
-                    progress_percentage = min(100, (total_minutes / assignment.projected_hours) * 100)
+                    progress_percentage = (total_minutes / assignment.projected_hours) * 100
                 else:
                     progress_percentage = 0
                 
@@ -1627,7 +1627,7 @@ class ProjectService:
 
             # Calculate progress percentage
             if projected_minutes > 0:
-                progress_percentage = min(100, (total_worked_minutes / projected_minutes) * 100)
+                progress_percentage = (total_worked_minutes / projected_minutes) * 100
             else:
                 progress_percentage = 0
 
