@@ -510,6 +510,7 @@
     </div>
 
     <!-- Create New Assignment -->
+    {% if user == project.dpm %}
     <div class="create-assignment-section">
         <h5 class="mb-3">
             <i class="bi bi-plus-circle"></i> Create New Assignment
@@ -559,6 +560,7 @@
             </div>
         </form>
     </div>
+    {% endif %}
 
     <!-- Active Assignments Section -->
     <div class="section-card">
@@ -590,12 +592,14 @@
                                         Worked: <strong>{{ assignment.working_hours }}</strong>
                                     </span>
                                 </div>
+                                {% if user == project.dpm %}
                                 <button class="btn btn-sm btn-outline-primary update-btn" 
                                         data-bs-toggle="collapse"
                                         data-bs-target="#updateForm{{ assignment.id }}"
                                         aria-expanded="false">
                                     <i class="bi bi-pencil"></i> Update
                                 </button>
+                                {% endif %}
                             </div>
                         </div>
                         
@@ -627,6 +631,7 @@
                         </div>
                         
                         <!-- Update Form (Collapsible) -->
+                        {% if user == project.dpm %}
                         <div class="collapse" id="updateForm{{ assignment.id }}">
                             <div class="update-form-section">
                                 <h6><i class="bi bi-pencil-square"></i> Update Assignment</h6>
@@ -681,6 +686,7 @@
                                 </form>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 {% endfor %}
             {% else %}
@@ -727,12 +733,14 @@
                                         Worked: <strong>{{ assignment.working_hours }}</strong>
                                     </span>
                                 </div>
+                                {% if user == project.dpm %}
                                 <button class="btn btn-sm btn-outline-success rate-btn" 
                                         data-bs-toggle="collapse"
                                         data-bs-target="#rateForm{{ assignment.id }}"
                                         aria-expanded="false">
                                     <i class="bi bi-star"></i> Rate Quality
                                 </button>
+                                {% endif %}
                             </div>
                         </div>
                         
@@ -756,6 +764,7 @@
                         </div>
                         
                         <!-- Rate Quality Form (Collapsible) -->
+                        {% if user == project.dpm %}
                         <div class="collapse" id="rateForm{{ assignment.id }}">
                             <div class="update-form-section">
                                 <h6><i class="bi bi-star"></i> Rate Quality</h6>
@@ -797,6 +806,7 @@
                                 </form>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 {% endfor %}
             {% else %}

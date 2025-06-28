@@ -626,6 +626,11 @@ def create_task_assignment(request, project_id, task_id):
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
+    
+    # Additional check: ensure the user is the project's DPM
+    if request.user != project.dpm:
+        messages.error(request, "Access denied. Only the project's assigned DPM can create assignments.")
+        return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
     # Get the task to pass to the form
     success, task_result = ProjectService.get_project_task(task_id, project_id)
@@ -670,6 +675,11 @@ def update_task_assignment(request, project_id, task_id, assignment_id):
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
+    
+    # Additional check: ensure the user is the project's DPM
+    if request.user != project.dpm:
+        messages.error(request, "Access denied. Only the project's assigned DPM can update assignments.")
+        return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
     # First get the current assignment
     success, assignment_result = ProjectService.get_task_assignment(assignment_id)
@@ -1334,6 +1344,11 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
     redirect_response = ensure_is_dpm(request, project)
     if redirect_response:
         return redirect_response
+    
+    # Additional check: ensure the user is the project's DPM
+    if request.user != project.dpm:
+        messages.error(request, "Access denied. Only the project's assigned DPM can rate assignments.")
+        return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
     # Get the assignment
     success, assignment_result = ProjectService.get_task_assignment(assignment_id)
