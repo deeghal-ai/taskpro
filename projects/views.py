@@ -1308,8 +1308,8 @@ def monthly_roster(request, year=None, month=None):
         today = date.today()
         year, month = today.year, today.month
 
-    # Get monthly roster data
-    success, result = ProjectService.get_monthly_roster(request.user, year, month)
+    # Get monthly roster data using optimized method
+    success, result = ProjectService.get_monthly_roster_optimized(request.user, year, month)
 
     if not success:
         messages.error(request, result)
