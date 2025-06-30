@@ -333,6 +333,7 @@ def delivered_projects(request):
     
     # Get filter parameters from request
     search_query = request.GET.get('search', '')
+    status = request.GET.get('status', '')
     product = request.GET.get('product', '')
     region = request.GET.get('region', '')
     city = request.GET.get('city', '')
@@ -360,7 +361,7 @@ def delivered_projects(request):
     # Get delivered projects using service
     success, result = ProjectService.get_project_list(
         search_query=search_query,
-        status=None,  # No status filter for delivered projects (they're already filtered by category_two)
+        status=status,  # Include status filter for delivered projects
         product=product,
         region=region,
         city=city,
@@ -394,6 +395,7 @@ def delivered_projects(request):
     # Create filter form with current values (map delivery_date fields to the form fields)
     form_initial = {
         'search': filters_applied.get('search'),
+        'status': filters_applied.get('status'),
         'product': filters_applied.get('product'),
         'region': filters_applied.get('region'),
         'city': filters_applied.get('city'),
@@ -407,8 +409,13 @@ def delivered_projects(request):
     if region:
         filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
 
-    # Get display names for applied filters (no status for delivered projects)
+    # Get display names for applied filters
     filters_applied_display = {}
+    if filters_applied.get('status'):
+        try:
+            filters_applied_display['status'] = ProjectStatusOption.objects.get(id=filters_applied['status']).name
+        except ProjectStatusOption.DoesNotExist:
+            pass
     if filters_applied.get('product'):
         try:
             filters_applied_display['product'] = Product.objects.get(id=filters_applied['product']).name
@@ -434,6 +441,7 @@ def delivered_projects(request):
     # Update filters_applied to use the delivery date field names for template consistency
     filters_applied_template = {
         'search': filters_applied.get('search'),
+        'status': filters_applied.get('status'),
         'product': filters_applied.get('product'),
         'region': filters_applied.get('region'),
         'city': filters_applied.get('city'),
