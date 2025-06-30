@@ -3,6 +3,10 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <style>
     /* Consistent Design System */
     :root {
@@ -448,37 +452,120 @@
         font-weight: 600;
         margin-left: 0.5rem;
     }
+
+    /* Select2 Styling Integration - Match Bootstrap form-select exactly */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: calc(1.5em + 0.75rem + 2px) !important; /* Match Bootstrap form-select height */
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.375rem !important;
+        background-color: #fff !important;
+        transition: all var(--transition-speed) ease !important;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        color: #495057 !important;
+        line-height: calc(1.5em + 0.75rem) !important; /* Match Bootstrap line-height */
+        padding-left: 0.75rem !important;
+        padding-right: 2.25rem !important; /* Space for arrow */
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.75rem) !important; /* Match Bootstrap height */
+        top: 1px !important;
+        right: 0.75rem !important;
+        width: 20px !important;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow b {
+        border-color: #6c757d transparent transparent transparent !important;
+        border-style: solid !important;
+        border-width: 5px 4px 0 4px !important;
+        height: 0 !important;
+        left: 50% !important;
+        margin-left: -4px !important;
+        margin-top: -2px !important;
+        position: absolute !important;
+        top: 50% !important;
+        width: 0 !important;
+    }
+
+    .select2-container .select2-selection--single:focus-within,
+    .select2-container .select2-selection--single:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+        outline: none !important;
+    }
+
+    .select2-container .select2-selection__placeholder {
+        color: #6c757d !important;
+    }
+
+    .select2-dropdown {
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.375rem !important;
+        box-shadow: var(--shadow-md) !important;
+        margin-top: 1px !important;
+    }
+
+    .select2-results__option--highlighted {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+
+    .select2-search__field {
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.25rem !important;
+        padding: 0.375rem 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .select2-search__field:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.1rem rgba(13, 110, 253, 0.25) !important;
+        outline: none !important;
+    }
+
+    /* Ensure consistent height with other form elements */
+    .select2-container--default .select2-selection--single {
+        height: auto !important;
+        min-height: calc(1.5em + 0.75rem + 2px) !important;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header">
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3>
-                <i class="bi bi-folder2"></i> 
-                {% if is_pipeline %}
-                    Pipeline Projects
-                {% else %}
-                    Projects
-                {% endif %}
-            </h3>
-            <div class="d-flex gap-2">
-                {% if is_pipeline %}
-                    <a href="{% url 'projects:delivered_projects' %}" class="btn btn-secondary">
-                        <i class="bi bi-check-circle"></i> View Delivered Projects
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>
+                    <i class="bi bi-folder2"></i> 
+                    {% if is_pipeline %}
+                        Pipeline Projects
+                    {% else %}
+                        Projects
+                    {% endif %}
+                </h3>
+                <div class="d-flex gap-2">
+                    {% if is_pipeline %}
+                        <a href="{% url 'projects:delivered_projects' %}" class="btn btn-secondary">
+                            <i class="bi bi-check-circle"></i> View Delivered Projects
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> New Project
                     </a>
-                {% endif %}
-                <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> New Project
-                </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="container-fluid">
     <!-- Filter Section -->
     <div class="filter-card">
         <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true">
@@ -497,6 +584,7 @@
         <div class="collapse show" id="filterCollapse">
             <div class="filter-body">
                 <form method="get" id="filter-form">
+                    <!-- Row 1: Main Filters -->
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label">
@@ -505,13 +593,30 @@
                             </label>
                             {{ filter_form.search }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">
                                 <i class="bi bi-flag"></i>
                                 {{ filter_form.status.label }}
                             </label>
                             {{ filter_form.status }}
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ filter_form.region.label }}
+                            </label>
+                            {{ filter_form.region }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i>
+                                {{ filter_form.city.label }}
+                            </label>
+                            {{ filter_form.city }}
+                        </div>
+                    </div>
+                    <!-- Row 2: Secondary Filters & Date Range -->
+                    <div class="row g-3 mt-2">
                         <div class="col-md-4">
                             <label class="form-label">
                                 <i class="bi bi-box"></i>
@@ -521,29 +626,30 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">
-                                <i class="bi bi-geo-alt"></i>
-                                {{ filter_form.region.label }}
-                            </label>
-                            {{ filter_form.region }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">
-                                <i class="bi bi-building"></i>
-                                {{ filter_form.city.label }}
-                            </label>
-                            {{ filter_form.city }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">
                                 <i class="bi bi-person"></i>
                                 {{ filter_form.dpm.label }}
                             </label>
                             {{ filter_form.dpm }}
                         </div>
+                        <div class="col-md-2">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-range"></i>
+                                From Date
+                            </label>
+                            {{ filter_form.date_from }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-check"></i>
+                                To Date
+                            </label>
+                            {{ filter_form.date_to }}
+                        </div>
                     </div>
+                    <!-- Row 3: Action Buttons -->
                     <div class="row mt-3">
-                        <div class="col">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">
                                 <i class="bi bi-funnel"></i> Apply Filters
                             </button>
                             <a href="{% url 'projects:project_list' %}" class="btn btn-secondary">
@@ -557,7 +663,7 @@
     </div>
 
     <!-- Active Filters Notification -->
-    {% if filters_applied.search or filters_applied.status or filters_applied.product or filters_applied.region or filters_applied.city or filters_applied.dpm %}
+    {% if filters_applied.search or filters_applied.status or filters_applied.product or filters_applied.region or filters_applied.city or filters_applied.dpm or filters_applied.date_from or filters_applied.date_to %}
     <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
         <div>
             <i class="bi bi-funnel-fill me-2"></i>
@@ -579,6 +685,12 @@
             {% endif %}
             {% if filters_applied.dpm %}
                 <span class="badge bg-secondary">DPM: {{ filters_applied_display.dpm }}</span>
+            {% endif %}
+            {% if filters_applied.date_from %}
+                <span class="badge bg-secondary">From: {{ filters_applied.date_from }}</span>
+            {% endif %}
+            {% if filters_applied.date_to %}
+                <span class="badge bg-secondary">To: {{ filters_applied.date_to }}</span>
             {% endif %}
         </div>
         <a href="{% url 'projects:project_list' %}" class="btn btn-sm btn-outline-info">Clear Filters</a>
@@ -696,7 +808,7 @@
                 <ul class="pagination justify-content-center mb-0">
                     {% if projects.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ projects.previous_page_number }}{% for key, value in filters_applied.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <a class="page-link" href="?page={{ projects.previous_page_number }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.product %}&product={{ filters_applied.product }}{% endif %}{% if filters_applied.region %}&region={{ filters_applied.region }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.dpm %}&dpm={{ filters_applied.dpm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
                             <i class="bi bi-chevron-left"></i> Previous
                         </a>
                     </li>
@@ -709,13 +821,13 @@
                             </li>
                         {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% for key, value in filters_applied.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <a class="page-link" href="?page={{ num }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.product %}&product={{ filters_applied.product }}{% endif %}{% if filters_applied.region %}&region={{ filters_applied.region }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.dpm %}&dpm={{ filters_applied.dpm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
                                     {{ num }}
                                 </a>
                             </li>
                         {% elif num == 1 or num == projects.paginator.num_pages %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% for key, value in filters_applied.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <a class="page-link" href="?page={{ num }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.product %}&product={{ filters_applied.product }}{% endif %}{% if filters_applied.region %}&region={{ filters_applied.region }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.dpm %}&dpm={{ filters_applied.dpm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
                                     {{ num }}
                                 </a>
                             </li>
@@ -728,7 +840,7 @@
                     
                     {% if projects.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ projects.next_page_number }}{% for key, value in filters_applied.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <a class="page-link" href="?page={{ projects.next_page_number }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.product %}&product={{ filters_applied.product }}{% endif %}{% if filters_applied.region %}&region={{ filters_applied.region }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.dpm %}&dpm={{ filters_applied.dpm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
                             Next <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
@@ -740,8 +852,90 @@
     </div>
 </div>
 
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for searchable dropdowns
+    $(window).on('load', function() {
+        console.log('Window loaded, checking for Select2 and jQuery...');
+        
+        // Check if required libraries are loaded
+        if (typeof $ === 'undefined') {
+            console.error('jQuery not loaded!');
+            return;
+        }
+        
+        if (typeof $.fn.select2 === 'undefined') {
+            console.error('Select2 not loaded!');
+            return;
+        }
+        
+        console.log('Libraries loaded successfully');
+        
+        // Function to initialize status dropdown with error handling
+        function initializeStatusDropdown() {
+            try {
+                const statusElement = $('#id_status');
+                console.log('Status element found:', statusElement.length);
+                console.log('Status element HTML:', statusElement.get(0) ? statusElement.get(0).outerHTML : 'Not found');
+                
+                if (statusElement.length > 0) {
+                    // Check if it's already a Select2
+                    if (statusElement.hasClass('select2-hidden-accessible')) {
+                        console.log('Destroying existing Select2...');
+                        statusElement.select2('destroy');
+                    }
+                    
+                    // Initialize Select2 with minimal config first
+                    console.log('Initializing Select2...');
+                    statusElement.select2({
+                        width: '100%',
+                        placeholder: 'Search status...',
+                        allowClear: true
+                    });
+                    
+                    // Add specific event handler for this status dropdown
+                    statusElement.on('select2:open', function(e) {
+                        setTimeout(function() {
+                            $('.select2-search__field').focus();
+                        }, 50);
+                    });
+                    
+                    console.log('Select2 initialized successfully');
+                    return true;
+                } else {
+                    console.log('Status element not found');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error initializing Select2:', error);
+                return false;
+            }
+        }
+        
+        // Try to initialize
+        setTimeout(function() {
+            if (!initializeStatusDropdown()) {
+                console.log('Retrying in 500ms...');
+                setTimeout(initializeStatusDropdown, 500);
+            }
+        }, 100);
+        
+        // Global auto-focus for all Select2 dropdowns (same approach as project_management)
+        $(document).on('select2:open', function() {
+            setTimeout(function() {
+                const searchField = document.querySelector('.select2-dropdown:not([style*="display: none"]) .select2-search__field');
+                if (searchField) {
+                    searchField.focus();
+                }
+            }, 50);
+        });
+    });
+
     // Dynamic city loading based on region
     const regionSelect = document.getElementById('regionSelect');
     const citySelect = document.getElementById('citySelect');

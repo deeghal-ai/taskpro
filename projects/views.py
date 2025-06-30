@@ -8,7 +8,8 @@ from .forms import (
     ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, 
     TaskAssignmentForm, TaskAssignmentUpdateForm, ProjectManagementForm, 
     AddMiscHoursForm, EditMiscHoursForm, TimerStopForm, ManualTimeEntryForm, 
-    EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm
+    EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm,
+    DeliveredProjectFilterForm
 )
 from .services import ProjectService
 from accounts.models import User
@@ -216,9 +217,27 @@ def project_list(request):
     region = request.GET.get('region', '')
     city = request.GET.get('city', '')
     dpm = request.GET.get('dpm', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
     page = request.GET.get('page', 1)
 
-    # Get pipeline projects using service (exclude Final Delivery status)
+    # Convert date strings to date objects if provided
+    date_from_obj = None
+    date_to_obj = None
+    if date_from:
+        try:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    # Get pipeline projects using service (exclude statuses with category_two = 'Final Delivery')
     success, result = ProjectService.get_project_list(
         search_query=search_query,
         status=status,
@@ -226,6 +245,8 @@ def project_list(request):
         region=region,
         city=city,
         dpm=dpm,
+        date_from=date_from_obj,
+        date_to=date_to_obj,
         page=page,
         project_type='pipeline'  # Only get pipeline projects
     )
@@ -302,7 +323,7 @@ def project_list(request):
 @login_required
 def delivered_projects(request):
     """
-    Displays a filterable list of delivered projects (Final Delivery status).
+    Displays a filterable list of delivered projects (category_two = 'Final Delivery').
     Only accessible by DPMs.
     """
     # Check if user is a DPM
@@ -312,21 +333,40 @@ def delivered_projects(request):
     
     # Get filter parameters from request
     search_query = request.GET.get('search', '')
-    status = request.GET.get('status', '')
     product = request.GET.get('product', '')
     region = request.GET.get('region', '')
     city = request.GET.get('city', '')
     dpm = request.GET.get('dpm', '')
+    delivery_date_from = request.GET.get('delivery_date_from', '')
+    delivery_date_to = request.GET.get('delivery_date_to', '')
     page = request.GET.get('page', 1)
+
+    # Convert date strings to date objects if provided
+    date_from_obj = None
+    date_to_obj = None
+    if delivery_date_from:
+        try:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(delivery_date_from, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if delivery_date_to:
+        try:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(delivery_date_to, '%Y-%m-%d').date()
+        except ValueError:
+            pass
 
     # Get delivered projects using service
     success, result = ProjectService.get_project_list(
         search_query=search_query,
-        status=status,
+        status=None,  # No status filter for delivered projects (they're already filtered by category_two)
         product=product,
         region=region,
         city=city,
         dpm=dpm,
+        date_from=date_from_obj,
+        date_to=date_to_obj,
         page=page,
         project_type='delivered'  # Only get delivered projects
     )
@@ -351,20 +391,24 @@ def delivered_projects(request):
     else:
         filter_options = filter_options_result
 
-    # Create filter form with current values
-    filter_form = ProjectFilterForm(initial=filters_applied)
+    # Create filter form with current values (map delivery_date fields to the form fields)
+    form_initial = {
+        'search': filters_applied.get('search'),
+        'product': filters_applied.get('product'),
+        'region': filters_applied.get('region'),
+        'city': filters_applied.get('city'),
+        'dpm': filters_applied.get('dpm'),
+        'delivery_date_from': delivery_date_from,
+        'delivery_date_to': delivery_date_to,
+    }
+    filter_form = DeliveredProjectFilterForm(initial=form_initial)
 
     # Update city queryset based on selected region
     if region:
         filter_form.fields['city'].queryset = City.objects.filter(region_id=region)
 
-    # Get display names for applied filters
+    # Get display names for applied filters (no status for delivered projects)
     filters_applied_display = {}
-    if filters_applied.get('status'):
-        try:
-            filters_applied_display['status'] = ProjectStatusOption.objects.get(id=filters_applied['status']).name
-        except ProjectStatusOption.DoesNotExist:
-            pass
     if filters_applied.get('product'):
         try:
             filters_applied_display['product'] = Product.objects.get(id=filters_applied['product']).name
@@ -387,10 +431,21 @@ def delivered_projects(request):
         except User.DoesNotExist:
             pass
 
+    # Update filters_applied to use the delivery date field names for template consistency
+    filters_applied_template = {
+        'search': filters_applied.get('search'),
+        'product': filters_applied.get('product'),
+        'region': filters_applied.get('region'),
+        'city': filters_applied.get('city'),
+        'dpm': filters_applied.get('dpm'),
+        'delivery_date_from': delivery_date_from,
+        'delivery_date_to': delivery_date_to,
+    }
+
     context = {
         'projects': projects,
         'filter_form': filter_form,
-        'filters_applied': filters_applied,
+        'filters_applied': filters_applied_template,
         'filters_applied_display': filters_applied_display,
         'filter_options': filter_options,
         'title': 'Delivered Projects',

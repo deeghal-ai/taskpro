@@ -243,6 +243,103 @@ class ProjectFilterForm(forms.Form):
         queryset=ProjectStatusOption.objects.filter(is_active=True),
         required=False,
         empty_label="All Statuses",
+        widget=forms.Select(attrs={
+            'class': 'form-select searchable-select',
+            'data-placeholder': 'Search status...',
+            'id': 'id_status'
+        })
+    )
+    
+    product = forms.ModelChoiceField(
+        queryset=Product.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Products",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.all(),
+        required=False,
+        empty_label="All Regions",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    city = forms.ModelChoiceField(
+        queryset=City.objects.all(),
+        required=False,
+        empty_label="All Cities",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    dpm = forms.ModelChoiceField(
+        queryset=User.objects.filter(role='DPM', is_active=True),
+        required=False,
+        empty_label="All DPMs",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    # Date range filters
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Filter from date"
+    )
+    
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Filter to date"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the form with dynamic querysets.
+        This allows us to update the city choices based on the selected region.
+        """
+        super().__init__(*args, **kwargs)
+        
+        # If a region is selected, filter cities accordingly
+        if 'initial' in kwargs and kwargs['initial'].get('region'):
+            region_id = kwargs['initial']['region']
+            self.fields['city'].queryset = City.objects.filter(region_id=region_id)
+    
+    def clean(self):
+        """
+        Validate date range - date_from should not be after date_to
+        """
+        cleaned_data = super().clean()
+        date_from = cleaned_data.get('date_from')
+        date_to = cleaned_data.get('date_to')
+        
+        if date_from and date_to and date_from > date_to:
+            raise forms.ValidationError("Start date must be before or equal to end date.")
+        
+        return cleaned_data
+
+
+class DeliveredProjectFilterForm(forms.Form):
+    """
+    Form for filtering the delivered projects list.
+    Similar to ProjectFilterForm but optimized for delivered projects.
+    """
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search projects...'
+        })
+    )
+    
+    status = forms.ModelChoiceField(
+        queryset=ProjectStatusOption.objects.filter(is_active=True, category_two='Final Delivery'),
+        required=False,
+        empty_label="All Statuses",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
@@ -274,10 +371,28 @@ class ProjectFilterForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
+    # Date range filters (for delivery date)
+    delivery_date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Filter from delivery date"
+    )
+    
+    delivery_date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Filter to delivery date"
+    )
+    
     def __init__(self, *args, **kwargs):
         """
         Initialize the form with dynamic querysets.
-        This allows us to update the city choices based on the selected region.
         """
         super().__init__(*args, **kwargs)
         
@@ -285,6 +400,19 @@ class ProjectFilterForm(forms.Form):
         if 'initial' in kwargs and kwargs['initial'].get('region'):
             region_id = kwargs['initial']['region']
             self.fields['city'].queryset = City.objects.filter(region_id=region_id)
+    
+    def clean(self):
+        """
+        Validate date range - delivery_date_from should not be after delivery_date_to
+        """
+        cleaned_data = super().clean()
+        date_from = cleaned_data.get('delivery_date_from')
+        date_to = cleaned_data.get('delivery_date_to')
+        
+        if date_from and date_to and date_from > date_to:
+            raise forms.ValidationError("Start date must be before or equal to end date.")
+        
+        return cleaned_data
 
 
 class ProjectManagementForm(forms.ModelForm):

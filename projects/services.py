@@ -198,7 +198,7 @@ class ProjectService:
                 return False, f"An error occurred: {str(e)}"
 
     @staticmethod
-    def get_project_list(search_query=None, status=None, product=None, region=None, city=None, dpm=None, page=1, items_per_page=10, project_type='pipeline'):
+    def get_project_list(search_query=None, status=None, product=None, region=None, city=None, dpm=None, date_from=None, date_to=None, page=1, items_per_page=10, project_type='pipeline'):
         """
         Retrieves a filtered, searched, and paginated list of projects.
 
@@ -209,6 +209,8 @@ class ProjectService:
             region: Region ID to filter by
             city: City ID to filter by
             dpm: DPM user ID to filter by
+            date_from: Start date for filtering (applies to latest_status_date for pipeline, delivery_date for delivered)
+            date_to: End date for filtering (applies to latest_status_date for pipeline, delivery_date for delivered)
             page: Page number for pagination
             items_per_page: Number of items to show per page
             project_type: 'pipeline' (default), 'delivered', or 'all'
@@ -235,12 +237,8 @@ class ProjectService:
                 'dpm'
             ).order_by(F('latest_status_date').desc(nulls_last=True), '-created_at')
 
-            # Define the statuses that are considered 'delivered' or 'terminated'
-            delivered_status_query = (
-                (Q(name__icontains='final') & Q(name__icontains='delivery')) |
-                Q(name__iexact='Deemed Consumed') |
-                Q(name__iexact='Opp Dropped')
-            )
+            # Define the statuses that are considered 'delivered' based on category_two field
+            delivered_status_query = Q(category_two__iexact='Final Delivery')
 
             # Apply project type filter
             if project_type == 'pipeline':
@@ -273,6 +271,8 @@ class ProjectService:
                 'region': region,
                 'city': city,
                 'dpm': dpm,
+                'date_from': date_from,
+                'date_to': date_to,
             }
 
             # Apply search filter
@@ -295,6 +295,30 @@ class ProjectService:
                 queryset = queryset.filter(city_id=city)
             if dpm:
                 queryset = queryset.filter(dpm_id=dpm)
+            
+            # Apply date range filters
+            if date_from or date_to:
+                if project_type == 'delivered':
+                    # For delivered projects, filter by delivery date (status history with Final Delivery)
+                    delivery_history_subquery = ProjectStatusHistory.objects.filter(
+                        project=OuterRef('pk'),
+                        status__category_two__iexact='Final Delivery'
+                    ).order_by('changed_at').values('changed_at')[:1]
+                    
+                    queryset = queryset.annotate(
+                        delivery_date_annotated=Subquery(delivery_history_subquery)
+                    )
+                    
+                    if date_from:
+                        queryset = queryset.filter(delivery_date_annotated__date__gte=date_from)
+                    if date_to:
+                        queryset = queryset.filter(delivery_date_annotated__date__lte=date_to)
+                else:
+                    # For pipeline projects, filter by latest_status_date
+                    if date_from:
+                        queryset = queryset.filter(latest_status_date__date__gte=date_from)
+                    if date_to:
+                        queryset = queryset.filter(latest_status_date__date__lte=date_to)
 
             # Paginate the results
             paginator = Paginator(queryset, items_per_page)

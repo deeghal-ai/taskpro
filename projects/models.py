@@ -280,30 +280,22 @@ class Project(models.Model):
     @property
     def is_delivered(self):
         """
-        Check if project is in a 'delivered' or 'terminated' state.
-        This now includes Final Delivery, Deemed Consumed, and Opp Dropped.
+        Check if project is in a 'delivered' state based on category_two field.
+        A project is delivered when its current status has category_two = 'Final Delivery'.
         """
         if not self.current_status:
             return False
 
-        status_name = self.current_status.name.lower()
-
-        return (
-            ('final' in status_name and 'delivery' in status_name) or
-            status_name == 'deemed consumed' or
-            status_name == 'opp dropped'
-        )
+        return self.current_status.category_two == 'Final Delivery'
 
     @property
     def delivery_date(self):
         """
         Returns the date of the first status history entry that is considered
-        a 'delivered' or 'terminated' status. Returns None if not found.
+        a 'delivered' status (category_two = 'Final Delivery'). Returns None if not found.
         """
         history_entry = self.status_history.filter(
-            Q(status__name__iexact='Final Delivery') |
-            Q(status__name__iexact='Deemed Consumed') |
-            Q(status__name__iexact='Opp Dropped')
+            status__category_two__iexact='Final Delivery'
         ).order_by('changed_at').first()
 
         return history_entry.changed_at if history_entry else None
@@ -312,19 +304,13 @@ class Project(models.Model):
     def is_pipeline(self):
         """
         Check if project is in pipeline state.
-        A project is in pipeline if it's not delivered yet.
-        Special case: "Approval after deemed consumed" moves it back to pipeline.
+        A project is in pipeline if its current status category_two is not 'Final Delivery'.
         """
         if not self.current_status:
             return True  # New projects without status are considered pipeline
 
-        # Check for special status that moves project back to pipeline
-        status_name = self.current_status.name.lower()
-        if 'approval' in status_name and 'deemed' in status_name and 'consumed' in status_name:
-            return True
-
-        # Otherwise, pipeline means not delivered
-        return not self.is_delivered
+        # Pipeline means category_two is not 'Final Delivery'
+        return self.current_status.category_two != 'Final Delivery'
 
     @classmethod
     def generate_hs_id(cls):

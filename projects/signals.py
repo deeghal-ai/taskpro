@@ -17,10 +17,8 @@ def track_status_changes(sender, instance, created, **kwargs):
     if not created:
         return
     
-    status_name = instance.status.name.lower()
-    
-    # Check if this is a "Final Delivery" status
-    if 'final' in status_name and 'delivery' in status_name:
+    # Check if this is a "Final Delivery" status using category_two field
+    if instance.status.category_two == 'Final Delivery':
         try:
             # Just track the delivery event - no metrics calculation needed!
             ReportingService.track_project_delivery(
@@ -30,10 +28,7 @@ def track_status_changes(sender, instance, created, **kwargs):
             logger.info(f"Tracked final delivery for project {instance.project.hs_id}")
         except Exception as e:
             logger.exception(f"Error tracking delivery: {str(e)}")
-    
-    # Check if this is "Approval after deemed consumed" - returns to pipeline
-    elif 'approval' in status_name and 'deemed' in status_name and 'consumed' in status_name:
-        logger.info(f"Project {instance.project.hs_id} moved back to PIPELINE state")
+
 
 # Removed the complex assignment completion signal - no longer needed!
 # Metrics are now calculated on-demand when reports are viewed
