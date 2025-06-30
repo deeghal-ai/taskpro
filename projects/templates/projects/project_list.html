@@ -536,6 +536,30 @@
         height: auto !important;
         min-height: calc(1.5em + 0.75rem + 2px) !important;
     }
+
+    /* Custom Emerald Gradient Button */
+    .btn-turquoise-gradient {
+        background: linear-gradient(135deg, #50C878 0%, #40a865 100%);
+        border: none;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-turquoise-gradient:hover {
+        background: linear-gradient(135deg, #48b56c 0%, #389858 100%);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-turquoise-gradient:focus,
+    .btn-turquoise-gradient:active {
+        background: linear-gradient(135deg, #48b56c 0%, #389858 100%);
+        color: white;
+        box-shadow: 0 0 0 0.2rem rgba(80, 200, 120, 0.25);
+    }
 </style>
 {% endblock %}
 
@@ -555,7 +579,7 @@
                 </h3>
                 <div class="d-flex gap-2 me-3">
                     {% if is_pipeline %}
-                        <a href="{% url 'projects:delivered_projects' %}" class="btn btn-success">
+                        <a href="{% url 'projects:delivered_projects' %}" class="btn btn-turquoise-gradient">
                             <i class="bi bi-check-circle"></i> View Delivered Projects
                         </a>
                     {% endif %}
