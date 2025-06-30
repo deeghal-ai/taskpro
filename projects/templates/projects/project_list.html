@@ -553,13 +553,13 @@
                         Projects
                     {% endif %}
                 </h3>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 me-3">
                     {% if is_pipeline %}
-                        <a href="{% url 'projects:delivered_projects' %}" class="btn btn-secondary">
+                        <a href="{% url 'projects:delivered_projects' %}" class="btn btn-success">
                             <i class="bi bi-check-circle"></i> View Delivered Projects
                         </a>
                     {% endif %}
-                    <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
+                    <a href="{% url 'projects:create_project' %}" class="btn btn-outline-light">
                         <i class="bi bi-plus-circle"></i> New Project
                     </a>
                 </div>
