@@ -774,7 +774,7 @@
             if (timeInput) {
                 timeInput.addEventListener('blur', function() {
                     const value = this.value;
-                    if (value && !/^([0-9]{1,2}):([0-5][0-9])$/.test(value)) {
+                    if (value && !/^([0-9]{1,4}):([0-5][0-9])$/.test(value)) {
                         this.setCustomValidity('Please enter time in HH:MM format');
                         this.classList.add('is-invalid');
                     } else {
