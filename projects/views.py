@@ -22,7 +22,7 @@ from .models import (
 )
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.db.models import Subquery, OuterRef, F, Avg, Count, Q
+from django.db.models import Subquery, OuterRef, F, Avg, Count, Q, Sum
 from django.core.exceptions import ValidationError
 import uuid
 from datetime import date, timedelta, datetime
@@ -1959,14 +1959,22 @@ def assignment_graph_view(request):
                 projected_hours = assignment.projected_hours or 0
                 projected_hours_decimal = projected_hours / 60.0  # Convert minutes to hours
                 
+                # Calculate worked hours for this assignment
+                worked_minutes = assignment.daily_totals.aggregate(
+                    total=Sum('total_minutes')
+                )['total'] or 0
+                worked_hours_decimal = worked_minutes / 60.0
+                
                 if member_name not in member_workload:
                     member_workload[member_name] = {
                         'hours': 0,
+                        'worked_hours': 0,
                         'assignments': 0,
                         'username': assignment.assigned_to.username
                     }
                 
                 member_workload[member_name]['hours'] += projected_hours_decimal
+                member_workload[member_name]['worked_hours'] += worked_hours_decimal
                 member_workload[member_name]['assignments'] += 1
                 total_assignments += 1
             
@@ -1976,15 +1984,20 @@ def assignment_graph_view(request):
             # Prepare chart data
             labels = [item[0] for item in sorted_workload]
             hours_data = [round(item[1]['hours'], 1) for item in sorted_workload]
+            worked_hours_data = [round(item[1]['worked_hours'], 1) for item in sorted_workload]
+            remaining_hours_data = [round(max(0, item[1]['hours'] - item[1]['worked_hours']), 1) for item in sorted_workload]
             assignments_data = [item[1]['assignments'] for item in sorted_workload]
             
             chart_data = {
                 'labels': labels,
                 'hours': hours_data,
+                'worked_hours': worked_hours_data,
+                'remaining_hours': remaining_hours_data,
                 'assignments': assignments_data,
                 'total_members': len(member_workload),
                 'total_assignments': total_assignments,
                 'total_hours': round(sum(hours_data), 1),
+                'total_worked_hours': round(sum(worked_hours_data), 1),
                 'avg_hours_per_member': round(sum(hours_data) / len(member_workload), 1) if member_workload else 0
             }
             
@@ -2043,28 +2056,42 @@ def assignment_graph_view(request):
         projected_hours = assignment.projected_hours or 0
         projected_hours_decimal = projected_hours / 60.0  # Convert minutes to hours
         
+        # Calculate worked hours for this assignment
+        worked_minutes = assignment.daily_totals.aggregate(
+            total=Sum('total_minutes')
+        )['total'] or 0
+        worked_hours_decimal = worked_minutes / 60.0
+        
         if member_name not in member_workload:
             member_workload[member_name] = {
                 'hours': 0,
+                'worked_hours': 0,
                 'assignments': 0,
                 'username': assignment.assigned_to.username
             }
         
         member_workload[member_name]['hours'] += projected_hours_decimal
+        member_workload[member_name]['worked_hours'] += worked_hours_decimal
         member_workload[member_name]['assignments'] += 1
     
     # Sort by hours (descending)
     sorted_workload = sorted(member_workload.items(), key=lambda x: x[1]['hours'], reverse=True)
     
     # Prepare initial chart data
+    worked_hours_list = [round(item[1]['worked_hours'], 1) for item in sorted_workload]
+    hours_list = [round(item[1]['hours'], 1) for item in sorted_workload]
+    
     initial_chart_data = {
         'labels': [item[0] for item in sorted_workload],
-        'hours': [round(item[1]['hours'], 1) for item in sorted_workload],
+        'hours': hours_list,
+        'worked_hours': worked_hours_list,
+        'remaining_hours': [round(max(0, hours_list[i] - worked_hours_list[i]), 1) for i in range(len(hours_list))],
         'assignments': [item[1]['assignments'] for item in sorted_workload],
         'total_members': len(member_workload),
         'total_assignments': total_assignments,
-        'total_hours': round(sum([item[1]['hours'] for item in sorted_workload]), 1),
-        'avg_hours_per_member': round(sum([item[1]['hours'] for item in sorted_workload]) / len(member_workload), 1) if member_workload else 0
+        'total_hours': round(sum(hours_list), 1),
+        'total_worked_hours': round(sum(worked_hours_list), 1),
+        'avg_hours_per_member': round(sum(hours_list) / len(member_workload), 1) if member_workload else 0
     }
     
     # Create date range display text for UI

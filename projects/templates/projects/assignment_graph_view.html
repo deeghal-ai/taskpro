@@ -75,7 +75,7 @@
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 1.5rem;
         align-items: center;
     }
@@ -127,6 +127,13 @@
     }
 
     /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+    }
+    
     @media (max-width: 992px) {
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -421,6 +428,15 @@
                         <div class="stat-label">Avg Hours/Member</div>
                     </div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1);">
+                        <i class="fas fa-chart-pie" style="color: #6c757d;"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="progress-percent">-</div>
+                        <div class="stat-label">Overall Progress</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -500,6 +516,14 @@
                         <canvas id="workloadChart" class="chart-canvas"></canvas>
                     </div>
                     <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(25, 135, 84, 1);"></div>
+                            <span>Worked Hours</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(25, 135, 84, 0.2);"></div>
+                            <span>Remaining Hours</span>
+                        </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #198754;"></div>
                             <span>Light Load (0-40h)</span>
@@ -583,21 +607,39 @@ function updateChart(data) {
         workloadChart.destroy();
     }
     
-    // Create color array based on workload
-    const colors = data.hours.map(hours => getLoadColor(hours));
-    const borderColors = colors.map(color => color);
+    // Create color arrays based on workload levels for progress bar effect
+    const workedColors = data.hours.map(hours => getLoadColor(hours)); // Solid color for worked portion
+    const remainingColors = data.hours.map(hours => getLoadColor(hours) + '33'); // Light color for remaining portion
     
     workloadChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.labels,
             datasets: [{
-                label: 'Projected Hours',
-                data: data.hours,
-                backgroundColor: colors.map(color => color + '80'), // Add transparency
-                borderColor: borderColors,
-                borderWidth: 2,
-                borderRadius: 6,
+                label: 'Worked Hours',
+                data: data.worked_hours,
+                backgroundColor: workedColors,
+                borderColor: workedColors,
+                borderWidth: 1,
+                borderRadius: {
+                    topLeft: 6,
+                    bottomLeft: 6,
+                    topRight: 0,
+                    bottomRight: 0
+                },
+                borderSkipped: false
+            }, {
+                label: 'Remaining Hours',
+                data: data.remaining_hours,
+                backgroundColor: remainingColors,
+                borderColor: remainingColors.map(color => color.replace('33', '')),
+                borderWidth: 1,
+                borderRadius: {
+                    topLeft: 0,
+                    bottomLeft: 0,
+                    topRight: 6,
+                    bottomRight: 6
+                },
                 borderSkipped: false
             }]
         },
@@ -605,38 +647,13 @@ function updateChart(data) {
             indexAxis: 'y', // Make it horizontal
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        title: function(context) {
-                            return context[0].label;
-                        },
-                        label: function(context) {
-                            const memberIndex = context.dataIndex;
-                            const hours = context.parsed.x;
-                            const assignments = data.assignments[memberIndex];
-                            const avgHours = (hours / assignments).toFixed(1);
-                            const loadLevel = getLoadLevel(hours);
-                            
-                            return [
-                                `Total Hours: ${hours}h`,
-                                `Assignments: ${assignments}`,
-                                `Avg per Assignment: ${avgHours}h`,
-                                `Load Level: ${loadLevel.charAt(0).toUpperCase() + loadLevel.slice(1)}`
-                            ];
-                        }
-                    }
-                }
-            },
             scales: {
                 x: {
+                    stacked: true,
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Projected Hours',
+                        text: 'Hours',
                         font: {
                             weight: 'bold'
                         }
@@ -651,6 +668,7 @@ function updateChart(data) {
                     }
                 },
                 y: {
+                    stacked: true,
                     title: {
                         display: true,
                         text: 'Team Members',
@@ -668,6 +686,52 @@ function updateChart(data) {
                     }
                 }
             },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const memberIndex = context.dataIndex;
+                            const totalHours = data.hours[memberIndex];
+                            const workedHours = data.worked_hours[memberIndex];
+                            const remainingHours = data.remaining_hours[memberIndex];
+                            const assignments = data.assignments[memberIndex];
+                            const completionPercent = totalHours > 0 ? ((workedHours / totalHours) * 100).toFixed(1) : 0;
+                            const loadLevel = getLoadLevel(totalHours);
+                            
+                            if (context.dataset.label === 'Worked Hours') {
+                                return `Worked: ${workedHours}h (${completionPercent}%)`;
+                            } else {
+                                return `Remaining: ${remainingHours}h`;
+                            }
+                        },
+                        afterBody: function(context) {
+                            if (context.length > 0) {
+                                const memberIndex = context[0].dataIndex;
+                                const totalHours = data.hours[memberIndex];
+                                const workedHours = data.worked_hours[memberIndex];
+                                const assignments = data.assignments[memberIndex];
+                                const completionPercent = totalHours > 0 ? ((workedHours / totalHours) * 100).toFixed(1) : 0;
+                                const loadLevel = getLoadLevel(totalHours);
+                                
+                                return [
+                                    '',
+                                    `Total Projected: ${totalHours}h`,
+                                    `Progress: ${completionPercent}%`,
+                                    `Assignments: ${assignments}`,
+                                    `Load Level: ${loadLevel.charAt(0).toUpperCase() + loadLevel.slice(1)}`
+                                ];
+                            }
+                            return [];
+                        }
+                    }
+                }
+            },
             animation: {
                 duration: 1200,
                 easing: 'easeInOutQuart'
@@ -681,6 +745,12 @@ function updateStats(data) {
     document.getElementById('total-assignments').textContent = data.total_assignments;
     document.getElementById('total-hours').textContent = data.total_hours + 'h';
     document.getElementById('avg-hours').textContent = data.avg_hours_per_member + 'h';
+    
+    // Update progress information if available
+    if (data.total_worked_hours !== undefined) {
+        const progressPercent = data.total_hours > 0 ? ((data.total_worked_hours / data.total_hours) * 100).toFixed(1) : 0;
+        document.getElementById('progress-percent').textContent = progressPercent + '%';
+    }
 }
 
 function updateWorkloadSummary(data) {
@@ -705,15 +775,19 @@ function updateWorkloadSummary(data) {
         const avgHours = (hours / assignments).toFixed(1);
         const loadLevel = getLoadLevel(hours);
         
+        const workedHours = data.worked_hours ? data.worked_hours[i] : 0;
+        const remainingHours = data.remaining_hours ? data.remaining_hours[i] : hours;
+        const progressPercent = hours > 0 ? ((workedHours / hours) * 100).toFixed(0) : 0;
+        
         summaryHTML += `
             <div class="workload-item">
                 <div class="member-info">
                     <div class="member-name">${memberName}</div>
-                    <div class="member-details">${assignments} assignments • ${avgHours}h avg</div>
+                    <div class="member-details">${assignments} assignments • ${avgHours}h avg • ${progressPercent}% complete</div>
                 </div>
                 <div class="workload-stats">
-                    <div class="hours-badge load-${loadLevel}">${hours}h</div>
-                    <div class="assignments-count">${loadLevel} load</div>
+                    <div class="hours-badge load-${loadLevel}">${hours}h total</div>
+                    <div class="assignments-count">${workedHours}h worked • ${remainingHours}h left</div>
                 </div>
             </div>
         `;
