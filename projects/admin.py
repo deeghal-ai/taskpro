@@ -152,7 +152,7 @@ class ProjectStatusHistoryAdmin(admin.ModelAdmin):
         'comments'
     )
     
-    readonly_fields = ('changed_at', 'category_one_snapshot', 'category_two_snapshot')
+    readonly_fields = ('category_one_snapshot', 'category_two_snapshot')
 
 
 @admin.register(Project)
