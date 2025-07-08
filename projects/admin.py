@@ -128,8 +128,15 @@ class ProjectStatusHistoryAdmin(admin.ModelAdmin):
     This interface provides a comprehensive view of all status changes,
     making it easy to track project progression and audit status changes.
     """
+    def get_hs_id(self, obj):
+        """Display the HS ID from the related project"""
+        return obj.project.hs_id if obj.project else '-'
+    get_hs_id.short_description = 'HS ID'
+    get_hs_id.admin_order_field = 'project__hs_id'  # Allow sorting by this field
+
     list_display = (
         'project',
+        'get_hs_id',
         'status',
         'category_one_snapshot',
         'category_two_snapshot',
