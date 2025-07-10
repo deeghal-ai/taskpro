@@ -969,13 +969,34 @@
         attachStarEventListeners() {
             document.querySelectorAll('.star-rating').forEach(ratingContainer => {
                 const stars = ratingContainer.querySelectorAll('.star');
-                const hiddenInput = ratingContainer.parentElement.querySelector('input[name="quality_rating"]');
-                const ratingValue = ratingContainer.parentElement.querySelector('.rating-value');
-                const ratingText = ratingContainer.parentElement.querySelector('.rating-text');
+                
+                // Find the rating form container that contains all the related elements
+                const ratingFormContainer = ratingContainer.closest('.star-rating-container');
+                if (!ratingFormContainer) {
+                    console.warn('Rating container not found for star rating');
+                    return;
+                }
+                
+                const hiddenInput = ratingFormContainer.querySelector('input[name="quality_rating"]');
+                const ratingValue = ratingFormContainer.querySelector('.rating-value');
+                const ratingText = ratingFormContainer.querySelector('.rating-text');
+                
+                // Debug logging for this specific issue
+                if (!hiddenInput || !ratingValue || !ratingText) {
+                    console.warn('Missing rating elements:', {
+                        hiddenInput: !!hiddenInput,
+                        ratingValue: !!ratingValue,
+                        ratingText: !!ratingText,
+                        assignmentId: ratingContainer.dataset.assignmentId
+                    });
+                    return;
+                }
                 
                 stars.forEach((star, index) => {
                     // Click event
-                    star.addEventListener('click', () => {
+                    star.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         const rating = parseInt(star.dataset.rating);
                         this.setRating(ratingContainer, rating, hiddenInput, ratingValue, ratingText);
                     });
@@ -1028,9 +1049,27 @@
         initializeCurrentRatings() {
             document.querySelectorAll('.star-rating').forEach(ratingContainer => {
                 const currentRating = parseFloat(ratingContainer.dataset.currentRating) || 0;
-                const hiddenInput = ratingContainer.parentElement.querySelector('input[name="quality_rating"]');
-                const ratingValue = ratingContainer.parentElement.querySelector('.rating-value');
-                const ratingText = ratingContainer.parentElement.querySelector('.rating-text');
+                
+                // Use the same robust element selection as attachStarEventListeners
+                const ratingFormContainer = ratingContainer.closest('.star-rating-container');
+                if (!ratingFormContainer) {
+                    console.warn('Rating container not found for star rating initialization');
+                    return;
+                }
+                
+                const hiddenInput = ratingFormContainer.querySelector('input[name="quality_rating"]');
+                const ratingValue = ratingFormContainer.querySelector('.rating-value');
+                const ratingText = ratingFormContainer.querySelector('.rating-text');
+                
+                if (!hiddenInput || !ratingValue || !ratingText) {
+                    console.warn('Missing rating elements during initialization:', {
+                        hiddenInput: !!hiddenInput,
+                        ratingValue: !!ratingValue,
+                        ratingText: !!ratingText,
+                        assignmentId: ratingContainer.dataset.assignmentId
+                    });
+                    return;
+                }
                 
                 if (currentRating > 0) {
                     hiddenInput.value = currentRating;
