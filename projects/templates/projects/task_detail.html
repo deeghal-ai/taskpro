@@ -391,70 +391,80 @@
         text-overflow: ellipsis;
     }
     
-    /* Star Rating System */
-    .star-rating-container {
-        padding: 1rem;
-        background: #fff;
+    /* Compact Rating System */
+    .compact-rating-container {
+        background: #f8f9fa;
         border: 1px solid var(--border-color);
         border-radius: 0.5rem;
-        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+        max-width: 280px;
     }
     
-    .star-rating {
-        display: flex;
-        gap: 0.25rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .star {
-        font-size: 1.75rem;
-        color: #ddd;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        position: relative;
-        display: inline-block;
-    }
-    
-    .star:hover {
-        transform: scale(1.1);
-    }
-    
-    .star.filled {
-        color: #ffc107;
-    }
-    
-    .star.hover {
-        color: #ffca2c;
-    }
-    
-    .star.active {
-        color: #ff9500;
-        transform: scale(1.15);
-    }
-    
-    .rating-display {
+    .rating-controls {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
-    .rating-value {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: var(--primary-color);
-    }
-    
-    .rating-text {
+    .rating-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
         font-size: 0.9rem;
-        font-style: italic;
+        color: #6c757d;
     }
     
-    /* Rating descriptions */
-    .rating-poor { color: #dc3545; }
-    .rating-below-average { color: #fd7e14; }
-    .rating-average { color: #ffc107; }
-    .rating-good { color: #20c997; }
-    .rating-excellent { color: #198754; }
+    .rating-btn:hover {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        transform: scale(1.05);
+    }
+    
+    .rating-display-section {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .rating-number-input {
+        border: none;
+        background: white;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        width: 100%;
+        max-width: 80px;
+        margin: 0 auto;
+        display: block;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .rating-number-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    }
+    
+    .rating-label {
+        margin-top: 0.25rem;
+    }
+    
+    .rating-description {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 </style>
 {% endblock %}
 
@@ -772,24 +782,41 @@
                                     {% csrf_token %}
                                     
                                     <div class="row g-3">
-                                        <div class="col-md-8">
+                                        <div class="col-md-6">
                                             <label class="form-label">Quality Rating</label>
-                                            <div class="star-rating-container">
-                                                <div class="star-rating" data-assignment-id="{{ assignment.id }}" data-current-rating="{{ assignment.quality_rating|default:0 }}">
-                                                    <span class="star" data-rating="1"><i class="bi bi-star"></i></span>
-                                                    <span class="star" data-rating="2"><i class="bi bi-star"></i></span>
-                                                    <span class="star" data-rating="3"><i class="bi bi-star"></i></span>
-                                                    <span class="star" data-rating="4"><i class="bi bi-star"></i></span>
-                                                    <span class="star" data-rating="5"><i class="bi bi-star"></i></span>
+                                            <div class="compact-rating-container">
+                                                <div class="rating-controls">
+                                                    <button type="button" class="rating-btn rating-btn-down" data-target="rating{{ assignment.id }}" title="Decrease rating">
+                                                        <i class="bi bi-dash-lg"></i>
+                                                    </button>
+                                                    <div class="rating-display-section">
+                                                        <input type="number" 
+                                                               class="rating-number-input" 
+                                                               name="quality_rating" 
+                                                               id="rating{{ assignment.id }}"
+                                                               value="{{ assignment.quality_rating|default:"" }}" 
+                                                               min="1" 
+                                                               max="5" 
+                                                               step="0.5"
+                                                               placeholder="1-5"
+                                                               required>
+                                                        <div class="rating-label">
+                                                            <span class="rating-description">
+                                                                {% if assignment.quality_rating %}
+                                                                    {% if assignment.quality_rating <= 1.5 %}Poor{% elif assignment.quality_rating <= 2.5 %}Below Average{% elif assignment.quality_rating <= 3.5 %}Average{% elif assignment.quality_rating <= 4.5 %}Good{% else %}Excellent{% endif %}
+                                                                {% else %}
+                                                                    No rating
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="rating-btn rating-btn-up" data-target="rating{{ assignment.id }}" title="Increase rating">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
                                                 </div>
-                                                <div class="rating-display mt-2">
-                                                    <span class="rating-value">{{ assignment.quality_rating|default:"No rating" }}</span>
-                                                    <span class="rating-text text-muted ms-2"></span>
-                                                </div>
-                                                <input type="hidden" name="quality_rating" value="{{ assignment.quality_rating|default:"" }}" required>
                                             </div>
                                             <div class="form-text">
-                                                <i class="bi bi-info-circle"></i> Click on stars to rate the quality of work delivered
+                                                <i class="bi bi-info-circle"></i> Steps: 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0
                                             </div>
                                         </div>
                                     </div>
@@ -959,148 +986,66 @@
         }
     };
     
-    // Star Rating System
-    const StarRating = {
+    // Simple Rating System
+    const SimpleRating = {
         init() {
-            this.attachStarEventListeners();
-            this.initializeCurrentRatings();
+            this.attachRatingButtonListeners();
         },
         
-        attachStarEventListeners() {
-            document.querySelectorAll('.star-rating').forEach(ratingContainer => {
-                const stars = ratingContainer.querySelectorAll('.star');
-                
-                // Find the rating form container that contains all the related elements
-                const ratingFormContainer = ratingContainer.closest('.star-rating-container');
-                if (!ratingFormContainer) {
-                    console.warn('Rating container not found for star rating');
-                    return;
-                }
-                
-                const hiddenInput = ratingFormContainer.querySelector('input[name="quality_rating"]');
-                const ratingValue = ratingFormContainer.querySelector('.rating-value');
-                const ratingText = ratingFormContainer.querySelector('.rating-text');
-                
-                // Debug logging for this specific issue
-                if (!hiddenInput || !ratingValue || !ratingText) {
-                    console.warn('Missing rating elements:', {
-                        hiddenInput: !!hiddenInput,
-                        ratingValue: !!ratingValue,
-                        ratingText: !!ratingText,
-                        assignmentId: ratingContainer.dataset.assignmentId
-                    });
-                    return;
-                }
-                
-                stars.forEach((star, index) => {
-                    // Click event
-                    star.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const rating = parseInt(star.dataset.rating);
-                        this.setRating(ratingContainer, rating, hiddenInput, ratingValue, ratingText);
-                    });
-                    
-                    // Hover events
-                    star.addEventListener('mouseenter', () => {
-                        const rating = parseInt(star.dataset.rating);
-                        this.highlightStars(ratingContainer, rating, true);
-                    });
-                    
-                    star.addEventListener('mouseleave', () => {
-                        const currentRating = parseFloat(hiddenInput.value) || 0;
-                        this.highlightStars(ratingContainer, Math.ceil(currentRating), false);
-                    });
+        attachRatingButtonListeners() {
+            // Up buttons
+            document.querySelectorAll('.rating-btn-up').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = button.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (input) {
+                        let currentValue = parseFloat(input.value) || 1;
+                        currentValue = Math.min(5, currentValue + 0.5);
+                        input.value = currentValue.toFixed(1);
+                        this.updateRatingDescription(input);
+                    }
+                });
+            });
+            
+            // Down buttons
+            document.querySelectorAll('.rating-btn-down').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = button.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (input) {
+                        let currentValue = parseFloat(input.value) || 1;
+                        currentValue = Math.max(1, currentValue - 0.5);
+                        input.value = currentValue.toFixed(1);
+                        this.updateRatingDescription(input);
+                    }
+                });
+            });
+            
+            // Input change listeners for the new class name
+            document.querySelectorAll('.rating-number-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    this.updateRatingDescription(input);
                 });
             });
         },
         
-        setRating(container, rating, hiddenInput, valueDisplay, textDisplay) {
-            const ratingValue = parseFloat(rating).toFixed(1);
-            hiddenInput.value = ratingValue;
-            valueDisplay.textContent = ratingValue;
-            textDisplay.textContent = this.getRatingText(rating);
-            textDisplay.className = 'rating-text text-muted ms-2 ' + this.getRatingClass(rating);
+        updateRatingDescription(input) {
+            const rating = parseFloat(input.value);
+            const container = input.closest('.compact-rating-container');
+            const description = container.querySelector('.rating-description');
             
-            this.highlightStars(container, rating, false);
-        },
-        
-        highlightStars(container, rating, isHover) {
-            const stars = container.querySelectorAll('.star');
-            stars.forEach((star, index) => {
-                const starRating = parseInt(star.dataset.rating);
-                star.classList.remove('filled', 'hover', 'active');
+            if (description && !isNaN(rating)) {
+                let text = '';
+                if (rating <= 1.5) text = 'Poor';
+                else if (rating <= 2.5) text = 'Below Average';
+                else if (rating <= 3.5) text = 'Average';
+                else if (rating <= 4.5) text = 'Good';
+                else text = 'Excellent';
                 
-                if (starRating <= rating) {
-                    if (isHover) {
-                        star.classList.add('hover');
-                    } else {
-                        star.classList.add('filled');
-                        const starIcon = star.querySelector('i');
-                        starIcon.className = 'bi bi-star-fill';
-                    }
-                } else {
-                    const starIcon = star.querySelector('i');
-                    starIcon.className = 'bi bi-star';
-                }
-            });
-        },
-        
-        initializeCurrentRatings() {
-            document.querySelectorAll('.star-rating').forEach(ratingContainer => {
-                const currentRating = parseFloat(ratingContainer.dataset.currentRating) || 0;
-                
-                // Use the same robust element selection as attachStarEventListeners
-                const ratingFormContainer = ratingContainer.closest('.star-rating-container');
-                if (!ratingFormContainer) {
-                    console.warn('Rating container not found for star rating initialization');
-                    return;
-                }
-                
-                const hiddenInput = ratingFormContainer.querySelector('input[name="quality_rating"]');
-                const ratingValue = ratingFormContainer.querySelector('.rating-value');
-                const ratingText = ratingFormContainer.querySelector('.rating-text');
-                
-                if (!hiddenInput || !ratingValue || !ratingText) {
-                    console.warn('Missing rating elements during initialization:', {
-                        hiddenInput: !!hiddenInput,
-                        ratingValue: !!ratingValue,
-                        ratingText: !!ratingText,
-                        assignmentId: ratingContainer.dataset.assignmentId
-                    });
-                    return;
-                }
-                
-                if (currentRating > 0) {
-                    hiddenInput.value = currentRating;
-                    ratingValue.textContent = currentRating;
-                    ratingText.textContent = this.getRatingText(Math.ceil(currentRating));
-                    ratingText.className = 'rating-text text-muted ms-2 ' + this.getRatingClass(Math.ceil(currentRating));
-                    this.highlightStars(ratingContainer, Math.ceil(currentRating), false);
-                }
-            });
-        },
-        
-        getRatingText(rating) {
-            const texts = {
-                1: 'Poor',
-                2: 'Below Average', 
-                3: 'Average',
-                4: 'Good',
-                5: 'Excellent'
-            };
-            return texts[rating] || '';
-        },
-        
-        getRatingClass(rating) {
-            const classes = {
-                1: 'rating-poor',
-                2: 'rating-below-average',
-                3: 'rating-average', 
-                4: 'rating-good',
-                5: 'rating-excellent'
-            };
-            return classes[rating] || '';
+                description.textContent = text;
+            }
         }
     };
     
@@ -1108,7 +1053,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         FormHandler.init();
         FormValidator.init();
-        StarRating.init();
+        SimpleRating.init();
         
         // Initialize tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
