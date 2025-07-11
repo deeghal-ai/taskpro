@@ -922,8 +922,8 @@ class AddMiscHoursForm(forms.Form):
     date = forms.DateField(
         widget=forms.DateInput(attrs={
             'class': 'form-control',
-            'type': 'date',
-            'max': timezone.localtime(timezone.now()).date().isoformat()  # Can't add future dates
+            'type': 'date'
+            # max attribute will be set dynamically in __init__
         }),
         initial=lambda: timezone.localtime(timezone.now()).date(),
         help_text="Date when the miscellaneous work was performed"
@@ -969,6 +969,16 @@ class AddMiscHoursForm(forms.Form):
         }),
         help_text="Minutes spent"
     )
+    
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the form and set the max date attribute dynamically.
+        This ensures the max date is always current when the form is instantiated.
+        """
+        super().__init__(*args, **kwargs)
+        # Set the max attribute to today's date when the form is created
+        today = timezone.localtime(timezone.now()).date().isoformat()
+        self.fields['date'].widget.attrs['max'] = today
     
     def clean(self):
         """
