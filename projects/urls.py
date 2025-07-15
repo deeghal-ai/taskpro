@@ -68,5 +68,6 @@ urlpatterns = [
     path('reports/team-member/<uuid:team_member_id>/', report_views.team_member_report, name='team_member_report'),
     path('reports/team-overview/', report_views.team_overview_report, name='team_overview_report'),
     path('reports/delivery-performance/', report_views.delivery_performance_report, name='delivery_performance_report'),
+    path('reports/lol/', report_views.lol_report, name='lol_report'),
     
 ]

@@ -199,5 +199,68 @@ def delivery_performance_report(request):
         'end_date': end_date,
         'title': 'Delivery Performance Report'
     }
-    
+
     return render(request, 'projects/reports/delivery_performance.html', context)
+
+@login_required
+def lol_report(request):
+    """LoL report with date range filter and team member selection"""
+    # Check if user is DPM
+    if request.user.role != 'DPM':
+        return redirect('projects:team_overview_report')
+    
+    # Initialize form data
+    selected_team_members = []
+    report_data = []
+    
+    # Get date range from request or default to last 30 days
+    end_date = request.GET.get('end_date', date.today())
+    if isinstance(end_date, str):
+        end_date = date.fromisoformat(end_date)
+    
+    start_date = request.GET.get('start_date', end_date - timedelta(days=30))
+    if isinstance(start_date, str):
+        start_date = date.fromisoformat(start_date)
+    
+    # Get selected team members from POST or GET
+    if request.method == 'POST':
+        selected_member_ids = request.POST.getlist('team_members')
+    else:
+        selected_member_ids = request.GET.getlist('team_members')
+    
+    # Get all team members for the form
+    all_team_members = User.objects.filter(role='TEAM_MEMBER').order_by('first_name', 'last_name')
+    
+    # If team members are selected, generate the report
+    if selected_member_ids:
+        selected_team_members = User.objects.filter(
+            id__in=selected_member_ids,
+            role='TEAM_MEMBER'
+        )
+        
+        # Get report data
+        report_data = ReportingService.get_lol_report_data(
+            selected_team_members,
+            start_date,
+            end_date
+        )
+    
+    # Prepare team members with selection state for the form
+    team_members_with_selection = []
+    for member in all_team_members:
+        team_members_with_selection.append({
+            'member': member,
+            'is_selected': str(member.id) in selected_member_ids
+        })
+    
+    context = {
+        'team_members': team_members_with_selection,
+        'selected_member_ids': selected_member_ids,
+        'report_data': report_data,
+        'start_date': start_date,
+        'end_date': end_date,
+        'title': 'LoL Report',
+        'has_results': len(report_data) > 0,
+    }
+    
+    return render(request, 'projects/reports/lol_report.html', context)

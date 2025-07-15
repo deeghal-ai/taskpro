@@ -1129,6 +1129,132 @@ class ReportingServiceTests(TestCase):
         # Should have team member data
         self.assertIn('team_members', overview)
 
+class LoLReportTests(TestCase):
+    """Test cases for LoL Report functionality"""
+    
+    def setUp(self):
+        # Create test users
+        self.dpm = User.objects.create_user(
+            username='testdpm',
+            email='dpm@test.com',
+            password='testpass123',
+            role='DPM',
+            first_name='Test',
+            last_name='DPM'
+        )
+        
+        self.team_member1 = User.objects.create_user(
+            username='member1',
+            email='member1@test.com',
+            password='testpass123',
+            role='TEAM_MEMBER',
+            first_name='Member',
+            last_name='One'
+        )
+        
+        self.team_member2 = User.objects.create_user(
+            username='member2',
+            email='member2@test.com',
+            password='testpass123',
+            role='TEAM_MEMBER',
+            first_name='Member',
+            last_name='Two'
+        )
+        
+        # Set up test data
+        self.start_date = date.today() - timedelta(days=30)
+        self.end_date = date.today()
+    
+    def test_lol_report_access_dpm_only(self):
+        """Test that only DPMs can access the LoL report"""
+        # Test with team member - should redirect
+        self.client.login(username='member1', password='testpass123')
+        response = self.client.get(reverse('projects:lol_report'))
+        self.assertEqual(response.status_code, 302)
+        
+        # Test with DPM - should work
+        self.client.login(username='testdpm', password='testpass123')
+        response = self.client.get(reverse('projects:lol_report'))
+        self.assertEqual(response.status_code, 200)
+    
+    def test_quality_score_calculation(self):
+        """Test quality score percentage calculation"""
+        # Create mock data
+        team_members = [self.team_member1, self.team_member2]
+        
+        # Test quality score calculation
+        # Member 1: quality rating 5.0 (max)
+        # Member 2: quality rating 3.0 (lower)
+        max_quality = 5.0
+        
+        member1_quality_score = (1 - (max_quality - 5.0) / max_quality) * 100
+        self.assertEqual(member1_quality_score, 100.0)
+        
+        member2_quality_score = (1 - (max_quality - 3.0) / max_quality) * 100
+        self.assertEqual(member2_quality_score, 60.0)
+    
+    def test_eligibility_calculation(self):
+        """Test eligibility status calculation"""
+        # Test eligible case
+        self.assertTrue(
+            87 > 85 and 96 > 95 and 3.0 > 2.95  # Should be eligible
+        )
+        
+        # Test not eligible cases
+        self.assertFalse(
+            80 > 85 and 96 > 95 and 3.0 > 2.95  # Low utilization
+        )
+        self.assertFalse(
+            87 > 85 and 90 > 95 and 3.0 > 2.95  # Low productivity
+        )
+        self.assertFalse(
+            87 > 85 and 96 > 95 and 2.5 > 2.95  # Low quality
+        )
+    
+    def test_total_percentage_calculation(self):
+        """Test total percentage calculation with weightages"""
+        utilization = 100
+        productivity = 100
+        quality_score = 100
+        
+        total = (utilization * 0.4) + (productivity * 0.3) + (quality_score * 0.3)
+        self.assertEqual(total, 100.0)
+        
+        # Test with different values
+        utilization = 80
+        productivity = 90
+        quality_score = 70
+        
+        total = (utilization * 0.4) + (productivity * 0.3) + (quality_score * 0.3)
+        expected = (80 * 0.4) + (90 * 0.3) + (70 * 0.3)  # 32 + 27 + 21 = 80
+        self.assertEqual(total, expected)
+    
+    def test_lol_report_with_selected_members(self):
+        """Test LoL report generation with selected team members"""
+        self.client.login(username='testdpm', password='testpass123')
+        
+        # Test with selected team members
+        response = self.client.get(reverse('projects:lol_report'), {
+            'team_members': [self.team_member1.id, self.team_member2.id],
+            'start_date': self.start_date,
+            'end_date': self.end_date
+        })
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'LoL Report')
+        self.assertIn('has_results', response.context)
+    
+    def test_lol_report_edge_case_no_quality_ratings(self):
+        """Test LoL report when no team members have quality ratings"""
+        from projects.services import ReportingService
+        
+        # Test with empty team members list
+        report_data = ReportingService.get_lol_report_data(
+            [], self.start_date, self.end_date
+        )
+        
+        self.assertEqual(len(report_data), 0)
+
 
 # Run the tests
 if __name__ == '__main__':

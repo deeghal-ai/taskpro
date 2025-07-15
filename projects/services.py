@@ -2809,6 +2809,75 @@ class ReportingService:
         }
 
     @staticmethod
+    def get_lol_report_data(team_members, start_date, end_date):
+        """
+        Calculate LoL report metrics for selected team members.
+        Returns data formatted for the LoL report table with proper sorting.
+        """
+        report_data = []
+        max_quality_rating = 0
+        
+        # First pass: calculate metrics for each team member and find max quality rating
+        for member in team_members:
+            metrics = ReportingService.get_team_member_metrics(member, start_date, end_date)
+            
+            # Extract the metrics we need
+            avg_utilization = metrics['utilization']['score'] or 0
+            avg_productivity = metrics['productivity']['score'] or 0
+            avg_quality_rating = metrics['quality']['average_rating']
+            
+            # Track max quality rating for quality score calculation
+            if avg_quality_rating is not None and avg_quality_rating > max_quality_rating:
+                max_quality_rating = avg_quality_rating
+            
+            report_data.append({
+                'team_member': member,
+                'avg_utilization': avg_utilization,
+                'avg_productivity': avg_productivity,
+                'avg_quality_rating': avg_quality_rating,
+            })
+        
+        # Second pass: calculate quality score, total %, and eligibility
+        for data in report_data:
+            # Calculate quality score in % with improved edge case handling
+            if max_quality_rating > 0:
+                if data['avg_quality_rating'] is not None:
+                    quality_score = (1 - (max_quality_rating - data['avg_quality_rating']) / max_quality_rating) * 100
+                else:
+                    quality_score = 0  # No rating = worst possible score
+            else:
+                # When everyone has 0 or no ratings, treat all equally
+                if data['avg_quality_rating'] is not None:
+                    quality_score = 100  # Everyone gets 100% if they have any rating when max is 0
+                else:
+                    quality_score = 0    # No rating = 0%
+            
+            # Calculate total % with weightages
+            total_percentage = (
+                (data['avg_utilization'] * 0.4) +
+                (data['avg_productivity'] * 0.3) +
+                (quality_score * 0.3)
+            )
+            
+            # Determine eligibility - all three conditions must be met
+            is_eligible = (
+                data['avg_utilization'] > 85 and
+                data['avg_productivity'] > 95 and
+                (data['avg_quality_rating'] is not None and data['avg_quality_rating'] > 2.95)
+            )
+            
+            # Update data with calculated fields
+            data['quality_score'] = quality_score
+            data['total_percentage'] = total_percentage
+            data['eligibility_status'] = 'Eligible' if is_eligible else 'Not Eligible'
+            data['is_eligible'] = is_eligible
+        
+        # Sort: First by eligibility (eligible first), then by total percentage (descending)
+        report_data.sort(key=lambda x: (-x['is_eligible'], -x['total_percentage']))
+        
+        return report_data
+
+    @staticmethod
     def track_project_delivery(project, delivery_date=None):
         """
         Simplified delivery tracking - just store the event, no metrics calculation.
