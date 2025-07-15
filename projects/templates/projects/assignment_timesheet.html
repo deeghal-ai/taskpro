@@ -671,6 +671,13 @@
                                 <div class="summary-stat-value {{ assignment_summary.quality_rating_class }}">
                                     {{ assignment_summary.quality_rating }}
                                 </div>
+                                {% if assignment.quality_rating_comments %}
+                                <div class="mt-1">
+                                    <small class="text-muted fst-italic">
+                                        "{{ assignment.quality_rating_comments }}"
+                                    </small>
+                                </div>
+                                {% endif %}
                                 <div class="summary-stat-label">Quality Rating</div>
                             </div>
                             <div class="summary-stat">
@@ -755,6 +762,14 @@
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>
+                                </div>
+                                
+                                <div class="flex-fill">
+                                    <textarea name="quality_rating_comments" 
+                                              class="form-control form-control-sm" 
+                                              rows="2"
+                                              placeholder="Optional comments about quality..."
+                                              style="resize: vertical;">{{ assignment.quality_rating_comments|default:"" }}</textarea>
                                 </div>
                                 
                                 <div class="action-buttons d-flex gap-2">

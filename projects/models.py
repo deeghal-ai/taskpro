@@ -691,6 +691,10 @@ class TaskAssignment(models.Model):
         ],
         help_text="Quality rating for this assignment (1-5)"
     )
+    quality_rating_comments = models.TextField(
+        blank=True,
+        help_text="Optional comments about the quality of this assignment"
+    )
     assigned_by = models.ForeignKey(
         'accounts.User',
         on_delete=models.PROTECT,

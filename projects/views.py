@@ -1437,6 +1437,9 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
         messages.error(request, "Please select a quality rating")
         return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
+    # Get optional comments
+    quality_rating_comments = request.POST.get('quality_rating_comments', '').strip()
+
     try:
         # Convert to decimal and validate range
         rating_value = float(quality_rating)
@@ -1444,8 +1447,9 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
             messages.error(request, "Quality rating must be between 1.0 and 5.0")
             return redirect('projects:task_detail', project_id=project_id, task_id=task_id)
 
-        # Update only the quality rating
+        # Update quality rating and comments
         assignment.quality_rating = rating_value
+        assignment.quality_rating_comments = quality_rating_comments
         assignment.save()
 
         messages.success(request, f"Quality rating updated to {rating_value}/5 for assignment {assignment.assignment_id}")
@@ -1517,6 +1521,9 @@ def update_quality_rating_timesheet(request, assignment_id):
             return redirect(redirect_url)
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
+    # Get optional comments
+    quality_rating_comments = request.POST.get('quality_rating_comments', '').strip()
+
     try:
         # Convert to decimal and validate range
         rating_value = float(quality_rating)
@@ -1531,8 +1538,9 @@ def update_quality_rating_timesheet(request, assignment_id):
                 return redirect(redirect_url)
             return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
-        # Update the quality rating
+        # Update the quality rating and comments
         assignment.quality_rating = rating_value
+        assignment.quality_rating_comments = quality_rating_comments
         assignment.save()
 
         # Create success message with rating description

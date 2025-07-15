@@ -771,6 +771,14 @@
                                     </span>
                                 </div>
                             {% endif %}
+                            {% if assignment.quality_rating_comments %}
+                                <div class="detail-item">
+                                    <span class="detail-label">Quality Comments</span>
+                                    <span class="detail-value">
+                                        <em>{{ assignment.quality_rating_comments }}</em>
+                                    </span>
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <!-- Rate Quality Form (Collapsible) -->
@@ -817,6 +825,17 @@
                                             </div>
                                             <div class="form-text">
                                                 <i class="bi bi-info-circle"></i> Steps: 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Comments (Optional)</label>
+                                            <textarea name="quality_rating_comments" 
+                                                      class="form-control" 
+                                                      rows="4"
+                                                      placeholder="Add any comments about the quality of work..."
+                                                      style="resize: vertical;">{{ assignment.quality_rating_comments|default:"" }}</textarea>
+                                            <div class="form-text">
+                                                <i class="bi bi-info-circle"></i> Optional feedback about the assignment quality
                                             </div>
                                         </div>
                                     </div>
