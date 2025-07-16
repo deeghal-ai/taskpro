@@ -3,6 +3,54 @@
 {% block report_title %}LoL Report{% endblock %}
 {% block report_subtitle %}Team Member Performance Analysis{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Tooltip enhancements for LoL Report */
+.tooltip {
+    font-size: 0.875rem;
+    max-width: 300px;
+}
+
+.tooltip-inner {
+    background-color: #2d3748;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    text-align: left;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #2d3748;
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #2d3748;
+}
+
+/* Hover effect for cells with tooltips */
+td[data-bs-toggle="tooltip"] {
+    cursor: help;
+    transition: all 0.2s ease;
+}
+
+td[data-bs-toggle="tooltip"]:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    transform: scale(1.02);
+}
+
+/* Enhanced table styling for better tooltip interaction */
+.table td {
+    position: relative;
+    z-index: 1;
+}
+
+.table td:hover {
+    z-index: 10;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <!-- Page Header -->
@@ -106,21 +154,30 @@
                             <td>
                                 <strong>{{ row.team_member.get_full_name }}</strong>
                             </td>
-                            <td class="text-center {% if row.avg_utilization <= 85 %}table-danger{% endif %}">
+                            <td class="text-center {% if row.avg_utilization <= 85 %}table-danger{% endif %}" 
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="top" 
+                                title="Worked: {{ row.utilization_details.worked_hours|floatformat:1 }}h / Available: {{ row.utilization_details.available_hours|floatformat:1 }}h">
                                 {% if row.avg_utilization %}
                                     {{ row.avg_utilization|floatformat:2 }}%
                                 {% else %}
                                     0.00%
                                 {% endif %}
                             </td>
-                            <td class="text-center {% if row.avg_productivity <= 95 %}table-danger{% endif %}">
+                            <td class="text-center {% if row.avg_productivity <= 95 %}table-danger{% endif %}"
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="top" 
+                                title="Projected: {{ row.productivity_details.projected_hours|floatformat:1 }}h / Worked: {{ row.productivity_details.worked_hours|floatformat:1 }}h">
                                 {% if row.avg_productivity %}
                                     {{ row.avg_productivity|floatformat:2 }}%
                                 {% else %}
                                     0.00%
                                 {% endif %}
                             </td>
-                            <td class="text-center {% if row.avg_quality_rating and row.avg_quality_rating <= 2.95 %}table-danger{% elif not row.avg_quality_rating %}table-danger{% endif %}">
+                            <td class="text-center {% if row.avg_quality_rating and row.avg_quality_rating <= 2.95 %}table-danger{% elif not row.avg_quality_rating %}table-danger{% endif %}"
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="top" 
+                                title="{% if row.quality_ratings_list %}Individual ratings: {% for rating in row.quality_ratings_list %}{{ rating|floatformat:1 }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}No quality ratings{% endif %}">
                                 {% if row.avg_quality_rating %}
                                     {{ row.avg_quality_rating|floatformat:2 }}
                                 {% else %}
@@ -176,6 +233,18 @@
 
 {% block extra_js %}
 <script>
+// Initialize Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            html: true,
+            container: 'body'
+        });
+    });
+});
+
 // Select/Deselect All functionality
 document.getElementById('selectAll').addEventListener('click', function() {
     const checkboxes = document.querySelectorAll('input[name="team_members"]');

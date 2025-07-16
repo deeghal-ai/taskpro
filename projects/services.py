@@ -2674,7 +2674,7 @@ class ReportingService:
         total_worked_minutes = 0
         
         # Fixed monthly leave allowance
-        MONTHLY_LEAVE_ALLOWANCE = 2.5
+        MONTHLY_LEAVE_ALLOWANCE = 0
         
         # Calculate prorated leave allowance based on date range
         days_in_range = (end_date - start_date).days + 1
@@ -2848,6 +2848,7 @@ class ReportingService:
         """
         Calculate LoL report metrics for selected team members.
         Returns data formatted for the LoL report table with proper sorting.
+        Includes detailed breakdown data for tooltips.
         """
         report_data = []
         max_quality_rating = 0
@@ -2861,6 +2862,28 @@ class ReportingService:
             avg_productivity = metrics['productivity']['score'] or 0
             avg_quality_rating = metrics['quality']['average_rating']
             
+            # Get detailed breakdown for tooltips
+            utilization_details = {
+                'worked_hours': metrics['utilization']['worked_minutes'] / 60 if metrics['utilization']['worked_minutes'] else 0,
+                'available_hours': metrics['utilization']['available_minutes'] / 60 if metrics['utilization']['available_minutes'] else 0,
+            }
+            
+            productivity_details = {
+                'projected_hours': metrics['productivity']['projected_hours'] or 0,
+                'worked_hours': metrics['productivity']['worked_hours'] or 0,
+            }
+            
+            # Get individual quality ratings for this member
+            quality_ratings_list = []
+            completed_assignments = TaskAssignment.objects.filter(
+                assigned_to=member,
+                is_completed=True,
+                completion_date__date__range=[start_date, end_date],
+                quality_rating__isnull=False
+            ).values_list('quality_rating', flat=True)
+            
+            quality_ratings_list = [float(rating) for rating in completed_assignments]
+            
             # Track max quality rating for quality score calculation
             if avg_quality_rating is not None and avg_quality_rating > max_quality_rating:
                 max_quality_rating = avg_quality_rating
@@ -2870,6 +2893,9 @@ class ReportingService:
                 'avg_utilization': avg_utilization,
                 'avg_productivity': avg_productivity,
                 'avg_quality_rating': avg_quality_rating,
+                'utilization_details': utilization_details,
+                'productivity_details': productivity_details,
+                'quality_ratings_list': quality_ratings_list,
             })
         
         # Second pass: calculate quality score, total %, and eligibility
