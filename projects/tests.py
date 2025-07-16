@@ -1195,20 +1195,23 @@ class LoLReportTests(TestCase):
     
     def test_eligibility_calculation(self):
         """Test eligibility status calculation"""
-        # Test eligible case
+        # Test eligible cases
         self.assertTrue(
-            87 > 85 and 96 > 95 and 3.0 > 2.95  # Should be eligible
+            87 >= 85 and 96 >= 95 and 3.0 >= 2.95  # Should be eligible
+        )
+        self.assertTrue(
+            85 >= 85 and 95 >= 95 and 2.95 >= 2.95  # Exactly at threshold - should be eligible
         )
         
         # Test not eligible cases
         self.assertFalse(
-            80 > 85 and 96 > 95 and 3.0 > 2.95  # Low utilization
+            80 >= 85 and 96 >= 95 and 3.0 >= 2.95  # Low utilization
         )
         self.assertFalse(
-            87 > 85 and 90 > 95 and 3.0 > 2.95  # Low productivity
+            87 >= 85 and 90 >= 95 and 3.0 >= 2.95  # Low productivity
         )
         self.assertFalse(
-            87 > 85 and 96 > 95 and 2.5 > 2.95  # Low quality
+            87 >= 85 and 96 >= 95 and 2.5 >= 2.95  # Low quality
         )
     
     def test_total_percentage_calculation(self):

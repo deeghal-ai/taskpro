@@ -2922,9 +2922,9 @@ class ReportingService:
             
             # Determine eligibility - all three conditions must be met
             is_eligible = (
-                data['avg_utilization'] > 85 and
-                data['avg_productivity'] > 95 and
-                (data['avg_quality_rating'] is not None and data['avg_quality_rating'] > 2.95)
+                data['avg_utilization'] >= 85 and
+                data['avg_productivity'] >= 95 and
+                (data['avg_quality_rating'] is not None and data['avg_quality_rating'] >= 2.95)
             )
             
             # Update data with calculated fields

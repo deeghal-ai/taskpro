@@ -154,7 +154,7 @@ td[data-bs-toggle="tooltip"]:hover {
                             <td>
                                 <strong>{{ row.team_member.get_full_name }}</strong>
                             </td>
-                            <td class="text-center {% if row.avg_utilization <= 85 %}table-danger{% endif %}" 
+                            <td class="text-center {% if row.avg_utilization < 85 %}table-danger{% endif %}" 
                                 data-bs-toggle="tooltip" 
                                 data-bs-placement="top" 
                                 title="Worked: {{ row.utilization_details.worked_hours|floatformat:1 }}h / Available: {{ row.utilization_details.available_hours|floatformat:1 }}h">
@@ -164,7 +164,7 @@ td[data-bs-toggle="tooltip"]:hover {
                                     0.00%
                                 {% endif %}
                             </td>
-                            <td class="text-center {% if row.avg_productivity <= 95 %}table-danger{% endif %}"
+                            <td class="text-center {% if row.avg_productivity < 95 %}table-danger{% endif %}"
                                 data-bs-toggle="tooltip" 
                                 data-bs-placement="top" 
                                 title="Projected: {{ row.productivity_details.projected_hours|floatformat:1 }}h / Worked: {{ row.productivity_details.worked_hours|floatformat:1 }}h">
@@ -174,7 +174,7 @@ td[data-bs-toggle="tooltip"]:hover {
                                     0.00%
                                 {% endif %}
                             </td>
-                            <td class="text-center {% if row.avg_quality_rating and row.avg_quality_rating <= 2.95 %}table-danger{% elif not row.avg_quality_rating %}table-danger{% endif %}"
+                            <td class="text-center {% if row.avg_quality_rating and row.avg_quality_rating < 2.95 %}table-danger{% elif not row.avg_quality_rating %}table-danger{% endif %}"
                                 data-bs-toggle="tooltip" 
                                 data-bs-placement="top" 
                                 title="{% if row.quality_ratings_list %}Individual ratings: {% for rating in row.quality_ratings_list %}{{ rating|floatformat:1 }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}No quality ratings{% endif %}">
@@ -215,9 +215,9 @@ td[data-bs-toggle="tooltip"]:hover {
                 <div class="alert alert-info">
                     <h6><i class="bi bi-info-circle"></i> Eligibility Criteria:</h6>
                     <ul class="mb-0">
-                        <li><strong>Utilization:</strong> Must be > 85% <span class="badge bg-danger ms-2">Red if ≤ 85%</span></li>
-                        <li><strong>Productivity:</strong> Must be > 95% <span class="badge bg-danger ms-2">Red if ≤ 95%</span></li>
-                        <li><strong>Quality Rating:</strong> Must be > 2.95 <span class="badge bg-danger ms-2">Red if ≤ 2.95</span></li>
+                        <li><strong>Utilization:</strong> Must be ≥ 85% <span class="badge bg-danger ms-2">Red if < 85%</span></li>
+                        <li><strong>Productivity:</strong> Must be ≥ 95% <span class="badge bg-danger ms-2">Red if < 95%</span></li>
+                        <li><strong>Quality Rating:</strong> Must be ≥ 2.95 <span class="badge bg-danger ms-2">Red if < 2.95</span></li>
                     </ul>
                 </div>
             </div>
