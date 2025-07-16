@@ -106,21 +106,21 @@
                             <td>
                                 <strong>{{ row.team_member.get_full_name }}</strong>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center {% if row.avg_utilization <= 85 %}table-danger{% endif %}">
                                 {% if row.avg_utilization %}
                                     {{ row.avg_utilization|floatformat:2 }}%
                                 {% else %}
                                     0.00%
                                 {% endif %}
                             </td>
-                            <td class="text-center">
+                            <td class="text-center {% if row.avg_productivity <= 95 %}table-danger{% endif %}">
                                 {% if row.avg_productivity %}
                                     {{ row.avg_productivity|floatformat:2 }}%
                                 {% else %}
                                     0.00%
                                 {% endif %}
                             </td>
-                            <td class="text-center">
+                            <td class="text-center {% if row.avg_quality_rating and row.avg_quality_rating <= 2.95 %}table-danger{% elif not row.avg_quality_rating %}table-danger{% endif %}">
                                 {% if row.avg_quality_rating %}
                                     {{ row.avg_quality_rating|floatformat:2 }}
                                 {% else %}
@@ -151,6 +151,18 @@
                 <button class="btn btn-sm btn-outline-primary" onclick="exportTableToCSV('lol_report.csv')">
                     <i class="bi bi-download"></i> Export to CSV
                 </button>
+            </div>
+            
+            <!-- Legend -->
+            <div class="mt-3">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Eligibility Criteria:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Utilization:</strong> Must be > 85% <span class="badge bg-danger ms-2">Red if ≤ 85%</span></li>
+                        <li><strong>Productivity:</strong> Must be > 95% <span class="badge bg-danger ms-2">Red if ≤ 95%</span></li>
+                        <li><strong>Quality Rating:</strong> Must be > 2.95 <span class="badge bg-danger ms-2">Red if ≤ 2.95</span></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
