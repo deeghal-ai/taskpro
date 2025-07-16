@@ -2649,7 +2649,7 @@ class ReportingService:
         roster_days = DailyRoster.objects.filter(
             team_member=team_member,
             date__range=[start_date, end_date]
-        )
+        ).order_by('date')
 
         # Calculate productivity metrics
         total_projected = 0
@@ -2669,13 +2669,48 @@ class ReportingService:
             if assignment.quality_rating:
                 quality_ratings.append(float(assignment.quality_rating))
 
-        # Calculate utilization (total worked vs available time)
+        # Calculate utilization with leave allowance (total worked vs available time)
         total_available_minutes = 0
         total_worked_minutes = 0
-
+        
+        # Fixed monthly leave allowance
+        MONTHLY_LEAVE_ALLOWANCE = 2.5
+        
+        # Calculate prorated leave allowance based on date range
+        days_in_range = (end_date - start_date).days + 1
+        prorated_leave_allowance = (MONTHLY_LEAVE_ALLOWANCE / 30) * days_in_range
+        
+        # Track leave days taken as we process chronologically
+        leave_days_counted = 0.0
+        
         for roster in roster_days:
-            if roster.status in ['PRESENT', 'LEAVE', 'HALF_DAY']:
-                total_available_minutes += 480  # 8 hours
+            if roster.status == 'PRESENT':
+                # Present days always count as 8 hours available
+                total_available_minutes += 480
+                
+            elif roster.status == 'HALF_DAY':
+                # Count how many leave days we've processed so far
+                leave_days_counted += 0.5
+                
+                if leave_days_counted <= prorated_leave_allowance:
+                    # Within allowance: count as 4 hours (actual half day)
+                    total_available_minutes += 240
+                else:
+                    # Exceeded allowance: count as 8 hours (penalty like full day)
+                    total_available_minutes += 480
+                    
+            elif roster.status == 'LEAVE':
+                # Count how many leave days we've processed so far
+                leave_days_counted += 1.0
+                
+                if leave_days_counted <= prorated_leave_allowance:
+                    # Within allowance: don't count as available time
+                    pass
+                else:
+                    # Exceeded allowance: count as 8 hours available
+                    total_available_minutes += 480
+            
+            # Note: TEAM_OUTING, WEEK_OFF, HOLIDAY don't count as available time
 
         total_worked_minutes = sum(dt['day_total'] for dt in daily_totals)
 
