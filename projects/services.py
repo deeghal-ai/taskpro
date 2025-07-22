@@ -2688,8 +2688,9 @@ class ProjectService:
                 
                 # Create Purchase Date history if status exists
                 if purchase_date_status and project.purchase_date:
+                    # Use noon (12:00) to avoid timezone edge cases that can shift dates
                     purchase_datetime = timezone.make_aware(
-                        datetime.combine(project.purchase_date, time.min)
+                        datetime.combine(project.purchase_date, time(12, 0))
                     )
                     ProjectStatusHistory.objects.create(
                         project=project,
@@ -2702,8 +2703,9 @@ class ProjectService:
                     )
                 
                 # Create Sales Confirmation history
+                # Use noon (12:00) to avoid timezone edge cases that can shift dates
                 sales_datetime = timezone.make_aware(
-                    datetime.combine(project.sales_confirmation_date, time.min)
+                    datetime.combine(project.sales_confirmation_date, time(12, 0))
                 )
                 ProjectStatusHistory.objects.create(
                     project=project,
