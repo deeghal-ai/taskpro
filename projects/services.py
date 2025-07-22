@@ -10,7 +10,7 @@ from accounts.models import User
 from locations.models import Region, City
 from django.utils import timezone
 from django.db import transaction
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 import calendar
 from django.db.models import Avg
 
@@ -2614,12 +2614,118 @@ class ProjectService:
         except Exception as e:
             return False, f"An error occurred: {str(e)}"
 
-
-class ReportingService:
-    """
-    Simplified service layer for on-demand reporting.
-    No more stored metrics - everything calculated fresh.
-    """
+    @staticmethod
+    def create_project_with_history(project_data, user):
+        """
+        Creates a new project with proper status history using business dates.
+        This method is specifically for form-created projects.
+        
+        Args:
+            project_data: Dictionary with project data from form
+            user: User creating the project (must be DPM)
+        
+        Returns:
+            tuple: (success, result)
+                - If successful: (True, project)
+                - If failed: (False, error_message)
+        """
+        with transaction.atomic():
+            try:
+                # Get the default status (should be "Sales Confirmation" or similar)
+                sales_confirmation_status = ProjectStatusOption.objects.filter(
+                    name__icontains='sales confirmation',
+                    is_active=True
+                ).first()
+                
+                if not sales_confirmation_status:
+                    # Fallback to first active status
+                    sales_confirmation_status = ProjectStatusOption.objects.filter(
+                        is_active=True
+                    ).order_by('order').first()
+                
+                # Get purchase date status
+                purchase_date_status = ProjectStatusOption.objects.filter(
+                    name__icontains='purchase',
+                    is_active=True
+                ).first()
+                
+                if not purchase_date_status:
+                    # If no purchase status exists, we'll only create sales confirmation history
+                    purchase_date_status = None
+                
+                # Create project object
+                project = Project(
+                    opportunity_id=project_data['opportunity_id'],
+                    project_name=project_data['project_name'],
+                    builder_name=project_data['builder_name'],
+                    city=project_data['city'],
+                    product=project_data['product'],
+                    product_subcategory=project_data.get('product_subcategory'),
+                    package_id=project_data.get('package_id'),
+                    quantity=project_data['quantity'],
+                    purchase_date=project_data['purchase_date'],
+                    sales_confirmation_date=project_data['sales_confirmation_date'],
+                    account_manager=project_data['account_manager'],
+                    current_status=sales_confirmation_status,  # Set to sales confirmation
+                    dpm=user,
+                    project_type=project_data.get('project_type') or None,
+                )
+                
+                # Set expected TAT from the product
+                project.expected_tat = project.product.expected_tat
+                
+                # Generate HS_ID
+                project.hs_id = Project.generate_hs_id()
+                
+                # Set a flag to skip automatic history creation in save()
+                project._skip_status_history = True
+                
+                # Validate and save
+                project.full_clean()
+                project.save()
+                
+                # Now create the status histories with correct dates
+                
+                # Create Purchase Date history if status exists
+                if purchase_date_status and project.purchase_date:
+                    purchase_datetime = timezone.make_aware(
+                        datetime.combine(project.purchase_date, time.min)
+                    )
+                    ProjectStatusHistory.objects.create(
+                        project=project,
+                        status=purchase_date_status,
+                        changed_by=user,
+                        comments="Project purchased",
+                        category_one_snapshot=purchase_date_status.category_one,
+                        category_two_snapshot=purchase_date_status.category_two,
+                        changed_at=purchase_datetime
+                    )
+                
+                # Create Sales Confirmation history
+                sales_datetime = timezone.make_aware(
+                    datetime.combine(project.sales_confirmation_date, time.min)
+                )
+                ProjectStatusHistory.objects.create(
+                    project=project,
+                    status=sales_confirmation_status,
+                    changed_by=user,
+                    comments="Sales confirmed",
+                    category_one_snapshot=sales_confirmation_status.category_one,
+                    category_two_snapshot=sales_confirmation_status.category_two,
+                    changed_at=sales_datetime
+                )
+                
+                logger.info(f"Created new project with proper history: {project.id} - {project.project_name}")
+                return True, project
+                
+            except ValidationError as e:
+                logger.warning(f"Validation error in create_project_with_history: {str(e)}")
+                if hasattr(e, 'message_dict'):
+                    return False, e.message_dict
+                return False, str(e)
+            except Exception as e:
+                logger.exception(f"Unexpected error in create_project_with_history: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
 
     @staticmethod
     def get_team_member_metrics(team_member, start_date, end_date):
@@ -2974,3 +3080,322 @@ class ReportingService:
         )
 
         return delivery
+
+
+class ReportingService:
+    """
+    Simplified service layer for on-demand reporting.
+    No more stored metrics - everything calculated fresh.
+    """
+
+    @staticmethod
+    def get_team_member_metrics(team_member, start_date, end_date):
+        """
+        Calculate team member metrics on-demand for date range.
+        Much simpler than the stored approach!
+        """
+        from decimal import Decimal
+        from django.db.models import F, Case, When, IntegerField
+
+        # Get completed assignments in date range
+        completed_assignments = TaskAssignment.objects.filter(
+            assigned_to=team_member,
+            is_completed=True,
+            completion_date__date__range=[start_date, end_date]
+        ).select_related('task__project')
+
+        # Get daily totals for utilization calculation
+        daily_totals = DailyTimeTotal.objects.filter(
+            team_member=team_member,
+            date_worked__range=[start_date, end_date]
+        ).values('date_worked').annotate(
+            day_total=Sum('total_minutes')
+        )
+
+        # Get roster data for availability calculation
+        roster_days = DailyRoster.objects.filter(
+            team_member=team_member,
+            date__range=[start_date, end_date]
+        ).order_by('date')
+
+        # Calculate productivity metrics
+        total_projected = 0
+        total_worked = 0
+        quality_ratings = []
+
+        for assignment in completed_assignments:
+            projected = assignment.projected_hours or 0
+            worked = DailyTimeTotal.objects.filter(
+                assignment=assignment,
+                team_member=team_member
+            ).aggregate(total=Sum('total_minutes'))['total'] or 0
+
+            total_projected += projected
+            total_worked += worked
+
+            if assignment.quality_rating:
+                quality_ratings.append(float(assignment.quality_rating))
+
+        # Calculate utilization with leave allowance (total worked vs available time)
+        total_available_minutes = 0
+        total_worked_minutes = 0
+        
+        # Fixed monthly leave allowance
+        MONTHLY_LEAVE_ALLOWANCE = 0
+        
+        # Calculate prorated leave allowance based on date range
+        days_in_range = (end_date - start_date).days + 1
+        prorated_leave_allowance = (MONTHLY_LEAVE_ALLOWANCE / 30) * days_in_range
+        
+        # Track leave days taken as we process chronologically
+        leave_days_counted = 0.0
+        
+        for roster in roster_days:
+            if roster.status == 'PRESENT':
+                # Present days always count as 8 hours available
+                total_available_minutes += 480
+                
+            elif roster.status == 'HALF_DAY':
+                # Count how many leave days we've processed so far
+                leave_days_counted += 0.5
+                
+                if leave_days_counted <= prorated_leave_allowance:
+                    # Within allowance: count as 4 hours (actual half day)
+                    total_available_minutes += 240
+                else:
+                    # Exceeded allowance: count as 8 hours (penalty like full day)
+                    total_available_minutes += 480
+                    
+            elif roster.status == 'LEAVE':
+                # Count how many leave days we've processed so far
+                leave_days_counted += 1.0
+                
+                if leave_days_counted <= prorated_leave_allowance:
+                    # Within allowance: don't count as available time
+                    pass
+                else:
+                    # Exceeded allowance: count as 8 hours available
+                    total_available_minutes += 480
+            
+            # Note: TEAM_OUTING, WEEK_OFF, HOLIDAY don't count as available time
+
+        total_worked_minutes = sum(dt['day_total'] for dt in daily_totals)
+
+        # Calculate efficiency (assignment + misc hours vs present/half days only)
+        efficiency_available_minutes = 0
+        total_misc_minutes = 0
+
+        for roster in roster_days:
+            if roster.status == 'PRESENT':
+                efficiency_available_minutes += 480  # 8 hours
+            elif roster.status == 'HALF_DAY':
+                efficiency_available_minutes += 240  # 4 hours
+
+            # Add misc hours to total work time for efficiency calculation
+            total_misc_minutes += roster.misc_hours
+
+        total_efficiency_work_minutes = total_worked_minutes + total_misc_minutes
+
+        # Calculate delivery performance
+        deliveries = ProjectDelivery.objects.filter(
+            project_incharge=team_member,
+            delivery_date__range=[start_date, end_date]
+        )
+
+        delivery_ratings = [
+            float(d.delivery_performance_rating)
+            for d in deliveries
+            if d.delivery_performance_rating
+        ]
+
+        # Calculate on-time delivery rate using database fields, not the property
+        # A delivery is on-time if actual_completion_date <= expected_completion_date
+        # Handle cases where expected_completion_date might be null
+        on_time_deliveries = deliveries.filter(
+            expected_completion_date__isnull=False
+        ).filter(
+            actual_completion_date__lte=F('expected_completion_date')
+        )
+        on_time_count = on_time_deliveries.count()
+        total_deliveries = deliveries.count()
+
+        return {
+            'period': f"{start_date} to {end_date}",
+            'productivity': {
+                'score': (total_projected / total_worked * 100) if total_worked > 0 else None,
+                'projected_hours': total_projected / 60,
+                'worked_hours': total_worked / 60,
+            },
+            'optimization': {
+                'score': ((total_projected - total_worked) / total_projected * 100) if total_projected > 0 else None,
+                'projected_hours': total_projected / 60,
+                'worked_hours': total_worked / 60,
+                'saved_hours': (total_projected - total_worked) / 60 if total_projected > 0 else 0,
+            },
+            'utilization': {
+                'score': (total_worked_minutes / total_available_minutes * 100) if total_available_minutes > 0 else None,
+                'worked_minutes': total_worked_minutes,
+                'available_minutes': total_available_minutes,
+            },
+            'efficiency': {
+                'score': (total_efficiency_work_minutes / efficiency_available_minutes * 100) if efficiency_available_minutes > 0 else None,
+                'total_work_minutes': total_efficiency_work_minutes,
+                'assignment_minutes': total_worked_minutes,
+                'misc_minutes': total_misc_minutes,
+                'available_minutes': efficiency_available_minutes,
+            },
+            'quality': {
+                'average_rating': sum(quality_ratings) / len(quality_ratings) if quality_ratings else None,
+                'total_assignments': len(completed_assignments),
+                'rated_assignments': len(quality_ratings),
+            },
+            'delivery': {
+                'average_rating': sum(delivery_ratings) / len(delivery_ratings) if delivery_ratings else None,
+                'total_projects': total_deliveries,
+                'on_time_rate': (on_time_count / total_deliveries * 100) if total_deliveries > 0 else None,
+                'on_time_count': on_time_count,
+            }
+        }
+
+    @staticmethod
+    def get_team_overview(start_date, end_date):
+        """
+        Get overview for all team members.
+        """
+        team_members = User.objects.filter(role='TEAM_MEMBER')
+        overview_data = []
+
+        for member in team_members:
+            metrics = ReportingService.get_team_member_metrics(member, start_date, end_date)
+            overview_data.append({
+                'team_member': member,
+                'metrics': metrics
+            })
+
+        # Sort by productivity
+        overview_data.sort(
+            key=lambda x: x['metrics']['productivity']['score'] or 0,
+            reverse=True
+        )
+
+        return overview_data
+
+    @staticmethod
+    def get_daily_summary(team_member, date):
+        """
+        Get summary for a specific day - useful for dashboards.
+        """
+        # Today's worked time
+        worked_minutes = DailyTimeTotal.objects.filter(
+            team_member=team_member,
+            date_worked=date
+        ).aggregate(total=Sum('total_minutes'))['total'] or 0
+
+        # Today's completed assignments
+        completed_today = TaskAssignment.objects.filter(
+            assigned_to=team_member,
+            completion_date__date=date
+        ).count()
+
+        # Active assignments
+        active_assignments = TaskAssignment.objects.filter(
+            assigned_to=team_member,
+            is_active=True,
+            is_completed=False
+        ).count()
+
+        return {
+            'worked_hours': f"{worked_minutes // 60:02d}:{worked_minutes % 60:02d}",
+            'completed_assignments': completed_today,
+            'active_assignments': active_assignments,
+        }
+
+    @staticmethod
+    def get_lol_report_data(team_members, start_date, end_date):
+        """
+        Calculate LoL report metrics for selected team members.
+        Returns data formatted for the LoL report table with proper sorting.
+        Includes detailed breakdown data for tooltips.
+        """
+        report_data = []
+        max_quality_rating = 0
+        
+        # First pass: calculate metrics for each team member and find max quality rating
+        for member in team_members:
+            metrics = ReportingService.get_team_member_metrics(member, start_date, end_date)
+            
+            # Extract the metrics we need
+            avg_utilization = metrics['utilization']['score'] or 0
+            avg_productivity = metrics['productivity']['score'] or 0
+            avg_quality_rating = metrics['quality']['average_rating']
+            
+            # Get detailed breakdown for tooltips
+            utilization_details = {
+                'worked_hours': metrics['utilization']['worked_minutes'] / 60 if metrics['utilization']['worked_minutes'] else 0,
+                'available_hours': metrics['utilization']['available_minutes'] / 60 if metrics['utilization']['available_minutes'] else 0,
+            }
+            
+            productivity_details = {
+                'projected_hours': metrics['productivity']['projected_hours'] or 0,
+                'worked_hours': metrics['productivity']['worked_hours'] or 0,
+            }
+            
+            # Store original quality rating for sorting
+            if avg_quality_rating and avg_quality_rating > max_quality_rating:
+                max_quality_rating = avg_quality_rating
+            
+            # Convert quality rating to percentage for display consistency
+            quality_percentage = (avg_quality_rating / 5 * 100) if avg_quality_rating else 0
+            
+            member_data = {
+                'team_member': member,
+                'avg_utilization': round(avg_utilization, 1),
+                'avg_productivity': round(avg_productivity, 1),
+                'avg_quality_rating': round(quality_percentage, 1),
+                'original_quality_rating': avg_quality_rating,  # Keep original for sorting
+                'utilization_details': utilization_details,
+                'productivity_details': productivity_details,
+                'quality_details': {
+                    'average_rating': avg_quality_rating,
+                    'total_assignments': metrics['quality']['total_assignments'],
+                    'rated_assignments': metrics['quality']['rated_assignments'],
+                }
+            }
+            
+            report_data.append(member_data)
+        
+        # Sort by original quality rating (descending), then by utilization
+        report_data.sort(key=lambda x: (
+            x['original_quality_rating'] or 0,  # Primary sort by quality
+            x['avg_utilization']  # Secondary sort by utilization
+        ), reverse=True)
+        
+        return report_data
+
+    @staticmethod
+    def track_project_delivery(project, delivery_date):
+        """
+        Simple method to track when a project is delivered.
+        Used by signals to create delivery records.
+        """
+        try:
+            # Create or update delivery record
+            delivery, created = ProjectDelivery.objects.get_or_create(
+                project=project,
+                defaults={
+                    'delivery_date': delivery_date,
+                    'project_incharge': project.project_incharge,
+                    'expected_completion_date': project.expected_completion_date,
+                    'actual_completion_date': delivery_date,
+                    'delivery_performance_rating': project.delivery_performance_rating
+                }
+            )
+            
+            if created:
+                logger.info(f"Created delivery record for project {project.hs_id}")
+            
+            return delivery
+            
+        except Exception as e:
+            logger.exception(f"Error tracking delivery for project {project.hs_id}: {str(e)}")
+            return None

@@ -358,6 +358,9 @@ class Project(models.Model):
         """
         # --- ADDED: Check for bulk import flag ---
         is_bulk_import = kwargs.pop('is_bulk_import', False)
+        
+        # Check if we should skip status history creation
+        skip_status_history = getattr(self, '_skip_status_history', False)
 
         is_new = self._state.adding
         status_changed = False
@@ -378,8 +381,8 @@ class Project(models.Model):
         # Save the project instance first
         super().save(*args, **kwargs)
 
-        # After saving, create the initial status history, but skip if it's a bulk import
-        if not is_bulk_import and (is_new or status_changed):
+        # After saving, create the initial status history, but skip if it's a bulk import or skip flag is set
+        if not is_bulk_import and not skip_status_history and (is_new or status_changed):
             # Get the custom status date if provided, otherwise use current datetime
             status_change_date = getattr(self, '_status_change_date', None)
             if status_change_date:

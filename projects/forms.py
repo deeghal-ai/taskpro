@@ -76,12 +76,7 @@ class ProjectCreateForm(forms.ModelForm):
     certain fields like DPM assignment and expected TAT calculation.
     """
     
-    # Add a field for status change comments that might be needed during creation
-    status_change_comment = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 3}),
-        required=False,
-        help_text="Optional comments about the initial status of this project"
-    )
+    # REMOVED: status_change_comment field - no longer needed
 
     class Meta:
         model = Project
@@ -98,7 +93,7 @@ class ProjectCreateForm(forms.ModelForm):
             'purchase_date',
             'sales_confirmation_date',
             'account_manager',
-            'current_status',
+            # REMOVED: 'current_status' - will be set automatically
         ]
         widgets = {
             'purchase_date': forms.DateInput(attrs={'type': 'date'}),
@@ -106,7 +101,7 @@ class ProjectCreateForm(forms.ModelForm):
             'project_type': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Enter project type (optional)'}),
             'product': forms.Select(attrs={'class': 'form-select'}),
             'product_subcategory': forms.Select(attrs={'class': 'form-select'}),
-            'current_status': forms.Select(attrs={'class': 'form-select'}),
+            # REMOVED: current_status widget
             'city': forms.Select(attrs={'class': 'form-select'}),
         }
         help_texts = {
@@ -132,18 +127,8 @@ class ProjectCreateForm(forms.ModelForm):
         # Add a clear empty label for the product_subcategory dropdown
         self.fields['product_subcategory'].empty_label = "-- Select Subcategory (Optional) --"
         
-        # Filter status choices to show only active status options
-        self.fields['current_status'].queryset = (
-            self.fields['current_status'].queryset.filter(is_active=True)
-            .order_by('order')
-        )
-        
-        # Set initial status if available
-        try:
-            initial_status = self.fields['current_status'].queryset.first()
-            self.fields['current_status'].initial = initial_status
-        except:
-            pass
+        # REMOVED: Filter status choices logic - no longer needed
+        # REMOVED: Set initial status logic - no longer needed
 
     def clean(self):
         """
@@ -171,7 +156,7 @@ class ProjectCreateForm(forms.ModelForm):
         cleaned_data = self.cleaned_data
         
         # Call service with form data
-        success, result = ProjectService.create_project(
+        success, result = ProjectService.create_project_with_history(
             project_data=cleaned_data,
             user=self.user
         )

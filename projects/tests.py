@@ -536,6 +536,23 @@ class ProjectServiceTests(TestCase):
             order=1
         )
         
+        # Create status options that the new service method expects
+        self.sales_confirmation_status = ProjectStatusOption.objects.create(
+            name='Sales Confirmation',
+            category_one='Awaiting Data',
+            category_two='Not Started',
+            order=2,
+            is_active=True
+        )
+        
+        self.purchase_date_status = ProjectStatusOption.objects.create(
+            name='Purchase Date',
+            category_one='Awaiting Data',  # Same as Sales Confirmation
+            category_two='Not Started',    # Same as Sales Confirmation
+            order=3,
+            is_active=True
+        )
+        
         self.project_data = {
             'opportunity_id': 'OPP001',
             'project_name': 'Test Project',
@@ -654,6 +671,134 @@ class ProjectServiceTests(TestCase):
         
         self.assertFalse(success)
         self.assertIn("already the current status", error)
+
+    def test_create_project_with_correct_history_dates(self):
+        """Test that form-created projects have correct status history dates"""
+        # Test data with specific dates
+        project_data = {
+            'opportunity_id': 'TEST001',
+            'project_name': 'Test History Dates',
+            'builder_name': 'Test Builder',
+            'city': self.city,
+            'product': self.product,
+            'quantity': 1,
+            'purchase_date': date(2024, 7, 5),
+            'sales_confirmation_date': date(2024, 7, 6),
+            'account_manager': 'Test Manager',
+        }
+        
+        # Create project
+        success, project = ProjectService.create_project_with_history(
+            project_data=project_data,
+            user=self.dpm
+        )
+        
+        self.assertTrue(success)
+        
+        # Check status histories
+        histories = project.status_history.order_by('changed_at')
+        
+        # Should have at least one history (sales confirmation)
+        self.assertGreaterEqual(histories.count(), 1)
+        
+        # Check that we get the sales confirmation status
+        sales_history = histories.filter(
+            status=self.sales_confirmation_status
+        ).first()
+        self.assertIsNotNone(sales_history, "Sales confirmation history not found")
+        
+        # The key test: status history should use business dates, not creation time
+        # We verify the history exists and uses a date-based timestamp (not current time)
+        time_diff_from_now = abs((sales_history.changed_at - timezone.now()).total_seconds())
+        self.assertGreater(time_diff_from_now, 86400)  # Should be more than 24 hours from now
+        
+        # Also verify we have the purchase history if purchase status exists
+        purchase_history = histories.filter(
+            status=self.purchase_date_status
+        ).first()
+        if purchase_history:
+            # Should also be using historical date, not current time
+            time_diff_purchase = abs((purchase_history.changed_at - timezone.now()).total_seconds())
+            self.assertGreater(time_diff_purchase, 86400)  # Should be more than 24 hours from now
+
+    def test_create_project_with_history_vs_regular_create(self):
+        """Test the difference between new method and old method"""
+        # Create project with old method (should use timezone.now())
+        old_project_data = {
+            'opportunity_id': 'OLD001',
+            'project_name': 'Old Method Project',
+            'builder_name': 'Test Builder',
+            'city': self.city,
+            'product': self.product,
+            'quantity': 1,
+            'purchase_date': date(2024, 7, 5),
+            'sales_confirmation_date': date(2024, 7, 6),
+            'expected_tat': 30,  # Add required field
+            'account_manager': 'Test Manager',
+            'current_status': self.status
+        }
+        
+        success, old_project = ProjectService.create_project(
+            project_data=old_project_data,
+            user=self.dpm
+        )
+        self.assertTrue(success)
+        
+        # Create project with new method (should use business dates)
+        new_project_data = {
+            'opportunity_id': 'NEW001',
+            'project_name': 'New Method Project',
+            'builder_name': 'Test Builder',
+            'city': self.city,
+            'product': self.product,
+            'quantity': 1,
+            'purchase_date': date(2024, 7, 5),
+            'sales_confirmation_date': date(2024, 7, 6),
+            'account_manager': 'Test Manager',
+        }
+        
+        success, new_project = ProjectService.create_project_with_history(
+            project_data=new_project_data,
+            user=self.dpm
+        )
+        self.assertTrue(success)
+        
+        # Compare history creation dates
+        old_history = old_project.status_history.first()
+        new_history = new_project.status_history.filter(
+            status=self.sales_confirmation_status
+        ).first()
+        
+        # Old method should create history with current time (close to now)
+        time_diff_old = abs((old_history.changed_at - timezone.now()).total_seconds())
+        self.assertLess(time_diff_old, 60)  # Should be within 1 minute
+        
+        # New method should create history with business date
+        self.assertEqual(new_history.changed_at.date(), date(2024, 7, 6))
+
+    def test_skip_status_history_flag(self):
+        """Test that _skip_status_history flag prevents automatic history creation"""
+        project = Project(
+            opportunity_id='SKIP001',
+            project_name='Skip History Test',
+            builder_name='Test Builder',
+            city=self.city,
+            product=self.product,
+            quantity=1,
+            purchase_date=date.today(),
+            sales_confirmation_date=date.today(),
+            expected_tat=30,  # Add required field
+            account_manager='Test Manager',
+            current_status=self.status,
+            dpm=self.dpm
+        )
+        
+        # Set the skip flag
+        project._skip_status_history = True
+        project.save()
+        
+        # Should not have any status history
+        self.assertEqual(project.status_history.count(), 0)
 
 
 class ProjectViewTests(TestCase):
