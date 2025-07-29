@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "accounts",
     "locations",
-    "projects"
+    "projects",
+    "video_production",
 ]
 
 MIDDLEWARE = [

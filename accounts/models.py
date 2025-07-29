@@ -11,6 +11,7 @@ class User(AbstractUser):
     ROLES = (
         ('DPM', 'Project Manager'),
         ('TEAM_MEMBER', 'Team Member'),
+        ('VIDEO_PM', 'Video Production Manager'),
     )
     role = models.CharField(max_length=20, choices=ROLES)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -36,8 +37,8 @@ class User(AbstractUser):
         return f"{self.username} - {self.get_role_display()}"
     
     def save(self, *args, **kwargs):
-        # If user is DPM, automatically grant staff status
-        if self.role == 'DPM':
+        # If user is DPM or VIDEO_PM, automatically grant staff status
+        if self.role in ['DPM', 'VIDEO_PM']:
             self.is_staff = True
             self.is_superuser = True
         super().save(*args, **kwargs)

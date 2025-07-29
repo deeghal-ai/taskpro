@@ -31,6 +31,8 @@ def home_redirect(request):
                 return redirect('/projects/')  # Use direct URL instead of name
             elif request.user.role == 'TEAM_MEMBER':
                 return redirect('/projects/tasks/my-assignments/')  # Direct URL
+            elif request.user.role == 'VIDEO_PM':
+                return redirect('/video-production/')  # Direct URL for video production
         return redirect('/projects/')  # Default for authenticated users
     return redirect('/accounts/login/')  # Direct URL for unauthenticated
 
@@ -39,4 +41,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('projects/', include('projects.urls')),
+    path('video-production/', include('video_production.urls')),
 ]

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0">{{ project.hs_id }} - {{ project.project_name }}</h2>
+                <div>
+                    <a href="{% url 'video_production:edit_project' project.id %}" class="btn btn-outline-primary">Edit Project</a>
+                    <a href="{% url 'video_production:project_list' %}" class="btn btn-outline-secondary ml-2">Back to Projects</a>
+                </div>
+            </div>
+
+            <!-- Project Overview -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Project Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Project ID:</strong> {{ project.hs_id }}</p>
+                                    <p><strong>Builder/Client:</strong> {{ project.builder_name }}</p>
+                                    <p><strong>City:</strong> {{ project.city.name }}</p>
+                                    <p><strong>Video Product:</strong> {{ project.video_product.name }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Production Vendor:</strong> {{ project.production_vendor }}</p>
+                                    <p><strong>Current Status:</strong> <span class="badge badge-secondary">{{ project.current_status.name }}</span></p>
+                                    <p><strong>Current Cut:</strong> 
+                                        {% if project.current_cut_number > 0 %}
+                                            Cut {{ project.current_cut_number }}
+                                        {% else %}
+                                            No cuts yet
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Expected Completion:</strong> {{ project.expected_completion_date|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="mt-3">
+                                <a href="{% url 'video_production:submit_cut' project.id %}" class="btn btn-primary">Submit Video Cut</a>
+                                {% if project.voiceover_required %}
+                                    <a href="{% url 'video_production:submit_voiceover' project.id %}" class="btn btn-warning">Submit Voiceover Script</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Purchase Date:</strong> {{ project.purchase_date|date:"M d, Y" }}</p>
+                            <p><strong>Expected Completion:</strong> {{ project.expected_completion_date|date:"M d, Y" }}</p>
+                            {% if project.actual_delivery_date %}
+                                <p><strong>Actual Delivery:</strong> {{ project.actual_delivery_date|date:"M d, Y" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Cuts -->
+            {% if cuts %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Video Cuts ({{ cuts.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Cut #</th>
+                                        <th>Status</th>
+                                        <th>Delivered</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cut in cuts %}
+                                    <tr>
+                                        <td>Cut {{ cut.cut_number }}</td>
+                                        <td><span class="badge badge-secondary">{{ cut.get_status_display }}</span></td>
+                                        <td>{{ cut.delivered_date|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if cut.status == 'DELIVERED' %}
+                                                <a href="{% url 'video_production:cut_feedback' project.id cut.cut_number %}" class="btn btn-sm btn-outline-primary">Feedback</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Voiceover Scripts -->
+            {% if voiceover_scripts %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Voiceover Scripts ({{ voiceover_scripts.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Version</th>
+                                        <th>Status</th>
+                                        <th>Shared</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for script in voiceover_scripts %}
+                                    <tr>
+                                        <td>v{{ script.script_version }}</td>
+                                        <td><span class="badge badge-secondary">{{ script.get_status_display }}</span></td>
+                                        <td>{{ script.shared_date|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if script.status == 'SHARED' %}
+                                                <a href="{% url 'video_production:approve_voiceover' project.id script.script_version %}" class="btn btn-sm btn-success">Approve</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Status History -->
+            {% if status_history %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Status Changes</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for history in status_history %}
+                            <div class="mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                <small class="text-muted">{{ history.changed_at|date:"M d, Y H:i" }}</small><br>
+                                <strong>{{ history.status.name }}</strong><br>
+                                <small>by {{ history.changed_by.get_full_name|default:history.changed_by.username }}</small>
+                                {% if history.comments %}
+                                    <br><small class="text-muted">{{ history.comments }}</small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

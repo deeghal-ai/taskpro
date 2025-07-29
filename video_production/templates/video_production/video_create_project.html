@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0">
+                    <i class="fas fa-plus-circle mr-2"></i>{{ page_title }}
+                </h2>
+                <a href="{% url 'video_production:project_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>Back to Projects
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Project Identification -->
+                            <div class="col-md-6">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-info-circle mr-2"></i>Project Information
+                                </h5>
+                                
+                                <div class="form-group">
+                                    {{ form.opportunity_id.label_tag }}
+                                    {{ form.opportunity_id }}
+                                    {% if form.opportunity_id.errors %}
+                                        <div class="text-danger small">{{ form.opportunity_id.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Unique sales opportunity identifier</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.project_name.label_tag }}
+                                    {{ form.project_name }}
+                                    {% if form.project_name.errors %}
+                                        <div class="text-danger small">{{ form.project_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.builder_name.label_tag }}
+                                    {{ form.builder_name }}
+                                    {% if form.builder_name.errors %}
+                                        <div class="text-danger small">{{ form.builder_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.city.label_tag }}
+                                    {{ form.city }}
+                                    {% if form.city.errors %}
+                                        <div class="text-danger small">{{ form.city.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Video Production Details -->
+                            <div class="col-md-6">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-video mr-2"></i>Video Production Details
+                                </h5>
+                                
+                                <div class="form-group">
+                                    {{ form.video_product.label_tag }}
+                                    {{ form.video_product }}
+                                    {% if form.video_product.errors %}
+                                        <div class="text-danger small">{{ form.video_product.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.quantity.label_tag }}
+                                    {{ form.quantity }}
+                                    {% if form.quantity.errors %}
+                                        <div class="text-danger small">{{ form.quantity.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Number of videos/deliverables</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.production_vendor.label_tag }}
+                                    {{ form.production_vendor }}
+                                    {% if form.production_vendor.errors %}
+                                        <div class="text-danger small">{{ form.production_vendor.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">External video production agency</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.shoot_location.label_tag }}
+                                    {{ form.shoot_location }}
+                                    {% if form.shoot_location.errors %}
+                                        <div class="text-danger small">{{ form.shoot_location.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Optional - where the video will be shot</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="row">
+                            <!-- Timeline & Dates -->
+                            <div class="col-md-6">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-calendar mr-2"></i>Timeline & Dates
+                                </h5>
+                                
+                                <div class="form-group">
+                                    {{ form.purchase_date.label_tag }}
+                                    {{ form.purchase_date }}
+                                    {% if form.purchase_date.errors %}
+                                        <div class="text-danger small">{{ form.purchase_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.expected_completion_date.label_tag }}
+                                    {{ form.expected_completion_date }}
+                                    {% if form.expected_completion_date.errors %}
+                                        <div class="text-danger small">{{ form.expected_completion_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.shoot_date.label_tag }}
+                                    {{ form.shoot_date }}
+                                    {% if form.shoot_date.errors %}
+                                        <div class="text-danger small">{{ form.shoot_date.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Optional - scheduled shoot date</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Video Settings -->
+                            <div class="col-md-6">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-cogs mr-2"></i>Video Settings
+                                </h5>
+                                
+                                <div class="form-group">
+                                    {{ form.video_duration_minutes.label_tag }}
+                                    {{ form.video_duration_minutes }}
+                                    {% if form.video_duration_minutes.errors %}
+                                        <div class="text-danger small">{{ form.video_duration_minutes.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Optional - expected video length in minutes</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ form.max_cuts_allowed.label_tag }}
+                                    {{ form.max_cuts_allowed }}
+                                    {% if form.max_cuts_allowed.errors %}
+                                        <div class="text-danger small">{{ form.max_cuts_allowed.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Maximum number of cut iterations allowed (1-10)</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        {{ form.voiceover_required }}
+                                        {{ form.voiceover_required.label_tag }}
+                                        {% if form.voiceover_required.errors %}
+                                            <div class="text-danger small">{{ form.voiceover_required.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <small class="form-text text-muted">Check if this video requires voiceover narration</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mt-3">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Submit Buttons -->
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-1"></i>Create Video Project
+                            </button>
+                            <a href="{% url 'video_production:project_list' %}" class="btn btn-secondary ml-2">
+                                <i class="fas fa-times mr-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

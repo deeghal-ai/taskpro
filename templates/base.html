@@ -91,6 +91,23 @@
                                 </a>
                             </li>
                         {% endif %}
+                        {% if user.role == 'VIDEO_PM' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'video_production:project_list' %}">
+                                    <i class="bi bi-camera-video"></i> Video Projects
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'video_production:create_project' %}">
+                                    <i class="bi bi-plus-circle"></i> Create Video Project
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'video_production:delivered_projects' %}">
+                                    <i class="bi bi-check-circle"></i> Delivered Projects
+                                </a>
+                            </li>
+                        {% endif %}
                     </ul>
 
                     <!-- Right-aligned user menu -->
