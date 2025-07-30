@@ -9,6 +9,7 @@ urlpatterns = [
     # Project Management URLs
     path('', views.project_list, name='project_list'),
     path('delivered/', views.delivered_projects, name='delivered_projects'),
+    path('export/', views.export_pipeline_projects, name='export_pipeline_projects'),
     path('create/', views.create_project, name='create_project'),
     path('<uuid:project_id>/', views.project_detail, name='project_detail'),
     path('<uuid:project_id>/update-status/', views.update_project_status, name='update_project_status'),
