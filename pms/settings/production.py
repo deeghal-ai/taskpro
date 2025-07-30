@@ -5,11 +5,10 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Add your PythonAnywhere domain here
 ALLOWED_HOSTS = [
-    config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
     'taskspro.in',
     'www.taskspro.in',
-    'localhost',
-    '127.0.0.1',
+    'localhost',  # For local testing only
+    '127.0.0.1',  # For local testing only
 ]
 
 # Database for production (MySQL - Free on PythonAnywhere)
@@ -29,28 +28,30 @@ DATABASES = {
     }
 }
 
-# Security settings for production - TEMPORARILY DISABLED FOR DEBUGGING
-SECURE_BROWSER_XSS_FILTER = False
-SECURE_CONTENT_TYPE_NOSNIFF = False
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_SECONDS = 0
-SECURE_REDIRECT_EXEMPT = []
-SECURE_SSL_REDIRECT = False
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Disabled
+# PRODUCTION SECURITY SETTINGS - PROPERLY ENABLED
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# CSRF settings
-CSRF_COOKIE_SECURE = False  # Disable for HTTP domains
+# CSRF settings - HTTPS only
+CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
-    'https://' + config('ALLOWED_HOST', default='deeghalbhaumik.pythonanywhere.com'),
-    'http://taskspro.in',
-    'http://www.taskspro.in',
     'https://taskspro.in',
     'https://www.taskspro.in',
 ]
 
-# Session settings
-SESSION_COOKIE_SECURE = False  # Disable for HTTP domains
+# Session settings - HTTPS only
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Additional security headers
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Email settings (with fallback to your Gmail credentials)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
