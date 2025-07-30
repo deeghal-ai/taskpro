@@ -4,32 +4,25 @@ from .models import VideoProject, VideoProjectStatusOption, VideoCut, VoiceoverS
 from locations.models import City
 
 class VideoProjectCreateForm(forms.ModelForm):
-    """Form for creating video production projects"""
+    """Form for creating video production projects - simplified to match projects form"""
     
     class Meta:
         model = VideoProject
         fields = [
             'opportunity_id', 'project_name', 'builder_name', 'city',
             'video_product', 'quantity', 'production_vendor',
-            'shoot_location', 'shoot_date', 'video_duration_minutes',
-            'purchase_date', 'expected_completion_date',
-            'voiceover_required', 'max_cuts_allowed'
+            'purchase_date', 'expected_completion_date'
         ]
         widgets = {
+            'opportunity_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter opportunity ID'}),
             'project_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter project name'}),
             'builder_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter builder/client name'}),
-            'opportunity_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter opportunity ID'}),
-            'city': forms.Select(attrs={'class': 'form-control'}),
-            'video_product': forms.Select(attrs={'class': 'form-control'}),
+            'city': forms.Select(attrs={'class': 'form-select'}),
+            'video_product': forms.Select(attrs={'class': 'form-select'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'production_vendor': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter video production agency name'}),
-            'shoot_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter shoot location (optional)'}),
-            'shoot_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'video_duration_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'Duration in minutes'}),
             'purchase_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'expected_completion_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'voiceover_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'max_cuts_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10, 'value': 7}),
         }
         
     def __init__(self, *args, **kwargs):
