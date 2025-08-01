@@ -2951,100 +2951,7 @@ class ProjectService:
             'active_assignments': active_assignments,
         }
 
-    @staticmethod
-    def get_lol_report_data(team_members, start_date, end_date):
-        """
-        Calculate LoL report metrics for selected team members.
-        Returns data formatted for the LoL report table with proper sorting.
-        Includes detailed breakdown data for tooltips.
-        """
-        report_data = []
-        max_quality_rating = 0
-        
-        # First pass: calculate metrics for each team member and find max quality rating
-        for member in team_members:
-            metrics = ReportingService.get_team_member_metrics(member, start_date, end_date)
-            
-            # Extract the metrics we need
-            avg_utilization = metrics['utilization']['score'] or 0
-            avg_productivity = metrics['productivity']['score'] or 0
-            avg_quality_rating = metrics['quality']['average_rating']
-            
-            # Get detailed breakdown for tooltips
-            utilization_details = {
-                'worked_hours': metrics['utilization']['worked_minutes'] / 60 if metrics['utilization']['worked_minutes'] else 0,
-                'available_hours': metrics['utilization']['available_minutes'] / 60 if metrics['utilization']['available_minutes'] else 0,
-            }
-            
-            productivity_details = {
-                'projected_hours': metrics['productivity']['projected_hours'] or 0,
-                'worked_hours': metrics['productivity']['worked_hours'] or 0,
-            }
-            
-            # Get individual quality ratings for this member
-            quality_ratings_list = []
-            completed_assignments = TaskAssignment.objects.filter(
-                assigned_to=member,
-                is_completed=True,
-                completion_date__date__range=[start_date, end_date],
-                quality_rating__isnull=False
-            ).values_list('quality_rating', flat=True)
-            
-            quality_ratings_list = [float(rating) for rating in completed_assignments]
-            
-            # Track max quality rating for quality score calculation
-            if avg_quality_rating is not None and avg_quality_rating > max_quality_rating:
-                max_quality_rating = avg_quality_rating
-            
-            report_data.append({
-                'team_member': member,
-                'avg_utilization': avg_utilization,
-                'avg_productivity': avg_productivity,
-                'avg_quality_rating': avg_quality_rating,
-                'utilization_details': utilization_details,
-                'productivity_details': productivity_details,
-                'quality_ratings_list': quality_ratings_list,
-            })
-        
-        # Second pass: calculate quality score, total %, and eligibility
-        for data in report_data:
-            # Calculate quality score in % with improved edge case handling
-            if max_quality_rating > 0:
-                if data['avg_quality_rating'] is not None:
-                    quality_score = (1 - (max_quality_rating - data['avg_quality_rating']) / max_quality_rating) * 100
-                else:
-                    quality_score = 0  # No rating = worst possible score
-            else:
-                # When everyone has 0 or no ratings, treat all equally
-                if data['avg_quality_rating'] is not None:
-                    quality_score = 100  # Everyone gets 100% if they have any rating when max is 0
-                else:
-                    quality_score = 0    # No rating = 0%
-            
-            # Calculate total % with weightages
-            total_percentage = (
-                (data['avg_utilization'] * 0.4) +
-                (data['avg_productivity'] * 0.3) +
-                (quality_score * 0.3)
-            )
-            
-            # Determine eligibility - all three conditions must be met
-            is_eligible = (
-                data['avg_utilization'] >= 85 and
-                data['avg_productivity'] >= 95 and
-                (data['avg_quality_rating'] is not None and data['avg_quality_rating'] >= 2.95)
-            )
-            
-            # Update data with calculated fields
-            data['quality_score'] = quality_score
-            data['total_percentage'] = total_percentage
-            data['eligibility_status'] = 'Eligible' if is_eligible else 'Not Eligible'
-            data['is_eligible'] = is_eligible
-        
-        # Sort: First by eligibility (eligible first), then by total percentage (descending)
-        report_data.sort(key=lambda x: (-x['is_eligible'], -x['total_percentage']))
-        
-        return report_data
+
 
     @staticmethod
     def track_project_delivery(project, delivery_date=None):
@@ -3319,6 +3226,8 @@ class ReportingService:
         Returns data formatted for the LoL report table with proper sorting.
         Includes detailed breakdown data for tooltips.
         """
+        from .models import TaskAssignment
+        
         report_data = []
         max_quality_rating = 0
         
@@ -3331,6 +3240,17 @@ class ReportingService:
             avg_productivity = metrics['productivity']['score'] or 0
             avg_quality_rating = metrics['quality']['average_rating']
             
+            # Get individual quality ratings for this member
+            quality_ratings_list = []
+            completed_assignments = TaskAssignment.objects.filter(
+                assigned_to=member,
+                is_completed=True,
+                completion_date__date__range=[start_date, end_date],
+                quality_rating__isnull=False
+            ).values_list('quality_rating', flat=True)
+            
+            quality_ratings_list = [float(rating) for rating in completed_assignments]
+            
             # Get detailed breakdown for tooltips
             utilization_details = {
                 'worked_hours': metrics['utilization']['worked_minutes'] / 60 if metrics['utilization']['worked_minutes'] else 0,
@@ -3342,35 +3262,59 @@ class ReportingService:
                 'worked_hours': metrics['productivity']['worked_hours'] or 0,
             }
             
-            # Store original quality rating for sorting
-            if avg_quality_rating and avg_quality_rating > max_quality_rating:
+            # Track max quality rating for quality score calculation
+            if avg_quality_rating is not None and avg_quality_rating > max_quality_rating:
                 max_quality_rating = avg_quality_rating
-            
-            # Convert quality rating to percentage for display consistency
-            quality_percentage = (avg_quality_rating / 5 * 100) if avg_quality_rating else 0
             
             member_data = {
                 'team_member': member,
-                'avg_utilization': round(avg_utilization, 1),
-                'avg_productivity': round(avg_productivity, 1),
-                'avg_quality_rating': round(quality_percentage, 1),
-                'original_quality_rating': avg_quality_rating,  # Keep original for sorting
+                'avg_utilization': avg_utilization,
+                'avg_productivity': avg_productivity,
+                'avg_quality_rating': avg_quality_rating,
                 'utilization_details': utilization_details,
                 'productivity_details': productivity_details,
-                'quality_details': {
-                    'average_rating': avg_quality_rating,
-                    'total_assignments': metrics['quality']['total_assignments'],
-                    'rated_assignments': metrics['quality']['rated_assignments'],
-                }
+                'quality_ratings_list': quality_ratings_list,
             }
             
             report_data.append(member_data)
         
-        # Sort by original quality rating (descending), then by utilization
-        report_data.sort(key=lambda x: (
-            x['original_quality_rating'] or 0,  # Primary sort by quality
-            x['avg_utilization']  # Secondary sort by utilization
-        ), reverse=True)
+        # Second pass: calculate quality score, total %, and eligibility
+        for data in report_data:
+            # Calculate quality score in % with improved edge case handling
+            if max_quality_rating > 0:
+                if data['avg_quality_rating'] is not None:
+                    quality_score = (1 - (max_quality_rating - data['avg_quality_rating']) / max_quality_rating) * 100
+                else:
+                    quality_score = 0  # No rating = worst possible score
+            else:
+                # When everyone has 0 or no ratings, treat all equally
+                if data['avg_quality_rating'] is not None:
+                    quality_score = 100  # Everyone gets 100% if they have any rating when max is 0
+                else:
+                    quality_score = 0    # No rating = 0%
+            
+            # Calculate total % with weightages
+            total_percentage = (
+                (data['avg_utilization'] * 0.4) +
+                (data['avg_productivity'] * 0.3) +
+                (quality_score * 0.3)
+            )
+            
+            # Determine eligibility - all three conditions must be met
+            is_eligible = (
+                data['avg_utilization'] >= 85 and
+                data['avg_productivity'] >= 95 and
+                (data['avg_quality_rating'] is not None and data['avg_quality_rating'] >= 2.95)
+            )
+            
+            # Update data with calculated fields that the template expects
+            data['quality_score'] = quality_score
+            data['total_percentage'] = total_percentage
+            data['eligibility_status'] = 'Eligible' if is_eligible else 'Not Eligible'
+            data['is_eligible'] = is_eligible
+        
+        # Sort: First by eligibility (eligible first), then by total percentage (descending)
+        report_data.sort(key=lambda x: (-x['is_eligible'], -x['total_percentage']))
         
         return report_data
 
