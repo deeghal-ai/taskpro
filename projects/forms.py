@@ -203,11 +203,10 @@ class ProjectStatusUpdateForm(forms.Form):
 
     def clean_status_date(self):
         """
-        Validate that the status date is not in the future.
+        Validate the status date (future dates now allowed).
         """
         status_date = self.cleaned_data.get('status_date')
-        if status_date and status_date > timezone.now().date():
-            raise forms.ValidationError("Status date cannot be in the future.")
+        # Future dates are now allowed
         return status_date
 
 
