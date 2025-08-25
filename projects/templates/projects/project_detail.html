@@ -3,6 +3,10 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <style>
     /* Consistent Design System */
     :root {
@@ -308,6 +312,66 @@
         background: white;
         border-radius: 50%;
     }
+
+    /* Select2 Custom Styling for Modal */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        min-height: 38px;
+    }
+
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .select2-container--bootstrap-5 .select2-dropdown {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        box-shadow: var(--shadow-md);
+        z-index: 1060; /* Above modal */
+    }
+
+    .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+        border: 1px solid var(--border-color);
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--highlighted {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__placeholder {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__rendered {
+        padding: 0.5rem 0.75rem;
+        line-height: 1.5;
+    }
+
+    .searchable-select + .select2-container {
+        margin-top: 0;
+    }
+
+    /* Modal-specific Select2 adjustments */
+    .modal .select2-dropdown {
+        z-index: 1070; /* Ensure dropdown appears above modal */
+    }
 </style>
 {% endblock %}
 
@@ -529,7 +593,7 @@
                             <label for="id_status" class="form-label">
                                 New Status <span class="text-danger">*</span>
                             </label>
-                            <select name="status" id="id_status" class="form-select" required>
+                            <select name="status" id="id_status" class="form-select searchable-select" required data-placeholder="Search and select status...">
                                 <option value="">Select a status</option>
                                 {% for status in status_options %}
                                     <option value="{{ status.id }}">{{ status.name }}</option>
@@ -578,6 +642,11 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 (function() {
     'use strict';
@@ -603,7 +672,19 @@
         
         setupModal() {
             // Get status options via AJAX when modal opens
-            this.modal.addEventListener('show.bs.modal', () => this.loadStatusOptions());
+            this.modal.addEventListener('show.bs.modal', () => {
+                this.loadStatusOptions();
+            });
+            
+            // Auto-focus search field when Select2 opens
+            $(document).on('select2:open', () => {
+                setTimeout(() => {
+                    const searchField = document.querySelector('.select2-dropdown:not([style*="display: none"]) .select2-search__field');
+                    if (searchField) {
+                        searchField.focus();
+                    }
+                }, 50);
+            });
         },
         
         async loadStatusOptions() {
@@ -629,12 +710,60 @@
         updateStatusDropdown(options) {
             const statusSelect = document.getElementById('id_status');
             if (statusSelect) {
+                // Destroy existing Select2 instance if it exists
+                if ($(statusSelect).hasClass('select2-hidden-accessible')) {
+                    $(statusSelect).select2('destroy');
+                }
+                
                 statusSelect.innerHTML = '<option value="">Select a status</option>';
                 options.forEach(option => {
                     const optionEl = document.createElement('option');
                     optionEl.value = option.id;
                     optionEl.textContent = option.name;
                     statusSelect.appendChild(optionEl);
+                });
+                
+                // Reinitialize Select2 after updating options
+                this.initializeSelect2();
+            }
+        },
+        
+        initializeSelect2() {
+            const statusSelect = $('#id_status');
+            if (statusSelect.length && !statusSelect.hasClass('select2-hidden-accessible')) {
+                const select2Instance = statusSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Search and select status...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('#statusUpdateModal'),
+                    minimumResultsForSearch: 0, // Always show search box
+                    selectOnClose: false,
+                    escapeMarkup: function(markup) {
+                        return markup; // Don't escape HTML
+                    },
+                    templateResult: function(data) {
+                        if (data.loading) {
+                            return data.text;
+                        }
+                        
+                        // Enhanced display with search highlighting
+                        if (data.element && data.element.text) {
+                            const text = data.element.text;
+                            const searchTerm = $('.select2-search__field').val();
+                            
+                            if (searchTerm && searchTerm.length > 0) {
+                                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                                const highlightedText = text.replace(regex, '<mark class="bg-warning">$1</mark>');
+                                return $('<span>').html(highlightedText);
+                            }
+                        }
+                        
+                        return data.text;
+                    },
+                    templateSelection: function(data) {
+                        return data.text;
+                    }
                 });
             }
         },
