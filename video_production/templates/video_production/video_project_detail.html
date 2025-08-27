@@ -316,14 +316,6 @@
                     <dt>Expected TAT</dt>
                     <dd>{{ project.expected_tat }} days</dd>
                     
-                    <dt>Expected Completion</dt>
-                    <dd>
-                        {% if project.expected_completion_date %}
-                            <span class="fw-semibold">{{ project.expected_completion_date|date:"M d, Y" }}</span>
-                        {% else %}
-                            <span class="text-muted">Not set</span>
-                        {% endif %}
-                    </dd>
                 </dl>
             </div>
         </div>

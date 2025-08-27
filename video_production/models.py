@@ -181,22 +181,7 @@ class VideoProject(models.Model):
 
     # Project management fields
     # Note: Video projects don't use project_incharge field - video_pm handles project management
-    expected_completion_date = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Expected date of video project completion"
-    )
-    delivery_performance_rating = models.DecimalField(
-        max_digits=2,
-        decimal_places=1,
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(5)
-        ],
-        help_text="Delivery performance rating (1-5)"
-    )
+    # Note: Video projects don't use expected_completion_date or delivery_performance_rating
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)

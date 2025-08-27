@@ -20,7 +20,7 @@ class VideoProjectCreateForm(forms.ModelForm):
             'opportunity_id', 'project_type', 'project_name', 'builder_name', 
             'city', 'product', 'package_id', 'quantity',
             'purchase_date', 'sales_confirmation_date', 
-            'expected_completion_date', 'account_manager'
+            'account_manager'
         ]
         widgets = {
             'opportunity_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter opportunity ID'}),
@@ -33,7 +33,6 @@ class VideoProjectCreateForm(forms.ModelForm):
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'purchase_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'sales_confirmation_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'expected_completion_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'account_manager': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter account manager name'}),
         }
         
@@ -64,13 +63,7 @@ class VideoProjectCreateForm(forms.ModelForm):
     def clean(self):
         """Validate form data"""
         cleaned_data = super().clean()
-        purchase_date = cleaned_data.get('purchase_date')
-        expected_completion_date = cleaned_data.get('expected_completion_date')
-        
-        if purchase_date and expected_completion_date:
-            if expected_completion_date <= purchase_date:
-                raise ValidationError("Expected completion date must be after purchase date.")
-        
+        # No additional validation needed for video projects
         return cleaned_data
 
 class VideoProjectEditForm(forms.ModelForm):
@@ -82,7 +75,7 @@ class VideoProjectEditForm(forms.ModelForm):
         model = VideoProject
         fields = [
             'project_name', 'builder_name', 'city', 'product',
-            'package_id', 'quantity', 'expected_tat', 'expected_completion_date',
+            'package_id', 'quantity', 'expected_tat',
             'account_manager'
         ]
         widgets = {
@@ -93,7 +86,6 @@ class VideoProjectEditForm(forms.ModelForm):
             'package_id': forms.TextInput(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'expected_tat': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
-            'expected_completion_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'account_manager': forms.TextInput(attrs={'class': 'form-control'}),
         }
     

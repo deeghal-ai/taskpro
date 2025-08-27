@@ -129,15 +129,13 @@ class VideoProjectAdmin(admin.ModelAdmin):
     list_display = (
         'hs_id',
         'project_name',
-        'opportunity_id',
-        'project_type',
         'builder_name',
         'city',
         'product',
+        'quantity',
         'get_status_display',
         'video_pm',
         'expected_tat',
-        'expected_completion_date',
         'purchase_date',
         'view_details_link',
     )
@@ -173,29 +171,19 @@ class VideoProjectAdmin(admin.ModelAdmin):
                 'project_type',
                 'project_name',
                 'builder_name',
-                'city'
-            )
-        }),
-        ('Product Information', {
-            'fields': (
+                'city',
                 'product',
                 'package_id',
-                'quantity'
-            )
-        }),
-        ('Important Dates', {
-            'fields': (
+                'quantity',
                 'purchase_date',
                 'sales_confirmation_date',
                 'expected_tat',
-                'expected_completion_date',
             )
         }),
         ('Team Assignment', {
             'fields': (
                 'account_manager',
                 'video_pm',
-                'delivery_performance_rating',
             )
         }),
         ('Status Information', {
@@ -287,15 +275,12 @@ class VideoProjectDeliveryAdmin(admin.ModelAdmin):
     list_display = (
         'hs_id',
         'project_name',
- 
         'delivery_date',
-        'delivery_performance_rating',
         'days_variance',
         'actual_completion_date'
     )
     list_filter = (
         'delivery_date',
-        'delivery_performance_rating',
     )
     search_fields = (
         'hs_id',

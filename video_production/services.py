@@ -69,8 +69,7 @@ class VideoProjectService:
                     account_manager=project_data['account_manager'],
                     current_status=initial_status,
                     video_pm=user,
-                    project_type=project_data.get('project_type') or None,
-                    expected_completion_date=project_data.get('expected_completion_date')
+                    project_type=project_data.get('project_type') or None
                 )
                 
                 # Set expected TAT from the product if not specified
@@ -356,34 +355,16 @@ class VideoProjectService:
             # Get current date as delivery date
             delivery_date = timezone.now().date()
             
-            # Calculate delivery performance
-            expected_date = project.expected_completion_date
-            if expected_date:
-                days_variance = (delivery_date - expected_date).days
+            # Video projects don't track expected completion dates
+            days_variance = None
                 
-                if days_variance <= 0:
-                    performance_rating = 5.0  # On time or early
-                elif days_variance <= 3:
-                    performance_rating = 4.0  # Slightly delayed
-                elif days_variance <= 7:
-                    performance_rating = 3.0  # Moderately delayed
-                elif days_variance <= 14:
-                    performance_rating = 2.0  # Significantly delayed
-                else:
-                    performance_rating = 1.0  # Very delayed
-            else:
-                days_variance = 0
-                performance_rating = 3.0  # Neutral rating if no expected date
-            
             # Create delivery record
             delivery, created = VideoProjectDelivery.objects.get_or_create(
                 project=project,
                 delivery_date=delivery_date,
                 defaults={
-                    'delivery_performance_rating': performance_rating,
                     'project_name': project.project_name,
                     'hs_id': project.hs_id,
-                    'expected_completion_date': expected_date,
                     'actual_completion_date': delivery_date,
                     'days_variance_snapshot': days_variance
                 }
