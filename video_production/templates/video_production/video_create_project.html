@@ -354,10 +354,10 @@
                     </div>
                     <div class="card-body">
                         {% for field in form %}
-                            {% if field.name in 'opportunity_id,project_name,builder_name,city' %}
+                            {% if field.name in 'opportunity_id,project_type,project_name,builder_name,city' %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">
-                                    <i class="bi {% if field.name == 'opportunity_id' %}bi-hash{% elif field.name == 'project_name' %}bi-camera-video{% elif field.name == 'builder_name' %}bi-building{% elif field.name == 'city' %}bi-geo-alt{% endif %} field-icon"></i>
+                                    <i class="bi {% if field.name == 'opportunity_id' %}bi-hash{% elif field.name == 'project_type' %}bi-tag{% elif field.name == 'project_name' %}bi-camera-video{% elif field.name == 'builder_name' %}bi-building{% elif field.name == 'city' %}bi-geo-alt{% endif %} field-icon"></i>
                                     {{ field.label }}
                                     {% if field.field.required %}
                                         <span class="text-danger">*</span>
@@ -391,10 +391,10 @@
                     </div>
                     <div class="card-body">
                         {% for field in form %}
-                            {% if field.name in 'video_product,quantity,production_vendor' %}
+                            {% if field.name in 'product,package_id,quantity' %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">
-                                    <i class="bi {% if field.name == 'video_product' %}bi-play-btn{% elif field.name == 'quantity' %}bi-123{% elif field.name == 'production_vendor' %}bi-building{% endif %} field-icon"></i>
+                                    <i class="bi {% if field.name == 'product' %}bi-play-btn{% elif field.name == 'package_id' %}bi-upc{% elif field.name == 'quantity' %}bi-123{% endif %} field-icon"></i>
                                     {{ field.label }}
                                     {% if field.field.required %}
                                         <span class="text-danger">*</span>
@@ -428,10 +428,10 @@
                     </div>
                     <div class="card-body">
                         {% for field in form %}
-                            {% if field.name in 'purchase_date,expected_completion_date' %}
+                            {% if field.name in 'purchase_date,sales_confirmation_date' %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">
-                                    <i class="bi {% if field.name == 'purchase_date' %}bi-cart-check{% else %}bi-calendar-check{% endif %} field-icon"></i>
+                                    <i class="bi {% if field.name == 'purchase_date' %}bi-cart-check{% else %}bi-check-circle{% endif %} field-icon"></i>
                                     {{ field.label }}
                                     {% if field.field.required %}
                                         <span class="text-danger">*</span>
@@ -464,6 +464,31 @@
                         </h5>
                     </div>
                     <div class="card-body">
+                        {% for field in form %}
+                            {% if field.name in 'account_manager' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    <i class="bi {% if field.name == 'account_manager' %}bi-person-badge{% endif %} field-icon"></i>
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        
                         <!-- Video PM Assignment (Auto) -->
                         <div class="mb-3">
                             <label class="form-label">
@@ -484,7 +509,7 @@
                             </label>
                             <div class="form-control-plaintext">
                                 <span class="badge bg-success">Sales Confirmation</span>
-                                <small class="text-muted ms-2">(Automatically set)</small>
+                                <small class="text-muted ms-2">(Automatically set based on business dates)</small>
                             </div>
                         </div>
                     </div>
@@ -601,30 +626,30 @@
     // Date Validation
     const DateValidator = {
         purchaseDateInput: null,
-        expectedDateInput: null,
+        salesDateInput: null,
         
         init() {
             this.purchaseDateInput = document.querySelector('[name="purchase_date"]');
-            this.expectedDateInput = document.querySelector('[name="expected_completion_date"]');
+            this.salesDateInput = document.querySelector('[name="sales_confirmation_date"]');
             
-            if (this.purchaseDateInput && this.expectedDateInput) {
+            if (this.purchaseDateInput && this.salesDateInput) {
                 this.attachEventListeners();
             }
         },
         
         attachEventListeners() {
-            // Validate that purchase date is not after expected completion date
+            // Validate that purchase date is not after sales confirmation date
             this.purchaseDateInput.addEventListener('change', () => this.validateDates());
-            this.expectedDateInput.addEventListener('change', () => this.validateDates());
+            this.salesDateInput.addEventListener('change', () => this.validateDates());
         },
         
         validateDates() {
             const purchaseDate = new Date(this.purchaseDateInput.value);
-            const expectedDate = new Date(this.expectedDateInput.value);
+            const salesDate = new Date(this.salesDateInput.value);
             
-            if (this.purchaseDateInput.value && this.expectedDateInput.value) {
-                if (purchaseDate > expectedDate) {
-                    this.purchaseDateInput.setCustomValidity('Purchase date cannot be after expected completion date');
+            if (this.purchaseDateInput.value && this.salesDateInput.value) {
+                if (purchaseDate > salesDate) {
+                    this.purchaseDateInput.setCustomValidity('Purchase date cannot be after sales confirmation date');
                     this.purchaseDateInput.classList.add('is-invalid');
                     
                     // Add custom error message
@@ -634,7 +659,7 @@
                         feedback.className = 'invalid-feedback d-block';
                         this.purchaseDateInput.parentElement.appendChild(feedback);
                     }
-                    feedback.textContent = 'Purchase date cannot be after expected completion date';
+                    feedback.textContent = 'Purchase date cannot be after sales confirmation date';
                 } else {
                     this.purchaseDateInput.setCustomValidity('');
                     this.purchaseDateInput.classList.remove('is-invalid');

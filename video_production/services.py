@@ -1,235 +1,326 @@
+"""
+Video Production Service Layer - mirrors projects/services.py
+Handles business logic for video production management.
+"""
+
+import logging
 from django.db import transaction
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
-from .models import VideoProject, VideoProjectStatusOption, VideoProjectStatusHistory, VideoCut, VoiceoverScript, VideoProjectDelivery, VideoProduct
+from django.db.models import Sum, Q, Subquery, OuterRef, F, Prefetch
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+from datetime import datetime, date, timedelta
+import re
+
+from .models import (
+    VideoProject, VideoProjectStatusOption, VideoProjectStatusHistory, 
+    VideoProjectDelivery, VideoProduct
+)
 from locations.models import City
-from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 class VideoProjectService:
+    """
+    Service class for video project operations - mirrors ProjectService from projects app.
+    Handles CRUD operations, status management, and business logic.
+    """
+    
     @staticmethod
     def create_video_project(project_data, user):
-        """Create new video production project with validation"""
+        """
+        Creates a new video project with proper validation and business logic.
+        Works with data from any source (forms, API, CLI).
+        Mirrors projects service implementation exactly.
+        
+        Args:
+            project_data: Dictionary with project data
+            user: User creating the project (must be VIDEO_PM)
+        
+        Returns:
+            tuple: (success, result)
+                - If successful: (True, project)
+                - If failed: (False, error_message)
+        """
         with transaction.atomic():
-            # Generate unique HS_ID with VP_ prefix for Video Production
-            year_month = datetime.now().strftime('%Y%m')
-            last_project = VideoProject.objects.filter(
-                hs_id__startswith=f'VP_{year_month}_'
-            ).order_by('-hs_id').first()
-            
-            if last_project:
-                # Extract the sequence number and increment
-                last_number = int(last_project.hs_id.split('_')[2])
-                new_number = last_number + 1
-            else:
-                new_number = 1
+            try:
+                # Get initial status
+                initial_status = VideoProjectStatusOption.objects.filter(
+                    is_active=True
+                ).order_by('order').first()
                 
-            hs_id = f'VP_{year_month}_{new_number:04d}'
+                if not initial_status:
+                    return False, "No active status options found. Please create status options first."
+                
+                # Create project object from validated data  
+                project = VideoProject(
+                    opportunity_id=project_data['opportunity_id'],
+                    project_name=project_data['project_name'],
+                    builder_name=project_data['builder_name'],
+                    city=project_data['city'],
+                    product=project_data['product'],
+                    package_id=project_data.get('package_id'),
+                    quantity=project_data['quantity'],
+                    purchase_date=project_data['purchase_date'],
+                    sales_confirmation_date=project_data['sales_confirmation_date'],
+                    account_manager=project_data['account_manager'],
+                    current_status=initial_status,
+                    video_pm=user,
+                    project_type=project_data.get('project_type') or None,
+                    expected_completion_date=project_data.get('expected_completion_date')
+                )
+                
+                # Set expected TAT from the product if not specified
+                if not project_data.get('expected_tat'):
+                    project.expected_tat = project.product.expected_tat
+                else:
+                    project.expected_tat = project_data['expected_tat']
+                
+                # Generate HS_ID explicitly before saving
+                project.hs_id = VideoProject.generate_hs_id()
+                
+                # Set user and skip automatic status history creation since we'll create specific ones
+                project._current_user = user
+                project._skip_status_history = True  # Skip automatic creation
+                
+                # Validate and save
+                project.full_clean()
+                project.save()
+                
+                # Create specific status histories to match projects app behavior
+                from datetime import time
+                
+                # 1. Create purchase date status history (if purchase_date_status exists)
+                try:
+                    purchase_date_status = VideoProjectStatusOption.objects.filter(
+                        name__icontains='Purchase Date',
+                        is_active=True
+                    ).first()
+                    
+                    if purchase_date_status and project.purchase_date:
+                        purchase_datetime = timezone.make_aware(
+                            timezone.datetime.combine(project.purchase_date, time(12, 0))
+                        )
+                        VideoProjectStatusHistory.objects.create(
+                            project=project,
+                            status=purchase_date_status,
+                            changed_by=user,
+                            changed_at=purchase_datetime,
+                            comments='Video Project Created',
+                            category_one_snapshot=purchase_date_status.category_one,
+                            category_two_snapshot=purchase_date_status.category_two
+                        )
+                except Exception as e:
+                    logger.warning(f"Could not create purchase date status history: {e}")
+                
+                # 2. Create sales confirmation status history  
+                try:
+                    sales_datetime = timezone.make_aware(
+                        timezone.datetime.combine(project.sales_confirmation_date, time(12, 0))
+                    )
+                    VideoProjectStatusHistory.objects.create(
+                        project=project,
+                        status=project.current_status,
+                        changed_by=user,
+                        changed_at=sales_datetime,
+                        comments=project_data.get('status_change_comment', 'Video Project Created'),
+                        category_one_snapshot=project.current_status.category_one,
+                        category_two_snapshot=project.current_status.category_two
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not create sales confirmation status history: {e}")
+                
+                logger.info(f"Created new video project: {project.id} - {project.project_name} by {user.username}")
+                return True, project
             
-            # Get the default status (first status in order)
-            initial_status = VideoProjectStatusOption.objects.filter(
-                is_active=True
-            ).order_by('order').first()
-            
-            if not initial_status:
-                raise ValueError("No active video project status options found. Please create status options first.")
-            
-            # Create the video project
-            video_project = VideoProject.objects.create(
-                hs_id=hs_id,
-                opportunity_id=project_data['opportunity_id'],
-                project_name=project_data['project_name'],
-                builder_name=project_data['builder_name'],
-                city=project_data['city'],
-                video_product=project_data['video_product'],
-                quantity=project_data.get('quantity', 1),
-                production_vendor=project_data['production_vendor'],
-                shoot_location=project_data.get('shoot_location', ''),
-                shoot_date=project_data.get('shoot_date'),
-                video_duration_minutes=project_data.get('video_duration_minutes'),
-                purchase_date=project_data['purchase_date'],
-                expected_completion_date=project_data['expected_completion_date'],
-                voiceover_required=project_data.get('voiceover_required', True),
-                max_cuts_allowed=project_data.get('max_cuts_allowed', 7),
-                video_pm=user,
-                current_status=initial_status
-            )
-            
-            # Create initial status history
-            VideoProjectStatusHistory.objects.create(
-                project=video_project,
-                status=initial_status,
-                changed_by=user,
-                comments=f"Project created by {user.get_full_name() or user.username}"
-            )
-            
-            return video_project
+            except ValidationError as e:
+                logger.warning(f"Validation error in create_video_project: {str(e)}")
+                # Return error messages as a dictionary for field-specific display
+                if hasattr(e, 'message_dict'):
+                    return False, e.message_dict
+                return False, str(e)
+            except Exception as e:
+                logger.exception(f"Unexpected error in create_video_project: {str(e)}")
+                return False, f"An error occurred: {str(e)}"
     
     @staticmethod
     def get_video_project(project_id):
-        """Get single video project"""
-        return get_object_or_404(VideoProject, id=project_id)
+        """
+        Retrieves a video project by its ID.
+        
+        Args:
+            project_id: UUID of the project
+        
+        Returns:
+            tuple: (success, result)
+                - If successful: (True, project_object)
+                - If failed: (False, error_message)
+        """
+        try:
+            project = get_object_or_404(
+                VideoProject.objects.select_related(
+                    'product', 'city', 'video_pm', 'current_status'
+                ),
+                id=project_id
+            )
+            return True, project
+        except Exception as e:
+            logger.warning(f"Video project not found: {project_id} - {str(e)}")
+            return False, "Video project not found"
     
     @staticmethod
     def get_video_project_details(project_id):
-        """Get project with full details including cuts and voiceover history"""
-        project = get_object_or_404(
-            VideoProject.objects.select_related(
-                'video_product', 'city', 'video_pm', 'current_status'
-            ).prefetch_related(
-                'cuts',
-                'voiceover_scripts',
-                'status_history__status',
-                'status_history__changed_by'
-            ),
-            id=project_id
-        )
+        """
+        Get comprehensive video project details - mirrors projects service.
+        """
+        success, project = VideoProjectService.get_video_project(project_id)
+        if not success:
+            return False, project  # project contains error message
         
-        return {
+        return True, {
             'project': project,
-            'cuts': project.cuts.all(),
-            'voiceover_scripts': project.voiceover_scripts.all(),
-            'status_history': project.status_history.all()[:10],  # Last 10 status changes
-            'delivery': getattr(project, 'delivery', None)
+            'status_history': project.status_history.select_related(
+                'status', 'changed_by'
+            ).order_by('-changed_at')[:10],
+            'deliveries': project.deliveries.all()
         }
     
     @staticmethod
-    def update_video_project_status(project_id, status_id, comments, user):
-        """Update project status and create history record"""
-        with transaction.atomic():
-            project = get_object_or_404(VideoProject, id=project_id)
-            new_status = get_object_or_404(VideoProjectStatusOption, id=status_id)
-            
-            # Update project status
-            old_status = project.current_status
-            project.current_status = new_status
-            project.save()
-            
-            # Create status history record
-            VideoProjectStatusHistory.objects.create(
-                project=project,
-                status=new_status,
-                changed_by=user,
-                comments=comments or f"Status changed from {old_status.name} to {new_status.name}"
-            )
-            
-            return project
-    
-    @staticmethod
-    def submit_video_cut(project_id, cut_number, user):
-        """Submit a video cut for client review"""
-        with transaction.atomic():
-            project = get_object_or_404(VideoProject, id=project_id)
-            
-            # Update project's current cut number
-            if cut_number > project.current_cut_number:
-                project.current_cut_number = cut_number
-                project.save()
-            
-            # Create or update the cut record
-            cut, created = VideoCut.objects.get_or_create(
-                project=project,
-                cut_number=cut_number,
-                defaults={
-                    'status': 'DELIVERED'
-                }
-            )
-            
-            if not created:
-                cut.status = 'DELIVERED'
-                cut.delivered_date = timezone.now()
-                cut.save()
-            
-            return cut
-    
-    @staticmethod
-    def request_cut_rework(project_id, cut_number, feedback, user):
-        """Request rework on a video cut"""
-        with transaction.atomic():
-            project = get_object_or_404(VideoProject, id=project_id)
-            cut = get_object_or_404(VideoCut, project=project, cut_number=cut_number)
-            
-            cut.status = 'REWORK_REQUESTED'
-            cut.rework_required = True
-            cut.client_feedback = feedback
-            cut.feedback_received_date = timezone.now()
-            cut.save()
-            
-            return cut
-    
-    @staticmethod
-    def submit_voiceover_script(project_id, script_content, user):
-        """Submit voiceover script for approval"""
-        with transaction.atomic():
-            project = get_object_or_404(VideoProject, id=project_id)
-            
-            # Get the next script version number
-            last_script = VoiceoverScript.objects.filter(project=project).order_by('-script_version').first()
-            next_version = (last_script.script_version + 1) if last_script else 1
-            
-            # Create new voiceover script
-            script = VoiceoverScript.objects.create(
-                project=project,
-                script_version=next_version,
-                script_content=script_content,
-                status='SHARED'
-            )
-            
-            # Update project voiceover status
-            project.voiceover_status = 'SCRIPT_SHARED'
-            project.save()
-            
-            return script
-    
-    @staticmethod
-    def approve_voiceover_script(project_id, script_version, user):
-        """Approve voiceover script"""
-        with transaction.atomic():
-            project = get_object_or_404(VideoProject, id=project_id)
-            script = get_object_or_404(VoiceoverScript, project=project, script_version=script_version)
-            
-            script.status = 'APPROVED'
-            script.approved_date = timezone.now()
-            script.save()
-            
-            # Update project voiceover status
-            project.voiceover_status = 'SCRIPT_APPROVED'
-            project.save()
-            
-            return script
-    
-    @staticmethod
-    def get_video_project_list(video_pm, filters=None):
-        """Get filtered list of projects for video PM"""
-        queryset = VideoProject.objects.select_related(
-            'video_product', 'city', 'current_status'
-        ).filter(video_pm=video_pm)
+    @transaction.atomic
+    def update_project_status(project_id, status_id, comments, user):
+        """
+        Update project status and create audit trail - mirrors projects service.
+        """
+        project = get_object_or_404(VideoProject, id=project_id)
+        new_status = get_object_or_404(VideoProjectStatusOption, id=status_id)
         
-        if filters:
+        if project.current_status == new_status:
+            return project  # No change needed
+        
+        old_status = project.current_status
+        project.current_status = new_status
+        
+        # Set user and comment for the model's save method to use
+        project._current_user = user
+        project._status_change_comment = comments or ""
+        
+        # Save project - this will create the status history through the model's save method
+        project.save()
+        
+        return project
+    
+    @staticmethod
+    def get_video_project_list(user, filters=None, project_type='pipeline'):
+        """
+        Gets a filtered list of video projects for display.
+        Works with data from VideoProjectFilterForm.
+        Mirrors projects app logic exactly for delivered/pipeline functionality.
+        
+        Args:
+            user: User making the request (must be VIDEO_PM)
+            filters: Dictionary of filter parameters  
+            project_type: 'pipeline' (default), 'delivered', or 'all'
+        
+        Returns:
+            tuple: (success, queryset)
+        """
+        try:
+            # Base queryset - get all video projects with related data
+            queryset = VideoProject.objects.select_related(
+                'product',
+                'city', 
+                'video_pm',
+                'current_status'
+            ).order_by('-created_at')
+            
+            # Define the statuses that are considered 'delivered' based on category_two field
+            delivered_status_query = Q(category_two__iexact='Final Delivery')
+            
+            # Apply project type filter
+            if project_type == 'pipeline':
+                # Get all status IDs that indicate a "delivered" state
+                delivered_statuses = VideoProjectStatusOption.objects.filter(
+                    delivered_status_query
+                ).values_list('id', flat=True)
+                
+                # Exclude these projects from the pipeline
+                if delivered_statuses:
+                    queryset = queryset.exclude(current_status_id__in=delivered_statuses)
+                    
+            elif project_type == 'delivered':
+                # Get only projects with a "delivered" status
+                delivered_statuses = VideoProjectStatusOption.objects.filter(
+                    delivered_status_query
+                ).values_list('id', flat=True)
+                
+                if delivered_statuses:
+                    queryset = queryset.filter(current_status_id__in=delivered_statuses)
+                else:
+                    # No such statuses defined, return empty queryset
+                    queryset = queryset.none()
+            
+            # 'all' type doesn't filter by status - shows everything
+            
+            if not filters:
+                return True, queryset
+                
+            # Apply filters
+            if filters.get('search'):
+                search_query = filters['search']
+                queryset = queryset.filter(
+                    Q(project_name__icontains=search_query) |
+                    Q(opportunity_id__icontains=search_query) |
+                    Q(builder_name__icontains=search_query)
+                )
+            
             if filters.get('status'):
                 queryset = queryset.filter(current_status=filters['status'])
             
-            if filters.get('vendor'):
-                queryset = queryset.filter(
-                    production_vendor__icontains=filters['vendor']
-                )
+            if filters.get('product'):
+                queryset = queryset.filter(product=filters['product'])
+            
+            if filters.get('region'):
+                queryset = queryset.filter(city__region=filters['region'])
             
             if filters.get('city'):
                 queryset = queryset.filter(city=filters['city'])
             
-            if filters.get('video_product'):
-                queryset = queryset.filter(video_product=filters['video_product'])
+            if filters.get('video_pm'):
+                queryset = queryset.filter(video_pm=filters['video_pm'])
             
-            if filters.get('search'):
-                search_term = filters['search']
-                queryset = queryset.filter(
-                    Q(project_name__icontains=search_term) |
-                    Q(builder_name__icontains=search_term) |
-                    Q(hs_id__icontains=search_term) |
-                    Q(opportunity_id__icontains=search_term)
-                )
-        
-        return queryset.order_by('-created_at')
+            # Apply date range filters 
+            if filters.get('date_from') or filters.get('date_to'):
+                if project_type == 'delivered':
+                    # For delivered projects, filter by delivery date (status history with Final Delivery)
+                    delivery_history_subquery = VideoProjectStatusHistory.objects.filter(
+                        project=OuterRef('pk'),
+                        status__category_two__iexact='Final Delivery'
+                    ).order_by('changed_at').values('changed_at')[:1]
+                    
+                    queryset = queryset.annotate(
+                        delivery_date_annotated=Subquery(delivery_history_subquery)
+                    )
+                    
+                    if filters.get('date_from'):
+                        queryset = queryset.filter(delivery_date_annotated__date__gte=filters['date_from'])
+                    if filters.get('date_to'):
+                        queryset = queryset.filter(delivery_date_annotated__date__lte=filters['date_to'])
+                        
+                else:
+                    # For pipeline projects, filter by latest_status_date
+                    if filters.get('date_from'):
+                        queryset = queryset.filter(latest_status_date__date__gte=filters['date_from'])
+                    if filters.get('date_to'):
+                        queryset = queryset.filter(latest_status_date__date__lte=filters['date_to'])
+            
+            return True, queryset
+            
+        except Exception as e:
+            logger.exception(f"Error in get_video_project_list: {str(e)}")
+            return False, f"An error occurred: {str(e)}"
     
     @staticmethod
     def get_video_filter_options():
@@ -237,38 +328,24 @@ class VideoProjectService:
         return {
             'statuses': VideoProjectStatusOption.objects.filter(is_active=True).order_by('order'),
             'cities': City.objects.all().order_by('name'),
-            'video_products': VideoProduct.objects.filter(is_active=True).order_by('name'),
-            'vendors': VideoProject.objects.values_list('production_vendor', flat=True).distinct()
+            'products': VideoProduct.objects.filter(is_active=True).order_by('name')
         }
     
     @staticmethod
     def get_pipeline_projects(video_pm):
-        """Get active/pipeline video projects (not completed)"""
-        completed_statuses = VideoProjectStatusOption.objects.filter(
-            category='COMPLETED',
-            is_active=True
-        )
-        
-        return VideoProject.objects.select_related(
-            'video_product', 'city', 'current_status'
-        ).filter(video_pm=video_pm).exclude(
-            current_status__in=completed_statuses
-        ).order_by('-created_at')
+        """Get active/pipeline video projects (not delivered) - mirrors projects app logic"""
+        success, projects = VideoProjectService.get_video_project_list(video_pm, project_type='pipeline')
+        if success:
+            return projects.filter(video_pm=video_pm)
+        return VideoProject.objects.none()
     
     @staticmethod
     def get_delivered_projects(video_pm):
-        """Get delivered/completed video projects"""
-        completed_statuses = VideoProjectStatusOption.objects.filter(
-            category='COMPLETED',
-            is_active=True
-        )
-        
-        return VideoProject.objects.select_related(
-            'video_product', 'city', 'current_status'
-        ).filter(
-            video_pm=video_pm,
-            current_status__in=completed_statuses
-        ).order_by('-actual_delivery_date', '-created_at')
+        """Get delivered video projects - mirrors projects app logic"""
+        success, projects = VideoProjectService.get_video_project_list(video_pm, project_type='delivered')
+        if success:
+            return projects.filter(video_pm=video_pm)
+        return VideoProject.objects.none()
     
     @staticmethod
     def track_video_project_delivery(project_id):
@@ -276,44 +353,40 @@ class VideoProjectService:
         with transaction.atomic():
             project = get_object_or_404(VideoProject, id=project_id)
             
-            if not project.actual_delivery_date:
-                project.actual_delivery_date = timezone.now().date()
-                project.save()
+            # Get current date as delivery date
+            delivery_date = timezone.now().date()
             
             # Calculate delivery performance
             expected_date = project.expected_completion_date
-            actual_date = project.actual_delivery_date
-            days_variance = (actual_date - expected_date).days
-            
-            if days_variance > 0:
-                rating = 'DELAYED'
-            elif days_variance < 0:
-                rating = 'EARLY'
+            if expected_date:
+                days_variance = (delivery_date - expected_date).days
+                
+                if days_variance <= 0:
+                    performance_rating = 5.0  # On time or early
+                elif days_variance <= 3:
+                    performance_rating = 4.0  # Slightly delayed
+                elif days_variance <= 7:
+                    performance_rating = 3.0  # Moderately delayed
+                elif days_variance <= 14:
+                    performance_rating = 2.0  # Significantly delayed
+                else:
+                    performance_rating = 1.0  # Very delayed
             else:
-                rating = 'ON_TIME'
+                days_variance = 0
+                performance_rating = 3.0  # Neutral rating if no expected date
             
-            # Count total cuts and voiceover iterations
-            total_cuts = project.cuts.count()
-            voiceover_iterations = project.voiceover_scripts.count()
-            
-            # Create or update delivery record
+            # Create delivery record
             delivery, created = VideoProjectDelivery.objects.get_or_create(
                 project=project,
+                delivery_date=delivery_date,
                 defaults={
-                    'delivery_performance_rating': rating,
-                    'delivery_date': actual_date,
-                    'days_variance': days_variance,
-                    'total_cuts_delivered': total_cuts,
-                    'voiceover_iterations': voiceover_iterations
+                    'delivery_performance_rating': performance_rating,
+                    'project_name': project.project_name,
+                    'hs_id': project.hs_id,
+                    'expected_completion_date': expected_date,
+                    'actual_completion_date': delivery_date,
+                    'days_variance_snapshot': days_variance
                 }
             )
-            
-            if not created:
-                delivery.delivery_performance_rating = rating
-                delivery.delivery_date = actual_date
-                delivery.days_variance = days_variance
-                delivery.total_cuts_delivered = total_cuts
-                delivery.voiceover_iterations = voiceover_iterations
-                delivery.save()
             
             return delivery 

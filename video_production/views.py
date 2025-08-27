@@ -1,17 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
-from django.core.exceptions import PermissionDenied
-from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db import IntegrityError
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_http_methods
+from django.db import transaction
+# Export functionality imports
+import csv
+from openpyxl import Workbook
+from datetime import date, datetime
 from django.db.models import Q
-from .models import VideoProject
+from .models import VideoProject, VideoProjectStatusOption, VideoProduct
 from .services import VideoProjectService
 from .forms import (
-    VideoProjectCreateForm, VideoProjectStatusUpdateForm, VideoProjectFilterForm,
-    VideoCutSubmissionForm, VoiceoverScriptForm, VideoCutFeedbackForm, VideoProjectEditForm
+    VideoProjectCreateForm, VideoProjectStatusUpdateForm, VideoProjectFilterForm, VideoProjectEditForm
 )
 
 def ensure_is_video_pm(user):
@@ -22,22 +24,31 @@ def ensure_is_video_pm(user):
 @login_required
 def video_create_project(request):
     """Create new video production project - VIDEO_PM only"""
-    ensure_is_video_pm(request.user)
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. Only Video Production Managers can create projects.")
+        return redirect('home')
     
     if request.method == 'POST':
         form = VideoProjectCreateForm(request.POST)
         if form.is_valid():
-            try:
-                project = VideoProjectService.create_video_project(
-                    form.cleaned_data, 
-                    request.user
-                )
+            success, result = VideoProjectService.create_video_project(
+                form.cleaned_data, 
+                request.user
+            )
+            if success:
+                project = result
                 messages.success(request, f'Video project "{project.project_name}" created successfully with ID: {project.hs_id}')
                 return redirect('video_production:project_detail', project_id=project.id)
-            except IntegrityError as e:
-                messages.error(request, f'Error creating project: {str(e)}')
-            except ValueError as e:
-                messages.error(request, f'Error: {str(e)}')
+            else:
+                # Handle error - result contains error message or dict
+                if isinstance(result, dict):
+                    # Field-specific errors
+                    for field, errors in result.items():
+                        for error in errors:
+                            messages.error(request, f'{field}: {error}')
+                else:
+                    # General error message
+                    messages.error(request, f'Error creating project: {result}')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -50,51 +61,83 @@ def video_create_project(request):
 
 @login_required
 def video_project_detail(request, project_id):
-    """View video project details with cuts and voiceover history"""
-    ensure_is_video_pm(request.user)
+    """View video project details - simplified version mirroring projects app"""
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. Only Video Production Managers can view project details.")
+        return redirect('home')
     
-    try:
-        project_details = VideoProjectService.get_video_project_details(project_id)
-        
-        # Check if user owns this project
-        if project_details['project'].video_pm != request.user:
-            raise PermissionDenied("You can only view your own projects.")
-        
-        return render(request, 'video_production/video_project_detail.html', {
-            'project': project_details['project'],
-            'cuts': project_details['cuts'],
-            'voiceover_scripts': project_details['voiceover_scripts'],
-            'status_history': project_details['status_history'],
-            'delivery': project_details['delivery'],
-            'page_title': f'Video Project - {project_details["project"].hs_id}'
-        })
-    except VideoProject.DoesNotExist:
-        messages.error(request, 'Video project not found.')
+    success, result = VideoProjectService.get_video_project(project_id)
+    if not success:
+        messages.error(request, result)
         return redirect('video_production:project_list')
+    
+    project = result
+    
+    # Check if user owns this project
+    if project.video_pm != request.user:
+        messages.error(request, "You can only view your own projects.")
+        return redirect('video_production:project_list')
+    
+    # Get comprehensive project details
+    success, details = VideoProjectService.get_video_project_details(project_id)
+    if not success:
+        messages.error(request, details)
+        return redirect('video_production:project_list')
+    
+    # Get status options for the update modal
+    filter_options = VideoProjectService.get_video_filter_options()
+    
+    return render(request, 'video_production/video_project_detail.html', {
+        'project': details['project'],
+        'status_history': details['status_history'],
+        'deliveries': details['deliveries'],
+        'status_options': filter_options['statuses'],
+        'page_title': f'Video Project - {project.hs_id}'
+    })
 
 @login_required
 @require_http_methods(["POST"])
 def video_update_project_status(request, project_id):
     """Update project status - supports AJAX"""
-    ensure_is_video_pm(request.user)
+    # Debug: Check if this is an AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
-    try:
-        project = VideoProjectService.get_video_project(project_id)
-        
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            raise PermissionDenied("You can only update your own projects.")
-        
-        form = VideoProjectStatusUpdateForm(request.POST)
-        if form.is_valid():
-            updated_project = VideoProjectService.update_video_project_status(
+    if request.user.role != 'VIDEO_PM':
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'Access denied'})
+        else:
+            messages.error(request, 'Access denied')
+            return redirect('video_production:project_detail', project_id=project_id)
+    
+    success, result = VideoProjectService.get_video_project(project_id)
+    if not success:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': result})
+        else:
+            messages.error(request, result)
+            return redirect('video_production:project_detail', project_id=project_id)
+    
+    project = result
+    
+    # Check if user owns this project
+    if project.video_pm != request.user:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'You can only update your own projects'})
+        else:
+            messages.error(request, 'You can only update your own projects')
+            return redirect('video_production:project_detail', project_id=project_id)
+    
+    form = VideoProjectStatusUpdateForm(request.POST)
+    if form.is_valid():
+        try:
+            updated_project = VideoProjectService.update_project_status(
                 project_id,
                 form.cleaned_data['status'].id,
                 form.cleaned_data['comments'],
                 request.user
             )
             
-            if request.headers.get('Content-Type') == 'application/json':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
                     'message': f'Status updated to {updated_project.current_status.name}',
@@ -103,272 +146,342 @@ def video_update_project_status(request, project_id):
             else:
                 messages.success(request, f'Project status updated to {updated_project.current_status.name}')
                 return redirect('video_production:project_detail', project_id=project_id)
-        else:
-            if request.headers.get('Content-Type') == 'application/json':
-                return JsonResponse({
-                    'success': False,
-                    'errors': form.errors
-                })
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': f'Error updating status: {str(e)}'})
             else:
-                messages.error(request, 'Error updating status. Please check your input.')
+                messages.error(request, f'Error updating status: {str(e)}')
                 return redirect('video_production:project_detail', project_id=project_id)
-    
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            })
+    else:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors})
         else:
-            messages.error(request, str(e))
-            return redirect('video_production:project_list')
+            messages.error(request, 'Error updating status. Please check your input.')
+            return redirect('video_production:project_detail', project_id=project_id)
 
 @login_required
 def video_project_list(request):
-    """List pipeline (active) video projects"""
-    ensure_is_video_pm(request.user)
+    """List pipeline (active) video projects - mirrors projects app structure"""
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. Only Video Production Managers can view projects.")
+        return redirect('home')
     
     # Get filter form
     filter_form = VideoProjectFilterForm(request.GET or None)
     
-    # Get projects with filters
+    # Build filters dict from form data
     filters = {}
+    filters_applied = {}
+    filters_applied_display = {}
+    
     if filter_form.is_valid():
         for field_name, value in filter_form.cleaned_data.items():
             if value:
                 filters[field_name] = value
+                filters_applied[field_name] = value
+                
+                # Get display names for filters (similar to projects app)
+                if field_name == 'status' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'product' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'region' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'city' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'video_pm' and hasattr(value, 'get_full_name'):
+                    filters_applied_display[field_name] = value.get_full_name()
+                else:
+                    filters_applied_display[field_name] = str(value)
     
-    # Get projects based on filters
-    if filters:
-        projects_queryset = VideoProjectService.get_video_project_list(request.user, filters)
-    else:
-        projects_queryset = VideoProjectService.get_pipeline_projects(request.user)
+    # Get projects based on filters - always use pipeline project type for this view
+    success, projects_queryset = VideoProjectService.get_video_project_list(request.user, filters, project_type='pipeline')
+    if not success:
+        messages.error(request, f"Error loading projects: {projects_queryset}")
+        projects_queryset = VideoProject.objects.none()
     
     # Pagination
-    paginator = Paginator(projects_queryset, 10)  # 10 projects per page
+    paginator = Paginator(projects_queryset, 25)  # Match projects app pagination
     page_number = request.GET.get('page')
     projects = paginator.get_page(page_number)
     
-    # Get filter options for form
-    filter_options = VideoProjectService.get_video_filter_options()
+    # Add latest_status_date to each project (for template consistency)
+    for project in projects:
+        # Get the latest status history date
+        latest_history = project.status_history.order_by('-changed_at').first()
+        project.latest_status_date = latest_history.changed_at if latest_history else project.created_at
     
     return render(request, 'video_production/video_project_list.html', {
+        'title': 'Video Production Pipeline',
         'projects': projects,
         'filter_form': filter_form,
-        'filter_options': filter_options,
+        'filters_applied': filters_applied,
+        'filters_applied_display': filters_applied_display,
+        'is_pipeline': True,
         'page_title': 'Video Production Pipeline',
         'show_pipeline': True
     })
 
 @login_required
 def video_delivered_projects(request):
-    """List delivered video projects"""
-    ensure_is_video_pm(request.user)
+    """List delivered video projects - mirrors projects app structure"""
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. Only Video Production Managers can view projects.")
+        return redirect('home')
     
     # Get filter form
     filter_form = VideoProjectFilterForm(request.GET or None)
     
-    # Get delivered projects
-    projects_queryset = VideoProjectService.get_delivered_projects(request.user)
-    
-    # Apply additional filters if provided
+    # Build filters dict from form data
     filters = {}
+    filters_applied = {}
+    filters_applied_display = {}
+    
     if filter_form.is_valid():
         for field_name, value in filter_form.cleaned_data.items():
             if value:
                 filters[field_name] = value
+                filters_applied[field_name] = value
+                
+                # Get display names for filters (similar to projects app)
+                if field_name == 'status' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'product' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'region' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'city' and hasattr(value, 'name'):
+                    filters_applied_display[field_name] = value.name
+                elif field_name == 'video_pm' and hasattr(value, 'get_full_name'):
+                    filters_applied_display[field_name] = value.get_full_name()
+                else:
+                    filters_applied_display[field_name] = str(value)
     
-    if filters:
-        # Apply filters to delivered projects
-        if filters.get('search'):
-            search_term = filters['search']
-            projects_queryset = projects_queryset.filter(
-                Q(project_name__icontains=search_term) |
-                Q(builder_name__icontains=search_term) |
-                Q(hs_id__icontains=search_term) |
-                Q(opportunity_id__icontains=search_term)
-            )
-        if filters.get('vendor'):
-            projects_queryset = projects_queryset.filter(
-                production_vendor__icontains=filters['vendor']
-            )
-        if filters.get('city'):
-            projects_queryset = projects_queryset.filter(city=filters['city'])
-        if filters.get('video_product'):
-            projects_queryset = projects_queryset.filter(video_product=filters['video_product'])
+    # Get projects based on filters - always use delivered project type for this view
+    success, projects_queryset = VideoProjectService.get_video_project_list(request.user, filters, project_type='delivered')
+    if not success:
+        messages.error(request, f"Error loading projects: {projects_queryset}")
+        projects_queryset = VideoProject.objects.none()
     
     # Pagination
-    paginator = Paginator(projects_queryset, 10)  # 10 projects per page
+    paginator = Paginator(projects_queryset, 25)  # Match projects app pagination
     page_number = request.GET.get('page')
     projects = paginator.get_page(page_number)
     
-    # Get filter options for form
-    filter_options = VideoProjectService.get_video_filter_options()
+    # Add delivery_date to each project (for template consistency)
+    for project in projects:
+        # Use the property that gets delivery date from status history
+        project.latest_status_date = project.delivery_date or project.created_at
     
     return render(request, 'video_production/video_project_list.html', {
+        'title': 'Delivered Video Projects',
         'projects': projects,
         'filter_form': filter_form,
-        'filter_options': filter_options,
+        'filters_applied': filters_applied,
+        'filters_applied_display': filters_applied_display,
+        'is_pipeline': False,
         'page_title': 'Delivered Video Projects',
         'show_delivered': True
     })
 
 @login_required
-def video_submit_cut(request, project_id):
-    """Submit video cut for client review"""
-    ensure_is_video_pm(request.user)
+def export_pipeline_video_projects(request):
+    """
+    Export pipeline video projects (non-delivered) to CSV or XLSX format.
+    Uses the same filtering logic as video_project_list view.
+    Only accessible by VIDEO_PMs.
+    """
+    # Check if user is a VIDEO_PM
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. This page is only for Video Production Managers.")
+        return redirect('home')
     
-    try:
-        project = VideoProjectService.get_video_project(project_id)
-        
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            raise PermissionDenied("You can only submit cuts for your own projects.")
-        
-        if request.method == 'POST':
-            form = VideoCutSubmissionForm(request.POST, project=project)
-            if form.is_valid():
-                cut = VideoProjectService.submit_video_cut(
-                    project_id,
-                    form.cleaned_data['cut_number'],
-                    request.user
-                )
-                messages.success(request, f'Cut {cut.cut_number} submitted successfully for project {project.hs_id}')
-                return redirect('video_production:project_detail', project_id=project_id)
-            else:
-                messages.error(request, 'Please correct the errors below.')
-        else:
-            form = VideoCutSubmissionForm(project=project)
-        
-        return render(request, 'video_production/video_project_detail.html', {
-            'cut_form': form,
-            'project': project,
-            'page_title': f'Submit Video Cut - {project.hs_id}',
-            'show_cut_form': True
-        })
+    # Get export format from request (default to CSV)
+    export_format = request.GET.get('format', 'csv').lower()
     
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        messages.error(request, str(e))
+    # Get filter parameters from request (same as video_project_list view)
+    search_query = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    product = request.GET.get('product', '')
+    region = request.GET.get('region', '')
+    city = request.GET.get('city', '')
+    video_pm = request.GET.get('video_pm', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    # Convert date strings to date objects if provided
+    date_from_obj = None
+    date_to_obj = None
+    if date_from:
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    # Prepare filters dictionary
+    filters = {}
+    if search_query:
+        filters['search'] = search_query
+    if status:
+        try:
+            status_obj = VideoProjectStatusOption.objects.get(id=status)
+            filters['status'] = status_obj
+        except VideoProjectStatusOption.DoesNotExist:
+            pass
+    if product:
+        try:
+            product_obj = VideoProduct.objects.get(id=product)
+            filters['product'] = product_obj
+        except VideoProduct.DoesNotExist:
+            pass
+    if region:
+        try:
+            from locations.models import Region
+            region_obj = Region.objects.get(id=region)
+            filters['region'] = region_obj
+        except Region.DoesNotExist:
+            pass
+    if city:
+        try:
+            from locations.models import City
+            city_obj = City.objects.get(id=city)
+            filters['city'] = city_obj
+        except City.DoesNotExist:
+            pass
+    if video_pm:
+        try:
+            from accounts.models import User
+            video_pm_obj = User.objects.get(id=video_pm)
+            filters['video_pm'] = video_pm_obj
+        except User.DoesNotExist:
+            pass
+    if date_from_obj:
+        filters['date_from'] = date_from_obj
+    if date_to_obj:
+        filters['date_to'] = date_to_obj
+
+    # Get ALL pipeline video projects (no pagination for export)
+    success, projects_queryset = VideoProjectService.get_video_project_list(
+        request.user, filters, project_type='pipeline'
+    )
+
+    if not success:
+        messages.error(request, f"Error exporting video projects: {projects_queryset}")
         return redirect('video_production:project_list')
 
-@login_required
-def video_cut_feedback(request, project_id, cut_number):
-    """Provide feedback on video cut"""
-    ensure_is_video_pm(request.user)
-    
-    try:
-        project = VideoProjectService.get_video_project(project_id)
-        
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            raise PermissionDenied("You can only provide feedback on your own projects.")
-        
-        if request.method == 'POST':
-            form = VideoCutFeedbackForm(request.POST)
-            if form.is_valid():
-                if form.cleaned_data['request_rework']:
-                    cut = VideoProjectService.request_cut_rework(
-                        project_id,
-                        cut_number,
-                        form.cleaned_data['client_feedback'],
-                        request.user
-                    )
-                    messages.success(request, f'Rework requested for Cut {cut_number}')
-                else:
-                    messages.success(request, f'Feedback recorded for Cut {cut_number}')
-                
-                return redirect('video_production:project_detail', project_id=project_id)
-            else:
-                messages.error(request, 'Please correct the errors below.')
-        else:
-            form = VideoCutFeedbackForm(initial={'cut_number': cut_number})
-        
-        return render(request, 'video_production/video_project_detail.html', {
-            'feedback_form': form,
-            'project': project,
-            'cut_number': cut_number,
-            'page_title': f'Cut Feedback - {project.hs_id}',
-            'show_feedback_form': True
-        })
-    
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        messages.error(request, str(e))
-        return redirect('video_production:project_list')
+    # Convert queryset to list
+    projects_list = list(projects_queryset)
 
-@login_required
-def video_submit_voiceover_script(request, project_id):
-    """Submit voiceover script for approval"""
-    ensure_is_video_pm(request.user)
-    
-    try:
-        project = VideoProjectService.get_video_project(project_id)
-        
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            raise PermissionDenied("You can only submit voiceover scripts for your own projects.")
-        
-        if request.method == 'POST':
-            form = VoiceoverScriptForm(request.POST)
-            if form.is_valid():
-                script = VideoProjectService.submit_voiceover_script(
-                    project_id,
-                    form.cleaned_data['script_content'],
-                    request.user
-                )
-                messages.success(request, f'Voiceover script v{script.script_version} submitted for approval')
-                return redirect('video_production:project_detail', project_id=project_id)
-            else:
-                messages.error(request, 'Please correct the errors below.')
-        else:
-            form = VoiceoverScriptForm()
-        
-        return render(request, 'video_production/video_project_detail.html', {
-            'voiceover_form': form,
-            'project': project,
-            'page_title': f'Submit Voiceover Script - {project.hs_id}',
-            'show_voiceover_form': True
-        })
-    
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        messages.error(request, str(e))
-        return redirect('video_production:project_list')
+    # Define the columns for export
+    headers = [
+        'HS ID', 'Opportunity ID', 'Project Name', 'Builder Name', 'City', 'Region',
+        'Product', 'Package ID', 'Quantity', 'Purchase Date',
+        'Sales Confirmation Date', 'Expected TAT', 'Account Manager', 'Video PM',
+        'Current Status', 'Expected Completion Date', 'Created At'
+    ]
 
-@login_required
-def video_approve_voiceover_script(request, project_id, script_version):
-    """Approve voiceover script"""
-    ensure_is_video_pm(request.user)
+    if export_format == 'xlsx':
+        return _export_video_projects_to_xlsx(projects_list, headers)
+    else:
+        return _export_video_projects_to_csv(projects_list, headers)
+
+
+def _export_video_projects_to_csv(projects, headers):
+    """Helper function to export video projects to CSV format."""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="pipeline_video_projects_{date.today().strftime("%Y%m%d")}.csv"'
     
-    try:
-        project = VideoProjectService.get_video_project(project_id)
-        
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            raise PermissionDenied("You can only approve voiceover scripts for your own projects.")
-        
-        script = VideoProjectService.approve_voiceover_script(
-            project_id,
-            script_version,
-            request.user
-        )
-        
-        messages.success(request, f'Voiceover script v{script.script_version} approved successfully')
-        return redirect('video_production:project_detail', project_id=project_id)
+    writer = csv.writer(response)
+    writer.writerow(headers)
     
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        messages.error(request, str(e))
-        return redirect('video_production:project_list')
+    for project in projects:
+        row = [
+            project.hs_id or '',
+            project.opportunity_id or '',
+            project.project_name or '',
+            project.builder_name or '',
+            project.city.name if project.city else '',
+            project.city.region.name if project.city and project.city.region else '',
+            project.product.name if project.product else '',
+            project.package_id or '',
+            project.quantity or '',
+            project.purchase_date.strftime('%Y-%m-%d') if project.purchase_date else '',
+            project.sales_confirmation_date.strftime('%Y-%m-%d') if project.sales_confirmation_date else '',
+            project.expected_tat or '',
+            project.account_manager or '',
+            project.video_pm.get_full_name() if project.video_pm else '',
+            project.current_status.name if project.current_status else '',
+            project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
+        ]
+        writer.writerow(row)
+    
+    return response
+
+
+def _export_video_projects_to_xlsx(projects, headers):
+    """Helper function to export video projects to XLSX format."""
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Pipeline Video Projects"
+    
+    # Write headers
+    for col_num, header in enumerate(headers, 1):
+        worksheet.cell(row=1, column=col_num, value=header)
+    
+    # Write data
+    for row_num, project in enumerate(projects, 2):
+        data = [
+            project.hs_id or '',
+            project.opportunity_id or '',
+            project.project_name or '',
+            project.builder_name or '',
+            project.city.name if project.city else '',
+            project.city.region.name if project.city and project.city.region else '',
+            project.product.name if project.product else '',
+            project.package_id or '',
+            project.quantity or '',
+            project.purchase_date.strftime('%Y-%m-%d') if project.purchase_date else '',
+            project.sales_confirmation_date.strftime('%Y-%m-%d') if project.sales_confirmation_date else '',
+            project.expected_tat or '',
+            project.account_manager or '',
+            project.video_pm.get_full_name() if project.video_pm else '',
+            project.current_status.name if project.current_status else '',
+            project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
+        ]
+        
+        for col_num, value in enumerate(data, 1):
+            worksheet.cell(row=row_num, column=col_num, value=value)
+    
+    # Create response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="pipeline_video_projects_{date.today().strftime("%Y%m%d")}.xlsx"'
+    
+    workbook.save(response)
+    return response
 
 @login_required
 def video_edit_project(request, project_id):
     """Edit existing video project"""
-    ensure_is_video_pm(request.user)
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. Only Video Production Managers can edit projects.")
+        return redirect('home')
     
     try:
         project = VideoProjectService.get_video_project(project_id)
         
         # Check if user owns this project
         if project.video_pm != request.user:
-            raise PermissionDenied("You can only edit your own projects.")
+            messages.error(request, "You can only edit your own projects.")
+            return redirect('video_production:project_list')
         
         if request.method == 'POST':
             form = VideoProjectEditForm(request.POST, instance=project)
@@ -381,34 +494,36 @@ def video_edit_project(request, project_id):
         else:
             form = VideoProjectEditForm(instance=project)
         
-        return render(request, 'video_production/video_project_detail.html', {
-            'edit_form': form,
+        return render(request, 'video_production/video_edit_project.html', {
+            'form': form,
             'project': project,
-            'page_title': f'Edit Project - {project.hs_id}',
-            'show_edit_form': True
+            'page_title': f'Edit Project - {project.hs_id}'
         })
     
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        messages.error(request, str(e))
+    except VideoProject.DoesNotExist:
+        messages.error(request, 'Video project not found.')
         return redirect('video_production:project_list')
 
 @login_required
 def video_complete_project(request, project_id):
     """Mark project as completed and track delivery performance"""
-    ensure_is_video_pm(request.user)
+    if request.user.role != 'VIDEO_PM':
+        messages.error(request, "Access denied. Only Video Production Managers can complete projects.")
+        return redirect('home')
     
     try:
         project = VideoProjectService.get_video_project(project_id)
         
         # Check if user owns this project
         if project.video_pm != request.user:
-            raise PermissionDenied("You can only complete your own projects.")
+            messages.error(request, "You can only complete your own projects.")
+            return redirect('video_production:project_list')
         
         delivery = VideoProjectService.track_video_project_delivery(project_id)
         messages.success(request, f'Project {project.hs_id} marked as completed. Delivery performance: {delivery.delivery_performance_rating}')
         
         return redirect('video_production:project_detail', project_id=project_id)
     
-    except (VideoProject.DoesNotExist, PermissionDenied) as e:
-        messages.error(request, str(e))
+    except VideoProject.DoesNotExist:
+        messages.error(request, 'Video project not found.')
         return redirect('video_production:project_list')

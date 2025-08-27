@@ -1,173 +1,862 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}{{ page_title }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<style>
+    /* Consistent Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+    
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        border-radius: 0.75rem;
+    }
+    
+    /* Green header for delivered projects */
+    .page-header.delivered {
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+    }
+    
+    .page-header h1 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Filter Section */
+    .filter-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+    }
+    
+    .filter-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+    
+    .filter-header {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: all var(--transition-speed) ease;
+    }
+    
+    .filter-header:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    }
+    
+    .filter-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .filter-header h5 i {
+        color: var(--primary-color);
+        transition: transform var(--transition-speed) ease;
+    }
+    
+    .filter-header.collapsed h5 i:last-child {
+        transform: rotate(180deg);
+    }
+    
+    .filter-body {
+        padding: 1.5rem;
+    }
+    
+    /* Enhanced Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.625rem 0.75rem;
+        transition: all var(--transition-speed) ease;
+        font-size: 0.95rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-label i {
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+    
+    /* Clean Modern Projects Card */
+    .projects-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+    
+    .projects-card .card-header {
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem 2rem;
+    }
+    
+    .projects-card .card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.125rem;
+    }
+    
+    .projects-card .card-header h5 i {
+        color: #64748b;
+        font-size: 1.25rem;
+    }
+    
+    .projects-card .card-header small {
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .projects-card .card-header .text-muted {
+        color: #64748b !important;
+    }
+    
+    /* Clean Table Design */
+    .table {
+        margin-bottom: 0;
+        background: #ffffff;
+    }
+    
+    .table thead th {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        padding: 1rem;
+        white-space: nowrap;
+    }
+    
+    .table tbody tr {
+        transition: background-color 0.2s ease;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: #f1f5f9;
+    }
+    
+    /* Clean Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        background-color: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Clean Product Badge */
+    .badge {
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+        border-radius: 0.375rem;
+    }
+    
+    .badge.bg-info {
+        background-color: #06b6d4 !important;
+        color: white;
+    }
+    
+    /* Clean Action Buttons */
+    .btn-action {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+        margin: 0 0.125rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Enhanced Buttons */
+    .btn {
+        font-weight: 500;
+        border-radius: 0.375rem;
+        transition: all var(--transition-speed) ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+        background: #0a58ca;
+        border-color: #0a58ca;
+    }
+    
+    /* Clean HS ID Badge */
+    .hs-id {
+        display: inline-flex;
+        align-items: center;
+        background-color: #3b82f6;
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+    }
+    
+    .hs-id:hover {
+        background-color: #2563eb;
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Clean Project Info */
+    .project-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .project-name {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        color: #1e293b;
+        line-height: 1.4;
+    }
+    
+    .project-location {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.8125rem;
+        color: #64748b;
+        font-weight: 400;
+    }
+    
+    .project-location i {
+        color: #94a3b8;
+        font-size: 0.75rem;
+    }
+    
+    /* Custom Emerald Gradient Button */
+    .btn-turquoise-gradient {
+        background: linear-gradient(135deg, #50C878 0%, #40a865 100%);
+        border: none;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-turquoise-gradient:hover {
+        background: linear-gradient(135deg, #48b56c 0%, #389858 100%);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-turquoise-gradient:focus,
+    .btn-turquoise-gradient:active {
+        background: linear-gradient(135deg, #48b56c 0%, #389858 100%);
+        color: white;
+        box-shadow: 0 0 0 0.2rem rgba(80, 200, 120, 0.25);
+    }
+    
+    /* Select2 Styling Integration */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: calc(1.5em + 0.75rem + 2px) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.375rem !important;
+        background-color: #fff !important;
+        transition: all var(--transition-speed) ease !important;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        color: #495057 !important;
+        line-height: calc(1.5em + 0.75rem) !important;
+        padding-left: 0.75rem !important;
+        padding-right: 2.25rem !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.75rem) !important;
+        top: 1px !important;
+        right: 0.75rem !important;
+        width: 20px !important;
+    }
+
+    .select2-container .select2-selection--single .select2-selection__arrow b {
+        border-color: #6c757d transparent transparent transparent !important;
+        border-style: solid !important;
+        border-width: 5px 4px 0 4px !important;
+        height: 0 !important;
+        left: 50% !important;
+        margin-left: -4px !important;
+        margin-top: -2px !important;
+        position: absolute !important;
+        top: 50% !important;
+        width: 0 !important;
+    }
+
+    .select2-container .select2-selection--single:focus-within,
+    .select2-container .select2-selection--single:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+        outline: none !important;
+    }
+
+    .select2-container .select2-selection__placeholder {
+        color: #6c757d !important;
+    }
+
+    .select2-dropdown {
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.375rem !important;
+        box-shadow: var(--shadow-md) !important;
+        margin-top: 1px !important;
+    }
+
+    .select2-results__option--highlighted {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+
+    .select2-search__field {
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0.25rem !important;
+        padding: 0.375rem 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .select2-search__field:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.1rem rgba(13, 110, 253, 0.25) !important;
+        outline: none !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: auto !important;
+        min-height: calc(1.5em + 0.75rem + 2px) !important;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h3 mb-0">
-                    <i class="fas fa-video mr-2"></i>{{ page_title }}
-                </h2>
-                <div>
-                    <a href="{% url 'video_production:create_project' %}" class="btn btn-primary">
-                        <i class="fas fa-plus mr-1"></i>Create Video Project
-                    </a>
-                    <a href="{% url 'video_production:delivered_projects' %}" class="btn btn-outline-success ml-2">
-                        <i class="fas fa-check-circle mr-1"></i>View Delivered Projects
-                    </a>
-                </div>
-            </div>
-
-            <!-- Filter Section -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="get" class="row">
-                        <div class="col-md-2">
-                            {{ filter_form.status.label_tag }}
-                            {{ filter_form.status }}
-                        </div>
-                        <div class="col-md-2">
-                            {{ filter_form.city.label_tag }}
-                            {{ filter_form.city }}
-                        </div>
-                        <div class="col-md-2">
-                            {{ filter_form.video_product.label_tag }}
-                            {{ filter_form.video_product }}
-                        </div>
-                        <div class="col-md-2">
-                            {{ filter_form.vendor.label_tag }}
-                            {{ filter_form.vendor }}
-                        </div>
-                        <div class="col-md-3">
-                            {{ filter_form.search.label_tag }}
-                            {{ filter_form.search }}
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button type="submit" class="btn btn-outline-primary btn-sm mr-1">
-                                <i class="fas fa-search"></i>
-                            </button>
-                            <a href="{% url 'video_production:project_list' %}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-times"></i>
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Projects Table -->
-            <div class="card">
-                <div class="card-body">
-                    {% if projects %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Project ID</th>
-                                        <th>Project Name</th>
-                                        <th>Builder</th>
-                                        <th>Video Product</th>
-                                        <th>Production Vendor</th>
-                                        <th>Current Status</th>
-                                        <th>Current Cut</th>
-                                        <th>Voiceover Status</th>
-                                        <th>Expected Completion</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for project in projects %}
-                                    <tr>
-                                        <td>
-                                            <a href="{% url 'video_production:project_detail' project.id %}" class="text-primary font-weight-bold">
-                                                {{ project.hs_id }}
-                                            </a>
-                                        </td>
-                                        <td>{{ project.project_name }}</td>
-                                        <td>{{ project.builder_name }}</td>
-                                        <td>
-                                            <span class="badge badge-info">{{ project.video_product.name }}</span>
-                                        </td>
-                                        <td>{{ project.production_vendor }}</td>
-                                        <td>
-                                            <span class="badge badge-secondary">{{ project.current_status.name }}</span>
-                                        </td>
-                                        <td>
-                                            {% if project.current_cut_number > 0 %}
-                                                <span class="badge badge-primary">Cut {{ project.current_cut_number }}</span>
-                                            {% else %}
-                                                <span class="text-muted">No cuts yet</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if project.voiceover_required %}
-                                                <span class="badge badge-warning">{{ project.get_voiceover_status_display }}</span>
-                                            {% else %}
-                                                <span class="text-muted">Not required</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ project.expected_completion_date|date:"M d, Y" }}</td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'video_production:project_detail' project.id %}" class="btn btn-outline-primary btn-sm" title="View Details">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{% url 'video_production:edit_project' project.id %}" class="btn btn-outline-secondary btn-sm" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Pagination -->
-                        {% if projects.has_other_pages %}
-                            <nav aria-label="Projects pagination">
-                                <ul class="pagination justify-content-center mt-4">
-                                    {% if projects.has_previous %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page={{ projects.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Previous</a>
-                                        </li>
-                                    {% endif %}
-                                    
-                                    {% for num in projects.paginator.page_range %}
-                                        {% if projects.number == num %}
-                                            <li class="page-item active">
-                                                <span class="page-link">{{ num }}</span>
-                                            </li>
-                                        {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-                                    {% if projects.has_next %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page={{ projects.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Next</a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </nav>
-                        {% endif %}
+    <!-- Page Header -->
+    <div class="page-header{% if not is_pipeline %} delivered{% endif %}">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>
+                    {% if is_pipeline %}
+                        <i class="bi bi-list-ul"></i> {{ page_title }}
                     {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-video fa-3x text-muted mb-3"></i>
-                            <h4 class="text-muted">No video projects found</h4>
-                            <p class="text-muted">Get started by creating your first video production project.</p>
-                            <a href="{% url 'video_production:create_project' %}" class="btn btn-primary">
-                                <i class="fas fa-plus mr-1"></i>Create Video Project
-                            </a>
+                        <i class="bi bi-check-circle"></i> Delivered Video Projects
+                    {% endif %}
+                </h3>
+                <div class="d-flex gap-2 me-3">
+                    {% if is_pipeline %}
+                        <a href="{% url 'video_production:delivered_projects' %}" class="btn btn-turquoise-gradient">
+                            <i class="bi bi-check-circle"></i> View Delivered Projects
+                        </a>
+                        <!-- Export Buttons -->
+                        <div class="btn-group" role="group" aria-label="Export options">
+                            <button type="button" class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-download"></i> Export
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="exportVideoProjects('csv')">
+                                    <i class="bi bi-filetype-csv"></i> Export as CSV
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportVideoProjects('xlsx')">
+                                    <i class="bi bi-file-earmark-excel"></i> Export as Excel
+                                </a></li>
+                            </ul>
                         </div>
+                        <a href="{% url 'video_production:create_project' %}" class="btn btn-outline-light">
+                            <i class="bi bi-plus-circle"></i> New Video Project
+                        </a>
+                    {% else %}
+                        <a href="{% url 'video_production:project_list' %}" class="btn btn-outline-light">
+                            <i class="bi bi-arrow-left"></i> Back to Pipeline
+                        </a>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true">
+            <h5>
+                <span>
+                    <i class="bi bi-funnel-fill me-2"></i> Filters
+                    {% if filters_applied.search or filters_applied.status or filters_applied.product or filters_applied.region or filters_applied.city or filters_applied.video_pm %}
+                        <span class="filter-count" id="activeFilterCount">
+                            <!-- Count will be set by JavaScript -->
+                        </span>
+                    {% endif %}
+                </span>
+                <i class="bi bi-chevron-down"></i>
+            </h5>
+        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="filter-body">
+                <form method="get" id="filter-form">
+                    <!-- Row 1: Main Filters -->
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="bi bi-search"></i>
+                                {{ filter_form.search.label }}
+                            </label>
+                            {{ filter_form.search }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="bi bi-flag"></i>
+                                {{ filter_form.status.label }}
+                            </label>
+                            {{ filter_form.status }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ filter_form.region.label }}
+                            </label>
+                            {{ filter_form.region }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i>
+                                {{ filter_form.city.label }}
+                            </label>
+                            {{ filter_form.city }}
+                        </div>
+                    </div>
+                    <!-- Row 2: Secondary Filters -->
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="bi bi-box"></i>
+                                {{ filter_form.product.label }}
+                            </label>
+                            {{ filter_form.product }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="bi bi-person"></i>
+                                {{ filter_form.video_pm.label }}
+                            </label>
+                            {{ filter_form.video_pm }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-range"></i>
+                                From Date
+                            </label>
+                            {{ filter_form.date_from }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-check"></i>
+                                To Date
+                            </label>
+                            {{ filter_form.date_to }}
+                        </div>
+                    </div>
+                    <!-- Row 3: Action Buttons -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-funnel"></i> Apply Filters
+                            </button>
+                            <a href="{% url 'video_production:project_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Clear Filters
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filters Notification -->
+    {% if filters_applied.search or filters_applied.status or filters_applied.video_product or filters_applied.city or filters_applied.video_pm or filters_applied.date_from or filters_applied.date_to %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert">
+        <div>
+            <i class="bi bi-funnel-fill me-2"></i>
+            <strong>Filters are active:</strong>
+            {% if filters_applied.search %}
+                <span class="badge bg-secondary">Search: "{{ filters_applied.search }}"</span>
+            {% endif %}
+            {% if filters_applied.status %}
+                <span class="badge bg-secondary">Status: {{ filters_applied_display.status }}</span>
+            {% endif %}
+            {% if filters_applied.product %}
+                <span class="badge bg-secondary">Product: {{ filters_applied_display.product }}</span>
+            {% endif %}
+            {% if filters_applied.region %}
+                <span class="badge bg-secondary">Region: {{ filters_applied_display.region }}</span>
+            {% endif %}
+            {% if filters_applied.city %}
+                <span class="badge bg-secondary">City: {{ filters_applied_display.city }}</span>
+            {% endif %}
+            {% if filters_applied.video_pm %}
+                <span class="badge bg-secondary">Video PM: {{ filters_applied_display.video_pm }}</span>
+            {% endif %}
+            {% if filters_applied.date_from %}
+                <span class="badge bg-secondary">From: {{ filters_applied.date_from }}</span>
+            {% endif %}
+            {% if filters_applied.date_to %}
+                <span class="badge bg-secondary">To: {{ filters_applied.date_to }}</span>
+            {% endif %}
+        </div>
+        <a href="{% url 'video_production:project_list' %}" class="btn btn-sm btn-outline-info">Clear Filters</a>
+    </div>
+    {% endif %}
+
+    <!-- Projects Table -->
+    <div class="projects-card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>
+                    {% if is_pipeline %}
+                        <i class="bi bi-list-ul"></i> Video Pipeline Projects
+                    {% else %}
+                        <i class="bi bi-check-circle"></i> Delivered Video Projects
+                    {% endif %}
+                    <small class="text-muted ms-2">({{ projects.paginator.count }} total)</small>
+                </h5>
+                <div>
+                    <span class="text-muted">
+                        Showing {{ projects.start_index }}-{{ projects.end_index }} of {{ projects.paginator.count }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>HS ID</th>
+                            <th>PROJECT NAME</th>
+                            <th>OPPORTUNITY ID</th>
+                            <th>LATEST DATE</th>
+                            <th>STATUS</th>
+                            <th>VIDEO PRODUCT</th>
+                            <th>VIDEO PM</th>
+                            <th>ACCOUNT MANAGER</th>
+                            <th class="text-center">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'video_production:project_detail' project.id %}" class="hs-id-link">
+                                    <span class="hs-id">{{ project.hs_id }}</span>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'video_production:project_detail' project.id %}" class="project-name-link">
+                                    <div class="fw-semibold">{{ project.project_name }}</div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                        {{ project.city.name }}
+                                    </small>
+                                </a>
+                            </td>
+                            <td>{{ project.opportunity_id|slice:"26:" }}</td>
+                            <td>
+                                {% if project.latest_status_date %}
+                                    {{ project.latest_status_date|date:"M d, Y" }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge" style="background-color: {{ project.current_status.color|default:'#6c757d' }}; color: white;">
+                                    {{ project.current_status.name }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ project.product.name }}</span>
+                            </td>
+                            <td>{{ project.video_pm.get_full_name|default:project.video_pm.username }}</td>
+                            <td><small>{{ project.account_manager|default:"Not specified" }}</small></td>
+                            <td class="text-center">
+                                <a href="{% url 'video_production:project_detail' project.id %}" 
+                                   class="btn btn-sm btn-primary btn-action" 
+                                   data-bs-toggle="tooltip" title="View Project Details">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                {% if filters_applied.search or filters_applied.status or filters_applied.product or filters_applied.region or filters_applied.city or filters_applied.video_pm %}
+                                    <i class="bi bi-search"></i>
+                                    <h5>No video projects match your filters</h5>
+                                    <p>Try adjusting your search or filter criteria.</p>
+                                {% else %}
+                                    <i class="bi bi-camera-video"></i>
+                                    <h5>No video projects found</h5>
+                                    <p>Looks like there are no video projects in the pipeline.</p>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if projects.paginator.num_pages > 1 %}
+        <div class="card-footer bg-white">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if projects.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ projects.previous_page_number }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.video_product %}&video_product={{ filters_applied.video_product }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.video_pm %}&video_pm={{ filters_applied.video_pm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in projects.paginator.page_range %}
+                        {% if num == projects.number %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.video_product %}&video_product={{ filters_applied.video_product }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.video_pm %}&video_pm={{ filters_applied.video_pm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% elif num == 1 or num == projects.paginator.num_pages %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.video_product %}&video_product={{ filters_applied.video_product }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.video_pm %}&video_pm={{ filters_applied.video_pm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% elif num == projects.number|add:'-3' or num == projects.number|add:'3' %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if projects.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ projects.next_page_number }}{% if filters_applied.search %}&search={{ filters_applied.search }}{% endif %}{% if filters_applied.status %}&status={{ filters_applied.status }}{% endif %}{% if filters_applied.video_product %}&video_product={{ filters_applied.video_product }}{% endif %}{% if filters_applied.city %}&city={{ filters_applied.city }}{% endif %}{% if filters_applied.video_pm %}&video_pm={{ filters_applied.video_pm }}{% endif %}{% if filters_applied.date_from %}&date_from={{ filters_applied.date_from }}{% endif %}{% if filters_applied.date_to %}&date_to={{ filters_applied.date_to }}{% endif %}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
 </div>
-{% endblock %} 
+
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for searchable dropdowns
+    $(window).on('load', function() {
+        console.log('Window loaded, checking for Select2 and jQuery...');
+        
+        // Check if required libraries are loaded
+        if (typeof $ === 'undefined') {
+            console.error('jQuery not loaded!');
+            return;
+        }
+        
+        if (typeof $.fn.select2 === 'undefined') {
+            console.error('Select2 not loaded!');
+            return;
+        }
+        
+        console.log('Libraries loaded successfully');
+        
+        // Function to initialize status dropdown with error handling
+        function initializeStatusDropdown() {
+            try {
+                const statusElement = $('#id_status');
+                console.log('Status element found:', statusElement.length);
+                console.log('Status element HTML:', statusElement.get(0) ? statusElement.get(0).outerHTML : 'Not found');
+                
+                if (statusElement.length > 0) {
+                    // Check if it's already a Select2
+                    if (statusElement.hasClass('select2-hidden-accessible')) {
+                        console.log('Destroying existing Select2...');
+                        statusElement.select2('destroy');
+                    }
+                    
+                    // Initialize Select2 with minimal config first
+                    console.log('Initializing Select2...');
+                    statusElement.select2({
+                        width: '100%',
+                        placeholder: 'Search status...',
+                        allowClear: true
+                    });
+                    
+                    // Add specific event handler for this status dropdown
+                    statusElement.on('select2:open', function(e) {
+                        setTimeout(function() {
+                            $('.select2-search__field').focus();
+                        }, 50);
+                    });
+                    
+                    console.log('Select2 initialized successfully');
+                    return true;
+                } else {
+                    console.log('Status element not found');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error initializing Select2:', error);
+                return false;
+            }
+        }
+        
+        // Try to initialize
+        setTimeout(function() {
+            if (!initializeStatusDropdown()) {
+                console.log('Retrying in 500ms...');
+                setTimeout(initializeStatusDropdown, 500);
+            }
+        }, 100);
+        
+        // Global auto-focus for all Select2 dropdowns
+        $(document).on('select2:open', function() {
+            setTimeout(function() {
+                const searchField = document.querySelector('.select2-dropdown:not([style*="display: none"]) .select2-search__field');
+                if (searchField) {
+                    searchField.focus();
+                }
+            }, 50);
+        });
+    });
+});
+
+</script>
+
+<script>
+// Export function to handle CSV and XLSX downloads for video projects
+function exportVideoProjects(format) {
+    // Get current filter values from the form
+    const searchParams = new URLSearchParams();
+    
+    // Get all form inputs and build query string (same approach as projects app)
+    const form = document.querySelector('form');
+    
+    if (!form) {
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+            searchParams.append(key, value);
+        }
+    }
+    
+    // Add format parameter
+    searchParams.append('format', format);
+    
+    // Build export URL using video production path
+    const exportUrl = '/video-production/export/?' + searchParams.toString();
+    
+    // Trigger download
+    window.location.href = exportUrl;
+}
+</script>
+
+{% endblock %}

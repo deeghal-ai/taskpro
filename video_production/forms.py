@@ -1,45 +1,53 @@
+"""
+Video Production Forms - mirrors projects/forms.py
+Simplified forms without video-specific complexity.
+"""
+
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import VideoProject, VideoProjectStatusOption, VideoCut, VoiceoverScript, VideoProduct
-from locations.models import City
+from .models import VideoProject, VideoProjectStatusOption, VideoProduct
+from locations.models import City, Region
+from accounts.models import User
 
 class VideoProjectCreateForm(forms.ModelForm):
-    """Form for creating video production projects - simplified to match projects form"""
+    """
+    Form for creating video projects - mirrors Project creation form from projects app.
+    """
     
     class Meta:
         model = VideoProject
         fields = [
-            'opportunity_id', 'project_name', 'builder_name', 'city',
-            'video_product', 'quantity', 'production_vendor',
-            'purchase_date', 'expected_completion_date'
+            'opportunity_id', 'project_type', 'project_name', 'builder_name', 
+            'city', 'product', 'package_id', 'quantity',
+            'purchase_date', 'sales_confirmation_date', 
+            'expected_completion_date', 'account_manager'
         ]
         widgets = {
             'opportunity_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter opportunity ID'}),
+            'project_type': forms.Select(attrs={'class': 'form-select'}),
             'project_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter project name'}),
             'builder_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter builder/client name'}),
             'city': forms.Select(attrs={'class': 'form-select'}),
-            'video_product': forms.Select(attrs={'class': 'form-select'}),
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            'package_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter package ID'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
-            'production_vendor': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter video production agency name'}),
             'purchase_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'sales_confirmation_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'expected_completion_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'account_manager': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter account manager name'}),
         }
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Set querysets for foreign key fields
         self.fields['city'].queryset = City.objects.all().order_by('name')
-        self.fields['video_product'].queryset = VideoProduct.objects.filter(is_active=True).order_by('name')
+        self.fields['product'].queryset = VideoProduct.objects.filter(is_active=True).order_by('name')
         
         # Set required fields
-        self.fields['opportunity_id'].required = True
         self.fields['project_name'].required = True
         self.fields['builder_name'].required = True
         self.fields['city'].required = True
-        self.fields['video_product'].required = True
-        self.fields['production_vendor'].required = True
-        self.fields['purchase_date'].required = True
-        self.fields['expected_completion_date'].required = True
+        self.fields['product'].required = True
         
     def clean_opportunity_id(self):
         """Validate opportunity ID uniqueness"""
@@ -65,152 +73,124 @@ class VideoProjectCreateForm(forms.ModelForm):
         
         return cleaned_data
 
-class VideoProjectStatusUpdateForm(forms.Form):
-    """Form for updating video project status"""
-    status = forms.ModelChoiceField(
-        queryset=VideoProjectStatusOption.objects.filter(is_active=True).order_by('order'),
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        required=True
-    )
-    comments = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter status update comments (optional)'}),
-        required=False
-    )
-
-class VideoCutSubmissionForm(forms.Form):
-    """Form for submitting video cuts"""
-    cut_number = forms.IntegerField(
-        min_value=1,
-        max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10}),
-        help_text="Enter the cut number (1-10)"
-    )
-    
-    def __init__(self, *args, **kwargs):
-        self.project = kwargs.pop('project', None)
-        super().__init__(*args, **kwargs)
-        
-        if self.project:
-            self.fields['cut_number'].max_value = self.project.max_cuts_allowed
-            current_cut = self.project.current_cut_number
-            suggested_cut = current_cut + 1 if current_cut < self.project.max_cuts_allowed else current_cut
-            self.fields['cut_number'].initial = suggested_cut
-    
-    def clean_cut_number(self):
-        """Validate cut number"""
-        cut_number = self.cleaned_data.get('cut_number')
-        if self.project and cut_number:
-            if cut_number > self.project.max_cuts_allowed:
-                raise ValidationError(f"Cut number cannot exceed {self.project.max_cuts_allowed} (max cuts allowed for this project).")
-        return cut_number
-
-class VideoCutFeedbackForm(forms.Form):
-    """Form for providing feedback on video cuts"""
-    cut_number = forms.IntegerField(
-        widget=forms.HiddenInput()
-    )
-    client_feedback = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter client feedback for this cut'}),
-        required=True,
-        help_text="Provide detailed feedback for the video cut"
-    )
-    request_rework = forms.BooleanField(
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        help_text="Check if rework is required"
-    )
-
-class VoiceoverScriptForm(forms.ModelForm):
-    """Form for submitting voiceover scripts"""
+class VideoProjectEditForm(forms.ModelForm):
+    """
+    Form for editing video projects - mirrors Project edit form from projects app.
+    """
     
     class Meta:
-        model = VoiceoverScript
-        fields = ['script_content']
+        model = VideoProject
+        fields = [
+            'project_name', 'builder_name', 'city', 'product',
+            'package_id', 'quantity', 'expected_tat', 'expected_completion_date',
+            'account_manager'
+        ]
         widgets = {
-            'script_content': forms.Textarea(attrs={
-                'class': 'form-control', 
-                'rows': 6, 
-                'placeholder': 'Enter the voiceover script content...'
-            })
+            'project_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'builder_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.Select(attrs={'class': 'form-select'}),
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            'package_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'expected_tat': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'expected_completion_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'account_manager': forms.TextInput(attrs={'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['script_content'].required = True
-        self.fields['script_content'].help_text = "Enter the complete voiceover script for this video project"
+        # Set querysets for foreign key fields
+        self.fields['city'].queryset = City.objects.all().order_by('name')
+        self.fields['product'].queryset = VideoProduct.objects.filter(is_active=True).order_by('name')
+
+class VideoProjectStatusUpdateForm(forms.Form):
+    """
+    Form for updating video project status - mirrors projects status update form.
+    """
+    status = forms.ModelChoiceField(
+        queryset=VideoProjectStatusOption.objects.filter(is_active=True).order_by('order'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True,
+        label="New Status"
+    )
+    comments = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control', 
+            'rows': 3, 
+            'placeholder': 'Enter status update comments (optional)'
+        }),
+        required=False,
+        label="Comments"
+    )
 
 class VideoProjectFilterForm(forms.Form):
-    """Form for filtering video project lists"""
+    """
+    Form for filtering video project lists - mirrors projects filter form.
+    """
     
     status = forms.ModelChoiceField(
         queryset=VideoProjectStatusOption.objects.filter(is_active=True).order_by('order'),
         required=False,
         empty_label="All Statuses",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    region = forms.ModelChoiceField(
+        queryset=Region.objects.all().order_by('name'),
+        required=False,
+        empty_label="All Regions",
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     city = forms.ModelChoiceField(
         queryset=City.objects.all().order_by('name'),
         required=False,
         empty_label="All Cities",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     
-    video_product = forms.ModelChoiceField(
+    product = forms.ModelChoiceField(
         queryset=VideoProduct.objects.filter(is_active=True).order_by('name'),
         required=False,
         empty_label="All Video Products",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     
-    vendor = forms.CharField(
-        max_length=255,
+    video_pm = forms.ModelChoiceField(
+        queryset=User.objects.filter(role='VIDEO_PM', is_active=True).order_by('first_name', 'last_name'),
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter vendor name'}),
-        help_text="Search by production vendor name"
+        empty_label="All Video PMs",
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
+    
     
     search = forms.CharField(
         max_length=255,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Search projects...'}),
+        widget=forms.TextInput(attrs={
+            'class': 'form-control', 
+            'placeholder': 'Search projects...'
+        }),
         help_text="Search by project name, builder name, HS ID, or opportunity ID"
+    )
+    
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="Date From"
+    )
+    
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="Date To"
     )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Set fresh querysets
+        # Ensure fresh querysets
         self.fields['status'].queryset = VideoProjectStatusOption.objects.filter(is_active=True).order_by('order')
+        self.fields['region'].queryset = Region.objects.all().order_by('name')
         self.fields['city'].queryset = City.objects.all().order_by('name')
-        self.fields['video_product'].queryset = VideoProduct.objects.filter(is_active=True).order_by('name')
-
-class VideoProjectEditForm(forms.ModelForm):
-    """Form for editing existing video projects"""
-    
-    class Meta:
-        model = VideoProject
-        fields = [
-            'project_name', 'builder_name', 'production_vendor',
-            'shoot_location', 'shoot_date', 'video_duration_minutes',
-            'expected_completion_date', 'voiceover_required', 'max_cuts_allowed'
-        ]
-        widgets = {
-            'project_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'builder_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'production_vendor': forms.TextInput(attrs={'class': 'form-control'}),
-            'shoot_location': forms.TextInput(attrs={'class': 'form-control'}),
-            'shoot_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'video_duration_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
-            'expected_completion_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'voiceover_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'max_cuts_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10}),
-        }
-    
-    def clean_max_cuts_allowed(self):
-        """Validate max cuts allowed"""
-        max_cuts = self.cleaned_data.get('max_cuts_allowed')
-        if max_cuts and max_cuts < 1:
-            raise ValidationError("Maximum cuts allowed must be at least 1.")
-        if max_cuts and max_cuts > 10:
-            raise ValidationError("Maximum cuts allowed cannot exceed 10.")
-        return max_cuts 
+        self.fields['product'].queryset = VideoProduct.objects.filter(is_active=True).order_by('name')
+        self.fields['video_pm'].queryset = User.objects.filter(role='VIDEO_PM', is_active=True).order_by('first_name', 'last_name')
