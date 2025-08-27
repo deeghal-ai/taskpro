@@ -2150,6 +2150,10 @@ def assignment_graph_view(request):
             total_assignments = 0
             
             for assignment in assignments:
+                # Only include assignments for current team members
+                if assignment.assigned_to.role != 'TEAM_MEMBER':
+                    continue
+                    
                 member_name = assignment.assigned_to.get_full_name() or assignment.assigned_to.username
                 projected_hours = assignment.projected_hours or 0
                 projected_hours_decimal = projected_hours / 60.0  # Convert minutes to hours
@@ -2247,6 +2251,10 @@ def assignment_graph_view(request):
     total_assignments = len(assignments)
     
     for assignment in assignments:
+        # Only include assignments for current team members
+        if assignment.assigned_to.role != 'TEAM_MEMBER':
+            continue
+            
         member_name = assignment.assigned_to.get_full_name() or assignment.assigned_to.username
         projected_hours = assignment.projected_hours or 0
         projected_hours_decimal = projected_hours / 60.0  # Convert minutes to hours
