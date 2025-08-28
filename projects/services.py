@@ -1339,7 +1339,7 @@ class ProjectService:
                 'elapsed_time': elapsed_time,
                 'today_summary': {
                     'assignment_minutes': today_total_minutes,
-                    'misc_minutes': total_misc_minutes,
+                    'misc_minutes': 0,  # Efficiency excludes misc hours
                     'total_minutes': total_minutes,
                     'formatted_assignment': ProjectService._format_minutes(today_total_minutes),
                     'formatted_misc': ProjectService._format_minutes(total_misc_minutes),
@@ -1812,7 +1812,7 @@ class ProjectService:
                 'date_range': date_range,
                 'total_formatted': total_formatted,
                 'assignment_minutes': assignment_minutes,
-                'misc_minutes': total_misc_minutes,
+                'misc_minutes': 0,  # Efficiency excludes misc hours
                 'show_week': show_week
             }
 
@@ -2729,197 +2729,6 @@ class ProjectService:
                 logger.exception(f"Unexpected error in create_project_with_history: {str(e)}")
                 return False, f"An error occurred: {str(e)}"
 
-    @staticmethod
-    def get_team_member_metrics(team_member, start_date, end_date):
-        """
-        Calculate team member metrics on-demand for date range.
-        Much simpler than the stored approach!
-        """
-        from decimal import Decimal
-        from django.db.models import F, Case, When, IntegerField
-
-        # Get completed assignments in date range
-        completed_assignments = TaskAssignment.objects.filter(
-            assigned_to=team_member,
-            is_completed=True,
-            completion_date__date__range=[start_date, end_date]
-        ).select_related('task__project')
-
-        # Get daily totals for utilization calculation
-        daily_totals = DailyTimeTotal.objects.filter(
-            team_member=team_member,
-            date_worked__range=[start_date, end_date]
-        ).values('date_worked').annotate(
-            day_total=Sum('total_minutes')
-        )
-
-        # Get roster data for availability calculation
-        roster_days = DailyRoster.objects.filter(
-            team_member=team_member,
-            date__range=[start_date, end_date]
-        ).order_by('date')
-
-        # Calculate productivity metrics
-        total_projected = 0
-        total_worked = 0
-        quality_ratings = []
-
-        for assignment in completed_assignments:
-            projected = assignment.projected_hours or 0
-            worked = DailyTimeTotal.objects.filter(
-                assignment=assignment,
-                team_member=team_member
-            ).aggregate(total=Sum('total_minutes'))['total'] or 0
-
-            total_projected += projected
-            total_worked += worked
-
-            if assignment.quality_rating:
-                quality_ratings.append(float(assignment.quality_rating))
-
-        # Calculate utilization with leave allowance (total worked vs available time)
-        total_available_minutes = 0
-        total_worked_minutes = 0
-        
-        # Fixed monthly leave allowance
-        MONTHLY_LEAVE_ALLOWANCE = 0
-        
-        # Calculate prorated leave allowance based on date range
-        days_in_range = (end_date - start_date).days + 1
-        prorated_leave_allowance = (MONTHLY_LEAVE_ALLOWANCE / 30) * days_in_range
-        
-        # Track leave days taken as we process chronologically
-        leave_days_counted = 0.0
-        
-        for roster in roster_days:
-            if roster.status == 'PRESENT':
-                # Present days always count as 8 hours available
-                total_available_minutes += 480
-                
-            elif roster.status == 'HALF_DAY':
-                # Count how many leave days we've processed so far
-                leave_days_counted += 0.5
-                
-                if leave_days_counted <= prorated_leave_allowance:
-                    # Within allowance: count as 4 hours (actual half day)
-                    total_available_minutes += 240
-                else:
-                    # Exceeded allowance: count as 8 hours (penalty like full day)
-                    total_available_minutes += 480
-                    
-            elif roster.status == 'LEAVE':
-                # Count how many leave days we've processed so far
-                leave_days_counted += 1.0
-                
-                if leave_days_counted <= prorated_leave_allowance:
-                    # Within allowance: don't count as available time
-                    pass
-                else:
-                    # Exceeded allowance: count as 8 hours available
-                    total_available_minutes += 480
-            
-            # Note: TEAM_OUTING, WEEK_OFF, HOLIDAY don't count as available time
-
-        total_worked_minutes = sum(dt['day_total'] for dt in daily_totals)
-
-        # Calculate efficiency (assignment + misc hours vs present/half days only)
-        efficiency_available_minutes = 0
-        total_misc_minutes = 0
-
-        for roster in roster_days:
-            if roster.status == 'PRESENT':
-                efficiency_available_minutes += 480  # 8 hours
-            elif roster.status == 'HALF_DAY':
-                efficiency_available_minutes += 240  # 4 hours
-
-            # Add misc hours to total work time for efficiency calculation
-            total_misc_minutes += roster.misc_hours
-
-        total_efficiency_work_minutes = total_worked_minutes + total_misc_minutes
-
-        # Calculate delivery performance
-        deliveries = ProjectDelivery.objects.filter(
-            project_incharge=team_member,
-            delivery_date__range=[start_date, end_date]
-        )
-
-        delivery_ratings = [
-            float(d.delivery_performance_rating)
-            for d in deliveries
-            if d.delivery_performance_rating
-        ]
-
-        # Calculate on-time delivery rate using database fields, not the property
-        # A delivery is on-time if actual_completion_date <= expected_completion_date
-        # Handle cases where expected_completion_date might be null
-        on_time_deliveries = deliveries.filter(
-            expected_completion_date__isnull=False
-        ).filter(
-            actual_completion_date__lte=F('expected_completion_date')
-        )
-        on_time_count = on_time_deliveries.count()
-        total_deliveries = deliveries.count()
-
-        return {
-            'period': f"{start_date} to {end_date}",
-            'productivity': {
-                'score': (total_projected / total_worked * 100) if total_worked > 0 else None,
-                'projected_hours': total_projected / 60,
-                'worked_hours': total_worked / 60,
-            },
-            'optimization': {
-                'score': ((total_projected - total_worked) / total_projected * 100) if total_projected > 0 else None,
-                'projected_hours': total_projected / 60,
-                'worked_hours': total_worked / 60,
-                'saved_hours': (total_projected - total_worked) / 60 if total_projected > 0 else 0,
-            },
-            'utilization': {
-                'score': (total_worked_minutes / total_available_minutes * 100) if total_available_minutes > 0 else None,
-                'worked_minutes': total_worked_minutes,
-                'available_minutes': total_available_minutes,
-            },
-            'efficiency': {
-                'score': (total_efficiency_work_minutes / efficiency_available_minutes * 100) if efficiency_available_minutes > 0 else None,
-                'total_work_minutes': total_efficiency_work_minutes,
-                'assignment_minutes': total_worked_minutes,
-                'misc_minutes': total_misc_minutes,
-                'available_minutes': efficiency_available_minutes,
-            },
-            'quality': {
-                'average_rating': sum(quality_ratings) / len(quality_ratings) if quality_ratings else None,
-                'total_assignments': len(completed_assignments),
-                'rated_assignments': len(quality_ratings),
-            },
-            'delivery': {
-                'average_rating': sum(delivery_ratings) / len(delivery_ratings) if delivery_ratings else None,
-                'total_projects': total_deliveries,
-                'on_time_rate': (on_time_count / total_deliveries * 100) if total_deliveries > 0 else None,
-                'on_time_count': on_time_count,
-            }
-        }
-
-    @staticmethod
-    def get_team_overview(start_date, end_date):
-        """
-        Get overview for all team members (much faster without stored metrics).
-        """
-        team_members = User.objects.filter(role='TEAM_MEMBER')
-        overview_data = []
-
-        for member in team_members:
-            metrics = ReportingService.get_team_member_metrics(member, start_date, end_date)
-            overview_data.append({
-                'team_member': member,
-                'metrics': metrics
-            })
-
-        # Sort by productivity
-        overview_data.sort(
-            key=lambda x: x['metrics']['productivity']['score'] or 0,
-            reverse=True
-        )
-
-        return overview_data
 
     @staticmethod
     def get_daily_summary(team_member, date):
@@ -3092,18 +2901,44 @@ class ReportingService:
 
         # Calculate efficiency (assignment + misc hours vs present/half days only)
         efficiency_available_minutes = 0
-        total_misc_minutes = 0
+        # Fixed monthly leave allowance for efficiency
+        EFFICIENCY_MONTHLY_LEAVE_ALLOWANCE = 2.5
+        
+        # Calculate prorated leave allowance based on date range
+        efficiency_prorated_leave_allowance = (EFFICIENCY_MONTHLY_LEAVE_ALLOWANCE / 30) * days_in_range
+        
+        # Track leave days taken as we process chronologically
+        efficiency_leave_days_counted = 0.0
 
         for roster in roster_days:
             if roster.status == 'PRESENT':
                 efficiency_available_minutes += 480  # 8 hours
             elif roster.status == 'HALF_DAY':
-                efficiency_available_minutes += 240  # 4 hours
+                # Count how many leave days we've processed so far
+                efficiency_leave_days_counted += 0.5
+                
+                if efficiency_leave_days_counted <= efficiency_prorated_leave_allowance:
+                    # Within allowance: count as 4 hours (actual half day)
+                    efficiency_available_minutes += 240
+                else:
+                    # Exceeded allowance: count as 8 hours (penalty like full day)
+                    efficiency_available_minutes += 480
+                    
+            elif roster.status == 'LEAVE':
+                # Count how many leave days we've processed so far
+                efficiency_leave_days_counted += 1.0
+                
+                if efficiency_leave_days_counted <= efficiency_prorated_leave_allowance:
+                    # Within allowance: don't count as available time
+                    pass
+                else:
+                    # Exceeded allowance: count as 8 hours available
+                    efficiency_available_minutes += 480
+            
+            # Note: TEAM_OUTING, WEEK_OFF, HOLIDAY don't count as available time
 
-            # Add misc hours to total work time for efficiency calculation
-            total_misc_minutes += roster.misc_hours
-
-        total_efficiency_work_minutes = total_worked_minutes + total_misc_minutes
+        # Efficiency calculation uses only assignment work minutes (excludes misc hours)
+        total_efficiency_work_minutes = total_worked_minutes
 
         # Calculate delivery performance
         deliveries = ProjectDelivery.objects.filter(
@@ -3150,7 +2985,7 @@ class ReportingService:
                 'score': (total_efficiency_work_minutes / efficiency_available_minutes * 100) if efficiency_available_minutes > 0 else None,
                 'total_work_minutes': total_efficiency_work_minutes,
                 'assignment_minutes': total_worked_minutes,
-                'misc_minutes': total_misc_minutes,
+                'misc_minutes': 0,  # Efficiency excludes misc hours
                 'available_minutes': efficiency_available_minutes,
             },
             'quality': {
