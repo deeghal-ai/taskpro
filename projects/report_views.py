@@ -505,14 +505,10 @@ def lol_report_export_excel(request):
     overview_start_row += 1
     
     # Overview data
+    red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")  # Light red for failing criteria
+    
     for data in report_data:
         member = data['team_member']
-        
-        # Color coding for eligibility
-        if data['is_eligible']:
-            row_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")  # Light green
-        else:
-            row_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")  # Light red
         
         overview_row_data = [
             f"{member.first_name} {member.last_name}",
@@ -527,7 +523,15 @@ def lol_report_export_excel(request):
         for col_idx, value in enumerate(overview_row_data):
             cell = ws.cell(row=overview_start_row, column=overview_col_start + col_idx, value=value)
             cell.border = border
-            cell.fill = row_fill
+            
+            # Apply red background only to cells that fail criteria
+            if col_idx == 1 and data['avg_utilization'] < 85:  # Utilization column
+                cell.fill = red_fill
+            elif col_idx == 2 and data['avg_productivity'] < 95:  # Productivity column
+                cell.fill = red_fill
+            elif col_idx == 3 and (data['avg_quality_rating'] is None or data['avg_quality_rating'] < 2.95):  # Quality rating column
+                cell.fill = red_fill
+            
             if col_idx > 0:  # Align data to center
                 cell.alignment = center_alignment
         
