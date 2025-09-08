@@ -287,6 +287,7 @@ def lol_report(request):
     context = {
         'team_members': team_members_with_selection,
         'selected_member_ids': selected_member_ids,
+        'selected_team_members': selected_team_members,
         'report_data': report_data,
         'start_date': start_date,
         'end_date': end_date,
