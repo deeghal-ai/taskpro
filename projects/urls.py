@@ -65,6 +65,7 @@ urlpatterns = [
     path('team-roster/daily/', views.team_member_daily_roster, name='team_member_daily_roster'),
     
     # Reporting URLs
+    path('reports/', report_views.reports_dashboard, name='reports_dashboard'),
     path('reports/my-report/', report_views.team_member_report, name='my_report'),
     path('reports/team-member/<uuid:team_member_id>/', report_views.team_member_report, name='team_member_report'),
     path('reports/team-overview/', report_views.team_overview_report, name='team_overview_report'),

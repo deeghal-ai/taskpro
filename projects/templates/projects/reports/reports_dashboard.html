@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Enhanced Visual Design System */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --transition-speed: 0.3s;
+    }
+
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .page-header h1 {
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 2rem;
+    }
+
+    .page-header .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    /* Enhanced Report Cards */
+    .report-card {
+        background: white;
+        border: none;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+        height: 100%;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .report-card:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+        transform: scaleX(0);
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .report-card:hover:before {
+        transform: scaleX(1);
+    }
+
+    .report-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        font-size: 1.75rem;
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .report-icon.team-overview {
+        background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+    }
+
+    .report-icon.delivery-performance {
+        background: linear-gradient(135deg, var(--success-color), #146c43);
+    }
+
+    .report-icon.lol-report {
+        background: linear-gradient(135deg, var(--warning-color), #cc9a06);
+    }
+
+    .report-icon.team-member {
+        background: linear-gradient(135deg, var(--info-color), #0aa2c0);
+    }
+
+    .report-icon.assignments-overview {
+        background: linear-gradient(135deg, #6f42c1, #5a2d91);
+    }
+
+    .report-card h4 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #2d3748;
+        font-size: 1.25rem;
+    }
+
+    .report-card p {
+        color: #64748b;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    .report-card .card-footer {
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: auto;
+    }
+
+    .report-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-color);
+        font-weight: 500;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .report-link:hover {
+        color: #0a58ca;
+        gap: 0.75rem;
+    }
+
+    /* Quick Stats Section */
+    .quick-stats {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .quick-stats h3 {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-speed) ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        text-transform: uppercase;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .report-card {
+            padding: 1.5rem;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-graph-up-arrow"></i>
+            Reports Dashboard
+        </h1>
+        <p class="subtitle">
+            Comprehensive analytics and performance insights for senior management
+        </p>
+    </div>
+
+    <!-- Quick Stats (Optional - can be populated with real data later) -->
+    <div class="quick-stats">
+        <h3>
+            <i class="bi bi-speedometer2"></i>
+            Quick Overview
+        </h3>
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-item">
+                    <div class="stat-value text-primary">{{ total_team_members|default:"--" }}</div>
+                    <div class="stat-label">Team Members</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-item">
+                    <div class="stat-value text-success">{{ active_projects|default:"--" }}</div>
+                    <div class="stat-label">Active Projects</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-item">
+                    <div class="stat-value text-info">{{ avg_productivity|default:"--" }}%</div>
+                    <div class="stat-label">Avg Productivity</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-item">
+                    <div class="stat-value text-warning">{{ deliveries_this_month|default:"--" }}</div>
+                    <div class="stat-label">This Month Deliveries</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Grid -->
+    <div class="row">
+        <!-- Team Overview Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:team_overview_report' %}" class="report-card">
+                <div class="report-icon team-overview">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h4>Team Performance Overview</h4>
+                <p>
+                    Get a comprehensive view of your entire team's productivity, efficiency, and quality metrics. 
+                    Compare performance across all team members and identify top performers.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Delivery Performance Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:delivery_performance_report' %}" class="report-card">
+                <div class="report-icon delivery-performance">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <h4>Delivery Performance</h4>
+                <p>
+                    Track delivery timelines, quality ratings, and on-time completion rates. 
+                    Monitor project delivery performance and identify areas for improvement.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- LoL Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:lol_report' %}" class="report-card">
+                <div class="report-icon lol-report">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <h4>LoL Report</h4>
+                <p>
+                    Detailed line-of-learning analytics with customizable team member selection and date ranges. 
+                    Perfect for comprehensive performance analysis and strategic planning.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Assignments Overview -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:dpm_assignments_overview' %}" class="report-card">
+                <div class="report-icon assignments-overview">
+                    <i class="bi bi-list-task"></i>
+                </div>
+                <h4>Assignments Overview</h4>
+                <p>
+                    Monitor all task assignments across projects with filtering and search capabilities. 
+                    View detailed timesheets, progress tracking, and assignment statuses.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Assignments <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enhanced animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fade in report cards
+        const cards = document.querySelectorAll('.report-card, .stat-item');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

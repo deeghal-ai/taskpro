@@ -33,6 +33,8 @@ def home_redirect(request):
                 return redirect('/projects/tasks/my-assignments/')  # Direct URL
             elif request.user.role == 'VIDEO_PM':
                 return redirect('/video-production/')  # Direct URL for video production
+            elif request.user.role == 'SENIOR_MANAGER':
+                return redirect('/projects/reports/')  # Direct URL to reports dashboard
         return redirect('/projects/')  # Default for authenticated users
     return redirect('/accounts/login/')  # Direct URL for unauthenticated
 

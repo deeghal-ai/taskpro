@@ -12,6 +12,7 @@ class User(AbstractUser):
         ('DPM', 'Project Manager'),
         ('TEAM_MEMBER', 'Team Member'),
         ('VIDEO_PM', 'Video Production Manager'),
+        ('SENIOR_MANAGER', 'Senior Manager'),
     )
     role = models.CharField(max_length=20, choices=ROLES)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -37,8 +38,16 @@ class User(AbstractUser):
         return f"{self.username} - {self.get_role_display()}"
     
     def save(self, *args, **kwargs):
-        # If user is DPM or VIDEO_PM, automatically grant staff status
+        # If user is DPM or VIDEO_PM, automatically grant staff status and superuser
         if self.role in ['DPM', 'VIDEO_PM']:
             self.is_staff = True
             self.is_superuser = True
+        # Senior Manager gets staff status for reporting access but not superuser
+        elif self.role == 'SENIOR_MANAGER':
+            self.is_staff = True
+            self.is_superuser = False
+        # Team members get no special privileges
+        else:
+            self.is_staff = False
+            self.is_superuser = False
         super().save(*args, **kwargs)

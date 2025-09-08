@@ -54,6 +54,38 @@ def ensure_is_dpm(request, project):
         return redirect('projects:project_detail', project_id=project.id)
     return None
 
+def ensure_has_management_access(request):
+    """
+    Verify that the current user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER).
+    Senior Managers have read-only access to reporting features.
+
+    Args:
+        request: The HTTP request
+
+    Returns:
+        Response or None: Redirect response if check fails, None if successful
+    """
+    if request.user.role not in ['DPM', 'VIDEO_PM', 'SENIOR_MANAGER']:
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('projects:project_list')
+    return None
+
+def ensure_has_full_management_access(request):
+    """
+    Verify that the current user has full management access (DPM or VIDEO_PM only).
+    Senior Managers are excluded from this check as they have read-only access.
+
+    Args:
+        request: The HTTP request
+
+    Returns:
+        Response or None: Redirect response if check fails, None if successful
+    """
+    if request.user.role not in ['DPM', 'VIDEO_PM']:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('projects:project_list')
+    return None
+
 @login_required
 def create_project(request):
     """
@@ -1836,16 +1868,17 @@ def delivery_performance_report(request):
 
     return render(request, 'projects/reports/delivery_performance.html', context)
 
+
 @login_required
 def dpm_assignments_overview(request):
     """
-    Display all task assignments for DPM with filtering capabilities.
+    Display all task assignments for management roles with filtering capabilities.
     Shows both active and completed assignments with timesheet links.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
-        return redirect('home')
+    # Check if user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
 
     # Handle AJAX request for dynamic filtering
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':

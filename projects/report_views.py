@@ -9,16 +9,40 @@ from datetime import date, timedelta
 import json
 from django.shortcuts import render, redirect
 from django.shortcuts import render, get_object_or_404, redirect  # Add redirect
+from django.contrib import messages
+
+# Import permission helpers from views
+def ensure_has_management_access(request):
+    """Check if user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER)"""
+    if request.user.role not in ['DPM', 'VIDEO_PM', 'SENIOR_MANAGER']:
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('projects:project_list')
+    return None
+
+def ensure_has_full_management_access(request):
+    """Check if user has full management access (DPM or VIDEO_PM only)"""
+    if request.user.role not in ['DPM', 'VIDEO_PM']:
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('projects:project_list')
+    return None
 
 
 @login_required
 def team_member_report(request, team_member_id=None):
     """View for team member productivity report - now using on-demand calculations"""
-    # Default to current user if team member
-    if not team_member_id and request.user.role == 'TEAM_MEMBER':
+    # Check permissions - allow TEAM_MEMBER to view own report, or management roles to view any
+    if team_member_id:
+        # Viewing another user's report - requires management access
+        redirect_response = ensure_has_management_access(request)
+        if redirect_response:
+            return redirect_response
+        team_member = get_object_or_404(User, id=team_member_id)
+    elif request.user.role == 'TEAM_MEMBER':
+        # Team member viewing own report
         team_member = request.user
     else:
-        team_member = get_object_or_404(User, id=team_member_id)
+        # Management user without specific team_member_id - redirect to team overview
+        return redirect('projects:team_overview_report')
     
     # Get date range from request or default to last 30 days
     end_date = request.GET.get('end_date', date.today())
@@ -72,9 +96,11 @@ def team_member_report(request, team_member_id=None):
 
 @login_required
 def team_overview_report(request):
-    """Overview report for all team members (DPM view) - now using on-demand calculations"""
-    if request.user.role != 'DPM':
-        return redirect('projects:team_member_report')
+    """Overview report for all team members (Management view) - now using on-demand calculations"""
+    # Check if user has management access (includes Senior Managers)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
     
     # Get date range
     end_date = request.GET.get('end_date', date.today())
@@ -134,8 +160,10 @@ def team_overview_report(request):
 @login_required
 def delivery_performance_report(request):
     """Delivery performance report for project incharges - simplified"""
-    if request.user.role != 'DPM':
-        return redirect('home')
+    # Check if user has management access (includes Senior Managers)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
     
     # Get date range
     end_date = request.GET.get('end_date', date.today())
@@ -205,9 +233,10 @@ def delivery_performance_report(request):
 @login_required
 def lol_report(request):
     """LoL report with date range filter and team member selection"""
-    # Check if user is DPM
-    if request.user.role != 'DPM':
-        return redirect('projects:team_overview_report')
+    # Check if user has management access (includes Senior Managers)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
     
     # Initialize form data
     selected_team_members = []
@@ -264,3 +293,40 @@ def lol_report(request):
     }
     
     return render(request, 'projects/reports/lol_report.html', context)
+
+@login_required
+def reports_dashboard(request):
+    """Reports dashboard for Senior Managers and management roles"""
+    # Check if user has management access (includes Senior Managers)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
+    
+    # Get some quick stats for the dashboard (optional)
+    from accounts.models import User
+    from .models import Project, ProjectDelivery
+    from datetime import date, timedelta
+    
+    # Calculate some basic stats
+    total_team_members = User.objects.filter(role='TEAM_MEMBER').count()
+    
+    # Active projects (those not in 'Final Delivery' status)
+    active_projects = Project.objects.exclude(
+        current_status__category_two='Final Delivery'
+    ).count()
+    
+    # This month's deliveries
+    current_month_start = date.today().replace(day=1)
+    deliveries_this_month = ProjectDelivery.objects.filter(
+        delivery_date__gte=current_month_start
+    ).count()
+    
+    # You can add more complex calculations here later
+    context = {
+        'total_team_members': total_team_members,
+        'active_projects': active_projects,
+        'deliveries_this_month': deliveries_this_month,
+        'title': 'Reports Dashboard'
+    }
+    
+    return render(request, 'projects/reports/reports_dashboard.html', context)
