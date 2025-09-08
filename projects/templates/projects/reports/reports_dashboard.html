@@ -255,7 +255,7 @@
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="stat-item">
-                    <div class="stat-value text-info">{{ avg_productivity|default:"--" }}%</div>
+                    <div class="stat-value text-info">{{ avg_productivity|floatformat:1|default:"--" }}%</div>
                     <div class="stat-label">Avg Productivity</div>
                 </div>
             </div>
