@@ -2050,10 +2050,10 @@ def assignment_graph_view(request):
     Display assignment workload graph showing projected hours allocated to each team member.
     Shows graphical representation of active assignment workload distribution.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
-        return redirect('home')
+    # Check if user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
 
     # Handle AJAX request for dynamic filtering (same as overview)
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
