@@ -208,6 +208,10 @@ td[data-bs-toggle="tooltip"]:hover {
                 <button class="btn btn-sm btn-outline-primary" onclick="exportTableToCSV('lol_report.csv')">
                     <i class="bi bi-download"></i> Export to CSV
                 </button>
+                <a href="{% url 'projects:lol_report_export_excel' %}?{% for member in selected_team_members %}team_members={{ member.id }}&{% endfor %}start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" 
+                   class="btn btn-sm btn-success ms-2">
+                    <i class="bi bi-file-earmark-excel"></i> Export Enhanced Excel
+                </a>
             </div>
             
             <!-- Legend -->

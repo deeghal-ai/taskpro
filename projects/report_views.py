@@ -1,15 +1,17 @@
 # projects/report_views.py
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Sum, Count, Q
-from accounts.models import User
-from .models import ProjectDelivery
-from .services import ReportingService
-from datetime import date, timedelta
-import json
 from django.shortcuts import render, redirect
-from django.shortcuts import render, get_object_or_404, redirect  # Add redirect
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse, HttpResponse
+from datetime import date, timedelta
+from accounts.models import User
+from .services import ReportingService
+from .views import ensure_has_management_access
+from .models import Project, ProjectDelivery, TaskAssignment
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+import json
 
 # Import permission helpers from views
 def ensure_has_management_access(request):
@@ -348,3 +350,214 @@ def reports_dashboard(request):
     }
     
     return render(request, 'projects/reports/reports_dashboard.html', context)
+
+
+@login_required
+def lol_report_export_excel(request):
+    """Enhanced LoL report Excel export with raw metrics and final overview"""
+    # Check if user has management access
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
+    
+    # Get parameters from request
+    end_date = request.GET.get('end_date', date.today())
+    if isinstance(end_date, str):
+        end_date = date.fromisoformat(end_date)
+    
+    start_date = request.GET.get('start_date', end_date - timedelta(days=30))
+    if isinstance(start_date, str):
+        start_date = date.fromisoformat(start_date)
+    
+    selected_member_ids = request.GET.getlist('team_members')
+    if not selected_member_ids:
+        messages.error(request, "No team members selected for export.")
+        return redirect('projects:lol_report')
+    
+    # Get selected team members and report data
+    selected_team_members = User.objects.filter(
+        id__in=selected_member_ids,
+        role='TEAM_MEMBER'
+    )
+    
+    report_data = ReportingService.get_lol_report_data(
+        selected_team_members,
+        start_date,
+        end_date
+    )
+    
+    # Create Excel workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "LoL Report"
+    
+    # Define styles
+    header_font = Font(bold=True, size=12, color="FFFFFF")
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    subheader_font = Font(bold=True, size=11)
+    subheader_fill = PatternFill(start_color="D9E2F3", end_color="D9E2F3", fill_type="solid")
+    center_alignment = Alignment(horizontal="center", vertical="center")
+    border = Border(
+        left=Side(border_style="thin"),
+        right=Side(border_style="thin"),
+        top=Side(border_style="thin"),
+        bottom=Side(border_style="thin")
+    )
+    
+    # Set column widths
+    ws.column_dimensions['A'].width = 20  # Name
+    ws.column_dimensions['B'].width = 12  # Utilization
+    ws.column_dimensions['C'].width = 12  # Productivity  
+    ws.column_dimensions['D'].width = 15  # Quality Rating
+    ws.column_dimensions['E'].width = 12  # Worked Hours
+    ws.column_dimensions['F'].width = 12  # Available Hours
+    ws.column_dimensions['G'].width = 12  # Projected Hours
+    ws.column_dimensions['H'].width = 15  # Individual Ratings
+    
+    # Overview table columns (starting from column J)
+    ws.column_dimensions['J'].width = 20  # Name
+    ws.column_dimensions['K'].width = 15  # Project Utilization
+    ws.column_dimensions['L'].width = 15  # Productivity
+    ws.column_dimensions['M'].width = 15  # Quality Score
+    ws.column_dimensions['N'].width = 12  # Quality in %
+    ws.column_dimensions['O'].width = 12  # % Total
+    ws.column_dimensions['P'].width = 15  # Eligibility Status
+    
+    # RAW METRICS SECTION (Left side)
+    current_row = 1
+    
+    # Main header for raw metrics
+    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws[f'A{current_row}'] = "RAW INDIVIDUAL METRICS"
+    ws[f'A{current_row}'].font = Font(bold=True, size=14)
+    ws[f'A{current_row}'].alignment = center_alignment
+    ws[f'A{current_row}'].fill = PatternFill(start_color="FFD966", end_color="FFD966", fill_type="solid")
+    current_row += 2
+    
+    # Raw metrics headers
+    raw_headers = [
+        "Name", "Utilization %", "Productivity %", "Avg Quality Rating", 
+        "Worked Hours", "Available Hours", "Projected Hours", "Individual Quality Ratings"
+    ]
+    
+    for col_idx, header in enumerate(raw_headers, 1):
+        cell = ws.cell(row=current_row, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_alignment
+        cell.border = border
+    
+    current_row += 1
+    
+    # Raw metrics data
+    for data in report_data:
+        member = data['team_member']
+        
+        # Get individual quality ratings as comma-separated string
+        individual_ratings = ", ".join([f"{rating:.2f}" for rating in data['quality_ratings_list']]) or "No ratings"
+        
+        row_data = [
+            f"{member.first_name} {member.last_name}",
+            f"{data['avg_utilization']:.2f}%",
+            f"{data['avg_productivity']:.2f}%",
+            f"{data['avg_quality_rating']:.2f}" if data['avg_quality_rating'] else "N/A",
+            f"{data['utilization_details']['worked_hours']:.1f}",
+            f"{data['utilization_details']['available_hours']:.1f}",
+            f"{data['productivity_details']['projected_hours']:.1f}",
+            individual_ratings
+        ]
+        
+        for col_idx, value in enumerate(row_data, 1):
+            cell = ws.cell(row=current_row, column=col_idx, value=value)
+            cell.border = border
+            if col_idx > 1:  # Align numbers to center
+                cell.alignment = center_alignment
+        
+        current_row += 1
+    
+    # FINAL OVERVIEW SECTION (Right side)
+    overview_start_row = 1
+    overview_col_start = 10  # Column J
+    
+    # Main header for overview
+    ws.merge_cells(f'J{overview_start_row}:P{overview_start_row}')
+    ws[f'J{overview_start_row}'] = "FINAL OVERVIEW TABLE"
+    ws[f'J{overview_start_row}'].font = Font(bold=True, size=14)
+    ws[f'J{overview_start_row}'].alignment = center_alignment
+    ws[f'J{overview_start_row}'].fill = PatternFill(start_color="70AD47", end_color="70AD47", fill_type="solid")
+    overview_start_row += 2
+    
+    # Overview headers
+    overview_headers = [
+        "Name", "Project Utilization - 40% Weightage", "Productivity - 30% Weightage", 
+        "Quality Score - 30% Weightage (< number of less mistakes )", "Quality Score in %", 
+        "% Total", "Eligibility Status"
+    ]
+    
+    for col_idx, header in enumerate(overview_headers):
+        cell = ws.cell(row=overview_start_row, column=overview_col_start + col_idx, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_alignment
+        cell.border = border
+    
+    overview_start_row += 1
+    
+    # Overview data
+    for data in report_data:
+        member = data['team_member']
+        
+        # Color coding for eligibility
+        if data['is_eligible']:
+            row_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")  # Light green
+        else:
+            row_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")  # Light red
+        
+        overview_row_data = [
+            f"{member.first_name} {member.last_name}",
+            f"{data['avg_utilization']:.2f}%",
+            f"{data['avg_productivity']:.2f}%",
+            f"{data['avg_quality_rating']:.2f}" if data['avg_quality_rating'] else "N/A",
+            f"{data['quality_score']:.2f}%",
+            f"{data['total_percentage']:.2f}%",
+            data['eligibility_status']
+        ]
+        
+        for col_idx, value in enumerate(overview_row_data):
+            cell = ws.cell(row=overview_start_row, column=overview_col_start + col_idx, value=value)
+            cell.border = border
+            cell.fill = row_fill
+            if col_idx > 0:  # Align data to center
+                cell.alignment = center_alignment
+        
+        overview_start_row += 1
+    
+    # Add legend/criteria at the bottom
+    legend_row = max(current_row + 3, overview_start_row + 3)
+    
+    ws.merge_cells(f'A{legend_row}:P{legend_row}')
+    ws[f'A{legend_row}'] = "ELIGIBILITY CRITERIA"
+    ws[f'A{legend_row}'].font = Font(bold=True, size=12)
+    ws[f'A{legend_row}'].alignment = center_alignment
+    legend_row += 1
+    
+    criteria_text = [
+        "• Utilization: Must be ≥ 85%",
+        "• Productivity: Must be ≥ 95%", 
+        "• Quality Rating: Must be ≥ 2.95"
+    ]
+    
+    for criterion in criteria_text:
+        ws[f'A{legend_row}'] = criterion
+        ws[f'A{legend_row}'].font = Font(bold=True)
+        legend_row += 1
+    
+    # Create response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"lol_report_{start_date}_{end_date}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
