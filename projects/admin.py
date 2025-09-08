@@ -42,6 +42,7 @@ class ProjectStatusOptionAdmin(admin.ModelAdmin):
         'name',           
         'category_one',   
         'category_two',   
+        'bucket',
         'is_active',      
         'created_at'      
     )
@@ -59,13 +60,15 @@ class ProjectStatusOptionAdmin(admin.ModelAdmin):
         'is_active',
         'category_one',   
         'category_two',   
+        'bucket',
         'created_at'
     )
     
     search_fields = (
         'name',
         'category_one',
-        'category_two'
+        'category_two',
+        'bucket'
     )
     
     ordering = ['order', 'name']
@@ -83,7 +86,8 @@ class ProjectStatusOptionAdmin(admin.ModelAdmin):
         ('Categories', {
             'fields': (
                 'category_one',
-                'category_two'
+                'category_two',
+                'bucket'
             )
         }),
         ('System Information', {
