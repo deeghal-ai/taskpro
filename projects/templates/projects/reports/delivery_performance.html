@@ -119,17 +119,17 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if data.recent_projects %}
+                                    {% if data.recent_deliveries %}
                                         <div class="recent-projects">
-                                            {% for project in data.recent_projects|slice:":3" %}
+                                            {% for delivery in data.recent_deliveries|slice:":3" %}
                                                 <div class="project-item mb-1">
-                                                    <small class="text-primary fw-semibold">{{ project.name }}</small>
+                                                    <small class="text-primary fw-semibold">{{ delivery.project.project_name }}</small>
                                                     <br>
-                                                    <small class="text-muted">{{ project.status }}</small>
+                                                    <small class="text-muted">{{ delivery.delivery_date|date:"M d, Y" }}</small>
                                                 </div>
                                             {% endfor %}
-                                            {% if data.recent_projects|length > 3 %}
-                                                <small class="text-muted">+{{ data.recent_projects|length|add:"-3" }} more...</small>
+                                            {% if data.recent_deliveries|length > 3 %}
+                                                <small class="text-muted">+{{ data.recent_deliveries|length|add:"-3" }} more...</small>
                                             {% endif %}
                                         </div>
                                     {% else %}
