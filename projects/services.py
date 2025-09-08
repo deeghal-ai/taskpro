@@ -2918,20 +2918,92 @@ class ProjectService:
     @staticmethod
     def _calculate_bucket_based_tat(project, project_start_date):
         """
-        Future implementation for bucket-based TAT calculation.
-        This will count only days spent in specific status buckets.
+        Bucket-based TAT calculation for 'Dependent Product' projects.
+        Calculates TAT based only on days spent in statuses with bucket='Internal'.
+        
+        Args:
+            project: Project instance with prefetched status_history
+            project_start_date: Date when project reached "Project Start Date" status
+            
+        Returns:
+            dict: TAT calculation result
         """
-        # TODO: Implement bucket-based calculation
-        # This is where we'll add logic to:
-        # 1. Get all status history entries after project start
-        # 2. Filter by bucket types that count towards TAT
-        # 3. Calculate total days spent in those buckets
-        # 4. Compare against expected TAT
-        
-        logger.info(f"Bucket-based TAT calculation not yet implemented for {project.hs_id}")
-        
-        # For now, fall back to standard calculation
-        return ProjectService._calculate_standard_tat(project, project_start_date)
+        try:
+            # Get all status history entries after project start date
+            if hasattr(project, '_prefetched_objects_cache') and 'status_history' in project._prefetched_objects_cache:
+                # Use prefetched data
+                status_entries = [
+                    entry for entry in project.status_history.all()
+                    if entry.changed_at.date() >= project_start_date
+                ]
+            else:
+                # Query database if not prefetched
+                status_entries = project.status_history.filter(
+                    changed_at__date__gte=project_start_date
+                ).select_related('status').order_by('changed_at')
+            
+            if not status_entries:
+                return {
+                    'days': 0,
+                    'status': 'Within TAT (0 days)',
+                    'is_beyond_tat': False,
+                    'project_start_date': project_start_date,
+                    'calculation_method': 'bucket_based_no_history'
+                }
+            
+            # Calculate days spent in 'Internal' bucket statuses
+            total_internal_days = 0
+            current_date = timezone.now().date()
+            
+            # Sort entries by date
+            sorted_entries = sorted(status_entries, key=lambda x: x.changed_at)
+            
+            for i, entry in enumerate(sorted_entries):
+                # Check if this status has 'Internal' bucket
+                if entry.status.bucket == 'Internal':
+                    # Calculate days in this status
+                    entry_start_date = entry.changed_at.date()
+                    
+                    # Determine end date for this status
+                    if i + 1 < len(sorted_entries):
+                        # Next status exists - use its start date as end date
+                        entry_end_date = sorted_entries[i + 1].changed_at.date()
+                    else:
+                        # This is the current/last status
+                        if project.is_delivered and project.delivery_date:
+                            entry_end_date = project.delivery_date.date()
+                        else:
+                            entry_end_date = current_date
+                    
+                    # Add days spent in this Internal status
+                    days_in_status = (entry_end_date - entry_start_date).days
+                    total_internal_days += max(0, days_in_status)  # Ensure non-negative
+            
+            # Determine TAT status
+            is_beyond_tat = total_internal_days > project.expected_tat
+            if is_beyond_tat:
+                status = f"Beyond TAT ({total_internal_days} days)"
+            else:
+                status = f"Within TAT ({total_internal_days} days)"
+            
+            # Determine calculation method based on project state
+            if project.is_delivered:
+                calculation_method = 'bucket_based_delivered'
+            else:
+                calculation_method = 'bucket_based_pipeline'
+            
+            return {
+                'days': total_internal_days,
+                'status': status,
+                'is_beyond_tat': is_beyond_tat,
+                'project_start_date': project_start_date,
+                'calculation_method': calculation_method
+            }
+            
+        except Exception as e:
+            logger.warning(f"Error in bucket-based TAT calculation for {project.hs_id}: {str(e)}")
+            # Fall back to standard calculation on error
+            return ProjectService._calculate_standard_tat(project, project_start_date)
     
     @staticmethod
     def get_projects_with_tat_data(projects_queryset):
