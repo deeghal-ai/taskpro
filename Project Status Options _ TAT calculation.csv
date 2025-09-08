@@ -1,0 +1,99 @@
+Name,Bucket,Category One,Category Two
+Sales Confirmation,Client,Awaiting Data,Not Started
+Partial Data Received,Client,Awaiting Data,Not Started
+Final Data Received,Client,Work In Progress,Pipeline
+Project Start Date,Internal,Work In Progress,Pipeline
+1st Cut Delivery,Client,1st Cut Delivered,Pipeline
+1st Rework Received,Client,Rework,Pipeline
+1st Rework Approval/Clarification,Client,Rework,Pipeline
+1st Rework Start,Internal,Rework,Pipeline
+1st Rework End,Client,"Rework Done, ACC",Pipeline
+2nd Rework Received,Client,Rework,Pipeline
+2nd Rework Approval/Clarification,Client,Rework,Pipeline
+2nd Rework Start,Internal,Rework,Pipeline
+2nd Rework End,Client,"Rework Done, ACC",Pipeline
+Final Delivery,Client,Final Delivery,Final Delivery
+Deemed Consumed,Client,Deemed Consumed,Final Delivery
+Hibernate,Client,Work In Progress,Pipeline
+Nth Delivery,Client,Work In Progress,Pipeline
+Nth Confirmation,Internal,Work In Progress,Pipeline
+3nd Rework Received,Client,Rework,Pipeline
+3rd Rework Approval/Clarification,Client,Rework,Pipeline
+3rd Rework Start,Internal,Rework,Pipeline
+3rd Rework End,Client,"Rework Done, ACC",Pipeline
+4th Rework Received,Client,Rework,Pipeline
+4th Rework Approval/Clarification,Client,Rework,Pipeline
+4th Rework Start,Internal,Rework,Pipeline
+4th Rework End,Client,"Rework Done, ACC",Pipeline
+5th Rework Received,Client,Rework,Pipeline
+5th Rework Approval/Clarification,Client,Rework,Pipeline
+5th Rework Start,Internal,Rework,Pipeline
+5th Rework End,Client,"Rework Done, ACC",Pipeline
+Exterior changes done,Client,"Rework Done, ACC",Pipeline
+L_P Conversion Start,Internal,Work In Progress,Pipeline
+L_P Conversion End,Client,Work In Progress,Pipeline
+L_P Approval,Internal,Work In Progress,Pipeline
+Photoshoot End,Internal,Work In Progress,Pipeline
+Photoshoot Start,Internal,Work In Progress,Pipeline
+Playblast Delivery,Client,Work In Progress,Pipeline
+1st Playblast Rework Received,Client,Rework,Pipeline
+1st Playblast Rework Clarification,Client,Rework,Pipeline
+1st Playblast Rework Start,Internal,Rework,Pipeline
+1st Playblast Rework End,Client,"Rework Done, ACC",Pipeline
+2nd Playblast Rework Received,Client,Rework,Pipeline
+2nd Playblast Rework Clarification,Client,Rework,Pipeline
+2nd Playblast Rework Start,Internal,Rework,Pipeline
+2nd Playblast Rework End,Client,"Rework Done, ACC",Pipeline
+3rd Playblast Rework Received,Client,Rework,Pipeline
+3rd Playblast Rework Clarification,Client,Rework,Pipeline
+3rd Playblast Rework Start,Internal,Rework,Pipeline
+3rd Playblast Rework End,Client,"Rework Done, ACC",Pipeline
+Playblast Confirmation,Internal,Work In Progress,Pipeline
+Render View Delivery,Client,Work In Progress,Pipeline
+Confirmation for Final Delivery,Internal,Work In Progress,Pipeline
+Final Delivery with Watermark,Client,Work In Progress,Pipeline
+1st Nth Rework Received,Client,Rework,Pipeline
+1st Nth Rework Approval/Clarification,Client,Rework,Pipeline
+1st Nth Rework Start,Internal,Rework,Pipeline
+1st Nth Rework End,Client,"Rework Done, ACC",Pipeline
+2nd Nth Rework Received,Client,Rework,Pipeline
+2nd Nth Rework Approval/Clarification,Client,Rework,Pipeline
+2nd Nth Rework Start,Internal,Rework,Pipeline
+2nd Nth Rework End,Client,"Rework Done, ACC",Pipeline
+3rd Nth Rework Received,Client,Rework,Pipeline
+3rd Nth Rework Approval/Clarification,Client,Rework,Pipeline
+3rd Nth Rework Start,Internal,Rework,Pipeline
+3rd Nth Rework End,Client,"Rework Done, ACC",Pipeline
+Tower Modeling Start,Internal,Work In Progress,Pipeline
+Tower Modeling End,Client,Work In Progress,Pipeline
+Tower Modeling Confirmation,Internal,Work In Progress,Pipeline
+1st Tower Modeling Rework Received,Client,Rework,Pipeline
+1st Tower Modeling Rework Approval/Clarification,Client,Rework,Pipeline
+1st Tower Modeling Rework Start,Internal,Rework,Pipeline
+1st Tower Modeling Rework End,Client,"Rework Done, ACC",Pipeline
+1st Tower Modeling Rework Confirmation,Internal,Rework,Pipeline
+2nd Tower Modeling Rework Received,Client,Rework,Pipeline
+2nd Tower Modeling Rework Approval/Clarification,Client,Rework,Pipeline
+2nd Tower Modeling Rework Start,Internal,Rework,Pipeline
+2nd Tower Modeling Rework End,Client,"Rework Done, ACC",Pipeline
+2nd Tower Modeling Rework Confirmation,Internal,Rework,Pipeline
+3rd Tower Modeling Rework Received,Client,Rework,Pipeline
+3rd Tower Modeling Rework Approval/Clarification,Client,Rework,Pipeline
+3rd Tower Modeling Rework Start,Internal,Rework,Pipeline
+3rd Tower Modeling Rework End,Client,"Rework Done, ACC",Pipeline
+3rd Tower Modeling Rework Confirmation,Internal,Rework,Pipeline
+4th Tower Modeling Rework Received,Client,Rework,Pipeline
+4th Tower Modeling Rework Approval/Clarification,Client,Rework,Pipeline
+4th Tower Modeling Rework Start,Internal,Rework,Pipeline
+4th Tower Modeling Rework End,Client,"Rework Done, ACC",Pipeline
+4th Tower Modeling Rework Confirmation,Internal,Rework,Pipeline
+5th Tower Modeling Rework Received,Client,Rework,Pipeline
+5th Tower Modeling Rework Approval/Clarification,Client,Rework,Pipeline
+5th Tower Modeling Rework Start,Internal,Rework,Pipeline
+5th Tower Modeling Rework End,Client,"Rework Done, ACC",Pipeline
+5th Tower Modeling Rework Confirmation,Internal,Rework,Pipeline
+Interior/Amenties,Client,Work in Progress,Pipeline
+Purchase Date,Client,Awaiting Data,Not Started
+On Hold,Client,On Hold,On Hold
+Opp Dropped,Client,Opp Dropped,Final Delivery
+Approval after Deemed Consume,Client,Work In Progress,Pipeline

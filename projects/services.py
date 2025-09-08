@@ -2929,15 +2929,15 @@ class ProjectService:
             dict: TAT calculation result
         """
         try:
-            # Get all status history entries after project start date
+            # Get all status history entries from project start date onwards (including Project Start Date)
             if hasattr(project, '_prefetched_objects_cache') and 'status_history' in project._prefetched_objects_cache:
-                # Use prefetched data
+                # Use prefetched data - include Project Start Date status and all after it
                 status_entries = [
                     entry for entry in project.status_history.all()
                     if entry.changed_at.date() >= project_start_date
                 ]
             else:
-                # Query database if not prefetched
+                # Query database if not prefetched - include Project Start Date status and all after it
                 status_entries = project.status_history.filter(
                     changed_at__date__gte=project_start_date
                 ).select_related('status').order_by('changed_at')
