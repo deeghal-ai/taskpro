@@ -2804,6 +2804,199 @@ class ProjectService:
 
         return delivery
 
+    @staticmethod
+    def calculate_tat_status(project):
+        """
+        Calculate TAT status for a project with future extensibility for complex rules.
+        
+        Args:
+            project: Project instance (should be prefetched with status_history and current_status)
+            
+        Returns:
+            dict: {
+                'days': int,
+                'status': str,  # "Within TAT (15 days)" or "Beyond TAT (25 days)"
+                'is_beyond_tat': bool,
+                'project_start_date': date or None,
+                'calculation_method': str  # For debugging/audit
+            }
+        """
+        try:
+            # Get project start date from status history
+            project_start_date = ProjectService._get_project_start_date(project)
+            
+            # Handle projects that haven't reached Project Start Date
+            if not project_start_date:
+                return {
+                    'days': 0,
+                    'status': 'Within TAT (0 days)',
+                    'is_beyond_tat': False,
+                    'project_start_date': None,
+                    'calculation_method': 'no_start_date'
+                }
+            
+            # Determine calculation method based on product subcategory
+            if (project.product_subcategory and 
+                project.product_subcategory.name == 'Dependent Product'):
+                # Future implementation for bucket-based calculation
+                return ProjectService._calculate_bucket_based_tat(project, project_start_date)
+            else:
+                # Standard calculation: end_date - start_date
+                return ProjectService._calculate_standard_tat(project, project_start_date)
+                
+        except Exception as e:
+            logger.exception(f"Error calculating TAT for project {project.hs_id}: {str(e)}")
+            return {
+                'days': 0,
+                'status': 'Error calculating TAT',
+                'is_beyond_tat': False,
+                'project_start_date': None,
+                'calculation_method': 'error'
+            }
+    
+    @staticmethod
+    def _get_project_start_date(project):
+        """Get the date when project reached 'Project Start Date' status."""
+        try:
+            # Use prefetched data if available, otherwise query
+            if hasattr(project, '_prefetched_objects_cache') and 'status_history' in project._prefetched_objects_cache:
+                # Use prefetched data
+                for history in project.status_history.all():
+                    if history.status.name.lower() == 'project start date':
+                        return history.changed_at.date()
+                return None
+            else:
+                # Query database
+                history_entry = project.status_history.filter(
+                    status__name__iexact='Project Start Date'
+                ).order_by('changed_at').first()
+                return history_entry.changed_at.date() if history_entry else None
+        except Exception as e:
+            logger.warning(f"Error getting project start date for {project.hs_id}: {str(e)}")
+            return None
+    
+    @staticmethod
+    def _calculate_standard_tat(project, project_start_date):
+        """Standard TAT calculation: end_date - start_date."""
+        try:
+            # Determine end date based on delivery status
+            if project.is_delivered and project.delivery_date:
+                end_date = project.delivery_date.date()
+                calculation_method = 'delivered'
+            else:
+                end_date = timezone.now().date()
+                calculation_method = 'pipeline'
+            
+            # Calculate days
+            tat_days = (end_date - project_start_date).days
+            
+            # Determine status
+            is_beyond_tat = tat_days > project.expected_tat
+            if is_beyond_tat:
+                status = f"Beyond TAT ({tat_days} days)"
+            else:
+                status = f"Within TAT ({tat_days} days)"
+            
+            return {
+                'days': tat_days,
+                'status': status,
+                'is_beyond_tat': is_beyond_tat,
+                'project_start_date': project_start_date,
+                'calculation_method': calculation_method
+            }
+            
+        except Exception as e:
+            logger.warning(f"Error in standard TAT calculation for {project.hs_id}: {str(e)}")
+            return {
+                'days': 0,
+                'status': 'Error in calculation',
+                'is_beyond_tat': False,
+                'project_start_date': project_start_date,
+                'calculation_method': 'error'
+            }
+    
+    @staticmethod
+    def _calculate_bucket_based_tat(project, project_start_date):
+        """
+        Future implementation for bucket-based TAT calculation.
+        This will count only days spent in specific status buckets.
+        """
+        # TODO: Implement bucket-based calculation
+        # This is where we'll add logic to:
+        # 1. Get all status history entries after project start
+        # 2. Filter by bucket types that count towards TAT
+        # 3. Calculate total days spent in those buckets
+        # 4. Compare against expected TAT
+        
+        logger.info(f"Bucket-based TAT calculation not yet implemented for {project.hs_id}")
+        
+        # For now, fall back to standard calculation
+        return ProjectService._calculate_standard_tat(project, project_start_date)
+    
+    @staticmethod
+    def get_projects_with_tat_data(projects_queryset):
+        """
+        Efficiently calculate TAT data for multiple projects.
+        
+        Args:
+            projects_queryset: QuerySet of projects
+            
+        Returns:
+            list: List of dicts with project and TAT data
+        """
+        # Optimize queries for batch processing
+        projects = projects_queryset.select_related(
+            'product', 
+            'product_subcategory', 
+            'current_status'
+        ).prefetch_related(
+            'status_history__status'
+        )
+        
+        results = []
+        for project in projects:
+            tat_data = ProjectService.calculate_tat_status(project)
+            results.append({
+                'project': project,
+                'tat_data': tat_data
+            })
+        
+        return results
+    
+    @staticmethod
+    def get_project_with_tat_data(project_id):
+        """
+        Get a single project with optimized TAT calculation.
+        
+        Args:
+            project_id: Project ID
+            
+        Returns:
+            tuple: (project, tat_data)
+        """
+        try:
+            project = Project.objects.select_related(
+                'product',
+                'product_subcategory', 
+                'current_status',
+                'dpm',
+                'city',
+                'project_incharge'
+            ).prefetch_related(
+                'status_history__status',
+                'status_history__changed_by'
+            ).get(id=project_id)
+            
+            tat_data = ProjectService.calculate_tat_status(project)
+            
+            return project, tat_data
+            
+        except Project.DoesNotExist:
+            raise Http404("Project not found")
+        except Exception as e:
+            logger.exception(f"Error getting project with TAT data: {str(e)}")
+            raise
+
 
 class ReportingService:
     """

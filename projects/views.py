@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
+from django.http import JsonResponse, Http404
 from urllib.parse import quote
 from .forms import (
     ProjectStatusUpdateForm, ProjectFilterForm, ProjectCreateForm, ProjectTaskForm, 
@@ -130,13 +131,19 @@ def project_detail(request, project_id):
         messages.error(request, "Access denied. Only Project Managers can view project details.")
         return redirect('home')
     
-    # Get project data using appropriate service methods
-    success, result = ProjectService.get_project_details(project_id)
-    if not success:
-        messages.error(request, result)
+    # Get project data with TAT calculation using service
+    try:
+        project, tat_data = ProjectService.get_project_with_tat_data(project_id)
+        
+        # Get status history separately (already prefetched in the service call)
+        status_history = project.status_history.all()
+        
+    except Http404:
+        messages.error(request, "Project not found.")
         return redirect('projects:project_list')
-
-    project, status_history = result
+    except Exception as e:
+        messages.error(request, f"Error loading project: {str(e)}")
+        return redirect('projects:project_list')
 
     # Get status options for the modal
     status_options = ProjectStatusOption.objects.filter(is_active=True).order_by('order')
@@ -147,6 +154,7 @@ def project_detail(request, project_id):
     # Prepare context
     context = {
         'project': project,
+        'tat_data': tat_data,
         'status_history': status_history,
         'status_options': status_options,
         'form': form,

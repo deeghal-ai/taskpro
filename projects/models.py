@@ -317,6 +317,7 @@ class Project(models.Model):
         # Pipeline means category_two is not 'Final Delivery'
         return self.current_status.category_two != 'Final Delivery'
 
+
     @classmethod
     def generate_hs_id(cls):
         """

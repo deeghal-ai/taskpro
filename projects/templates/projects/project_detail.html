@@ -483,6 +483,15 @@
 
                     <dt>Expected TAT</dt>
                     <dd>{{ project.expected_tat }} days</dd>
+
+                    <dt>TAT Status</dt>
+                    <dd>
+                        {% if tat_data.is_beyond_tat %}
+                            <span class="badge bg-danger">{{ tat_data.status }}</span>
+                        {% else %}
+                            <span class="badge bg-success">{{ tat_data.status }}</span>
+                        {% endif %}
+                    </dd>
                     
                     <dt>Expected Completion</dt>
                     <dd>
