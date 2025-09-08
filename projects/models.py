@@ -116,6 +116,11 @@ class ProjectStatusOption(models.Model):
     order = models.PositiveIntegerField(
         help_text="Sequence number for ordering statuses"
     )
+    bucket = models.CharField(
+        max_length=100,
+        default='Client',
+        help_text="Bucket categorization for this status (e.g., 'Client', 'Internal')"
+    )
     is_active = models.BooleanField(
         default=True,
         help_text="Whether this status is currently available for use"

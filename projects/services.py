@@ -2351,6 +2351,11 @@ class ProjectService:
 
                 projects_data.append(project_info)
 
+            # Debug logging to help identify the issue
+            for i, project_info in enumerate(projects_data):
+                project = project_info['project']
+                logger.debug(f"Project {i}: ID={project.id}, HS_ID={project.hs_id}, Name='{project.project_name}', Name_len={len(project.project_name or '')}")
+
             logger.debug(f"Retrieved {len(projects_data)} projects for team member {team_member.id}")
             return True, projects_data
 
