@@ -2379,11 +2379,12 @@ def edit_misc_hours(request, misc_hours_id):
 @login_required
 def team_roster_list(request):
     """
-    Display list of all team members for DPMs to view their rosters.
+    Display list of all team members for management to view their rosters.
     """
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
-        return redirect('home')
+    # Check if user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
     
     # Get all team members (excluding DPMs)
     team_members = User.objects.filter(role='TEAM_MEMBER').order_by('first_name', 'last_name')
@@ -2423,11 +2424,12 @@ def team_roster_list(request):
 @login_required
 def team_member_monthly_roster(request, team_member_id, year=None, month=None):
     """
-    Display monthly roster for a specific team member (read-only for DPMs).
+    Display monthly roster for a specific team member (read-only for management).
     """
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
-        return redirect('home')
+    # Check if user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
     
     try:
         team_member = User.objects.get(id=team_member_id, role='TEAM_MEMBER')
@@ -2471,11 +2473,12 @@ def team_member_monthly_roster(request, team_member_id, year=None, month=None):
 @login_required
 def team_member_daily_roster(request):
     """
-    Display daily roster for a specific team member (read-only for DPMs).
+    Display daily roster for a specific team member (read-only for management).
     """
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
-        return redirect('home')
+    # Check if user has management access (DPM, VIDEO_PM, or SENIOR_MANAGER)
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
     
     # Get team member from query params
     team_member_id = request.GET.get('team_member')
