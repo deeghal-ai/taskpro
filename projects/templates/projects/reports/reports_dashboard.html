@@ -113,7 +113,13 @@
     }
 
     .report-icon.assignments-overview {
-        background: linear-gradient(135deg, #6f42c1, #5a2d91);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .report-icon.team-roster {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
     }
 
     .report-card h4 {
@@ -341,6 +347,25 @@
                 <div class="card-footer">
                     <span class="report-link">
                         View Assignments <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Team Roster -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:team_roster_list' %}" class="report-card">
+                <div class="report-icon team-roster">
+                    <i class="bi bi-calendar-week"></i>
+                </div>
+                <h4>Team Roster</h4>
+                <p>
+                    View team member schedules, work allocation, and availability. 
+                    Access monthly and daily roster details for comprehensive workforce management.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Roster <i class="bi bi-arrow-right"></i>
                     </span>
                 </div>
             </a>
