@@ -321,11 +321,29 @@ def reports_dashboard(request):
         delivery_date__gte=current_month_start
     ).count()
     
-    # You can add more complex calculations here later
+    # Calculate average productivity using the same logic as team overview
+    end_date = date.today()
+    start_date = end_date - timedelta(days=30)  # Last 30 days
+    
+    # Get team overview data to calculate average productivity
+    overview_data = ReportingService.get_team_overview(start_date, end_date)
+    
+    # Calculate team average productivity
+    avg_productivity = None
+    if overview_data:
+        productivity_scores = [
+            item['metrics']['productivity']['score'] 
+            for item in overview_data 
+            if item['metrics']['productivity']['score'] is not None
+        ]
+        if productivity_scores:
+            avg_productivity = sum(productivity_scores) / len(productivity_scores)
+    
     context = {
         'total_team_members': total_team_members,
         'active_projects': active_projects,
         'deliveries_this_month': deliveries_this_month,
+        'avg_productivity': avg_productivity,
         'title': 'Reports Dashboard'
     }
     
