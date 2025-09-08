@@ -19,7 +19,7 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-speedometer2 display-6 text-primary mb-2"></i>
-                    <h6 class="card-title">Avg Productivity</h6>
+                    <h6 class="card-title">Task Productivity</h6>
                     <h3 class="text-primary mb-0">{{ team_averages.avg_productivity|floatformat:1|default:"N/A" }}%</h3>
                 </div>
             </div>
@@ -28,7 +28,7 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-graph-up display-6 text-success mb-2"></i>
-                    <h6 class="card-title">Avg Optimization</h6>
+                    <h6 class="card-title">Task Optimization</h6>
                     <h3 class="text-success mb-0">{{ team_averages.avg_optimization|floatformat:1|default:"N/A" }}%</h3>
                 </div>
             </div>
@@ -37,7 +37,7 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-clock display-6 text-info mb-2"></i>
-                    <h6 class="card-title">Avg Utilization</h6>
+                    <h6 class="card-title">Task Utilization</h6>
                     <h3 class="text-info mb-0">{{ team_averages.avg_utilization|floatformat:1|default:"N/A" }}%</h3>
                 </div>
             </div>
@@ -46,7 +46,7 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-lightning display-6 text-warning mb-2"></i>
-                    <h6 class="card-title">Avg Efficiency</h6>
+                    <h6 class="card-title">Task Efficiency</h6>
                     <h3 class="text-warning mb-0">{{ team_averages.avg_efficiency|floatformat:1|default:"N/A" }}%</h3>
                 </div>
             </div>
@@ -58,7 +58,7 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-star display-6 text-warning mb-2"></i>
-                    <h6 class="card-title">Avg Quality</h6>
+                    <h6 class="card-title">Quality Score</h6>
                     <h3 class="text-warning mb-0">{{ team_averages.avg_quality|floatformat:1|default:"N/A" }}/5</h3>
                     {% if team_averages.avg_quality %}
                     <div class="star-rating mt-2">
@@ -78,7 +78,7 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-truck display-6 text-danger mb-2"></i>
-                    <h6 class="card-title">Avg Delivery</h6>
+                    <h6 class="card-title">Delivery Rating</h6>
                     <h3 class="text-danger mb-0">{{ team_averages.avg_delivery|floatformat:1|default:"N/A" }}/5</h3>
                     {% if team_averages.avg_delivery %}
                     <div class="star-rating mt-2">
@@ -142,27 +142,27 @@
                             </th>
                             <th>
                                 <i class="bi bi-speedometer2 me-1"></i>
-                                Avg Productivity
+                                Task Productivity
                             </th>
                             <th>
                                 <i class="bi bi-graph-up me-1"></i>
-                                Optimization
+                                Task Optimization
                             </th>
                             <th>
                                 <i class="bi bi-clock me-1"></i>
-                                Avg Utilization
+                                Task Utilization
                             </th>
                             <th>
                                 <i class="bi bi-lightning me-1"></i>
-                                Avg Efficiency
+                                Task Efficiency
                             </th>
                             <th>
                                 <i class="bi bi-star me-1"></i>
-                                Avg Quality
+                                Quality Score
                             </th>
                             <th>
                                 <i class="bi bi-truck me-1"></i>
-                                Avg Delivery
+                                Delivery Score
                             </th>
                             <th>
                                 <i class="bi bi-list-task me-1"></i>
