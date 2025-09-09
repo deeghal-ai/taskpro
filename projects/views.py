@@ -2623,11 +2623,24 @@ def tat_analytics_simple(request):
     # Ensure adherence data has proper defaults for JavaScript rendering
     adherence_data = dashboard_data.get('adherence_data', {})
     summary = adherence_data.get('summary', {})
+    
+    # Convert to integers to ensure proper JavaScript rendering
+    within_tat = int(summary.get('within_tat', 0) or 0)
+    beyond_tat = int(summary.get('beyond_tat', 0) or 0)
+    total_projects = int(summary.get('total_projects', 0) or 0)
+    adherence_percentage = float(summary.get('adherence_percentage', 0) or 0)
+    
     adherence_summary = {
-        'within_tat': summary.get('within_tat', 0) or 0,
-        'beyond_tat': summary.get('beyond_tat', 0) or 0,
-        'total_projects': summary.get('total_projects', 0) or 0,
-        'adherence_percentage': summary.get('adherence_percentage', 0) or 0
+        'within_tat': within_tat,
+        'beyond_tat': beyond_tat,
+        'total_projects': total_projects,
+        'adherence_percentage': adherence_percentage
+    }
+    
+    # JSON encode TAT distribution data for safe JavaScript rendering
+    tat_distribution_json = {
+        'within_tat': json.dumps(within_tat),
+        'beyond_tat': json.dumps(beyond_tat)
     }
     
     context = {
@@ -2639,6 +2652,7 @@ def tat_analytics_simple(request):
         },
         'trend_data': trend_data,
         'trend_data_json': trend_data_json,
+        'tat_distribution_json': tat_distribution_json,
         'total_projects': dashboard_data.get('total_projects', 0),
         'filters': filters,
         'title': 'TAT Adherence Dashboard'
