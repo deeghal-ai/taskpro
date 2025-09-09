@@ -364,49 +364,7 @@
             </div>
         </div>
         
-        <!-- Product Performance -->
-        <div class="col-lg-4">
-            <div class="adherence-card">
-                <h5 class="mb-3">
-                    <i class="bi bi-box-seam"></i> Product Performance
-                </h5>
-                <div class="table-responsive">
-                    <table class="adherence-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Adherence</th>
-                                <th>Projects</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in adherence_data.product_wise|slice:":10" %}
-                            <tr>
-                                <td>{{ product.product_name }}</td>
-                                <td>
-                                    <span class="adherence-badge 
-                                        {% if product.adherence_percentage >= 90 %}adherence-high
-                                        {% elif product.adherence_percentage >= 75 %}adherence-medium
-                                        {% else %}adherence-low{% endif %}">
-                                        {{ product.adherence_percentage }}%
-                                    </span>
-                                </td>
-                                <td>{{ product.total_projects }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">No data available</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Regional Performance Row -->
-    <div class="row mt-3">
+        <!-- Regional Performance -->
         <div class="col-lg-4">
             <div class="adherence-card">
                 <h5 class="mb-3">
@@ -447,6 +405,49 @@
         </div>
     </div>
     
+    <!-- Product Performance Row -->
+    <div class="row mt-3">
+        <div class="col-lg-4">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-box-seam"></i> Product Performance
+                </h5>
+                <div class="table-responsive">
+                    <table class="adherence-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Adherence</th>
+                                <th>Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in adherence_data.product_wise|slice:":10" %}
+                            <tr>
+                                <td>{{ product.product_name }}</td>
+                                <td>
+                                    <span class="adherence-badge 
+                                        {% if product.adherence_percentage >= 90 %}adherence-high
+                                        {% elif product.adherence_percentage >= 75 %}adherence-medium
+                                        {% else %}adherence-low{% endif %}">
+                                        {{ product.adherence_percentage }}%
+                                    </span>
+                                </td>
+                                <td>{{ product.total_projects }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
     <!-- Visual Charts Row -->
     <div class="row mt-3">
         <div class="col-lg-6">
@@ -463,13 +464,13 @@
         <div class="col-lg-6">
             <div class="adherence-card">
                 <h5 class="mb-3">
-                    <i class="bi bi-pie-chart-fill"></i> TAT Distribution
+                    <i class="bi bi-pie-chart-fill"></i> Overall TAT Distribution
                 </h5>
                 <div class="chart-container">
                     <canvas id="tatDistributionChart"></canvas>
                 </div>
                 <div class="text-center mt-2">
-                    <small class="text-muted">{{ adherence_data.summary.total_projects }} projects | {{ adherence_data.summary.adherence_percentage }}% adherence</small>
+                    <small class="text-muted">{{ adherence_data.summary.total }} projects | {{ adherence_data.summary.adherence_percentage }}% adherence</small>
                 </div>
             </div>
         </div>
