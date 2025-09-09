@@ -12,7 +12,7 @@ from .forms import (
     EditSessionDurationForm, DailyRosterFilterForm, TaskAssignmentFilterForm,
     DeliveredProjectFilterForm
 )
-from .services import ProjectService
+from .services import ProjectService, TATAnalyticsService
 from accounts.models import User
 from locations.models import Region, City
 from django.http import JsonResponse
@@ -2570,3 +2570,141 @@ def team_member_daily_roster(request):
     }
     
     return render(request, 'projects/team_member_daily_roster.html', context)
+
+
+@login_required
+def tat_analytics_dashboard(request):
+    """
+    TAT Analytics Dashboard for Senior Managers.
+    Shows comprehensive TAT analysis with charts and detailed project data.
+    """
+    
+    # Check permissions - allow DPM, VIDEO_PM, and SENIOR_MANAGER
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
+    
+    # Get filter parameters
+    filters = {}
+    
+    if request.GET.get('date_from'):
+        try:
+            filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('date_to'):
+        try:
+            filters['date_to'] = datetime.strptime(request.GET.get('date_to'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('product'):
+        filters['product'] = request.GET.get('product')
+    
+    if request.GET.get('dpm'):
+        filters['dpm'] = request.GET.get('dpm')
+    
+    if request.GET.get('city'):
+        filters['city'] = request.GET.get('city')
+        
+    if request.GET.get('project_type'):
+        filters['project_type'] = request.GET.get('project_type')
+    
+    # Handle export requests
+    if request.GET.get('export'):
+        export_format = request.GET.get('format', 'csv')
+        return export_tat_data(request, filters, export_format)
+    
+    # Get dashboard data
+    dashboard_data = TATAnalyticsService.get_tat_dashboard_data(filters)
+    
+    if not dashboard_data['success']:
+        messages.error(request, dashboard_data.get('error', 'Error loading TAT analytics data'))
+        dashboard_data = {
+            'success': True,
+            'summary_metrics': {},
+            'chart_data': {},
+            'detailed_projects': [],
+            'total_projects': 0,
+            'filters_applied': {}
+        }
+    
+    # Get filter options for dropdowns
+    products = Product.objects.filter(is_active=True).order_by('name')
+    dpms = User.objects.filter(role__in=['DPM', 'VIDEO_PM']).order_by('first_name', 'last_name')
+    cities = City.objects.all().order_by('name')
+    
+    context = {
+        'dashboard_data': dashboard_data,
+        'summary_metrics': dashboard_data['summary_metrics'],
+        'chart_data': dashboard_data['chart_data'],
+        'detailed_projects': dashboard_data['detailed_projects'],
+        'products': products,
+        'dpms': dpms,
+        'cities': cities,
+        'applied_filters': dashboard_data['filters_applied'],
+        'title': 'TAT Analytics Dashboard'
+    }
+    
+    return render(request, 'projects/reports/tat_analytics_dashboard.html', context)
+
+
+def export_tat_data(request, filters, format='csv'):
+    """
+    Export TAT analytics data in CSV or Excel format.
+    """
+    from accounts.services import ensure_has_management_access
+    from django.http import FileResponse
+    import os
+    
+    try:
+        ensure_has_management_access(request.user)
+    except PermissionError as e:
+        messages.error(request, str(e))
+        return redirect('projects:tat_analytics_dashboard')
+    
+    # Get projects with filters applied
+    projects_queryset = Project.objects.select_related(
+        'product', 'current_status', 'dpm', 'city', 'project_incharge'
+    ).prefetch_related('status_history__status')
+    
+    # Apply same filters as dashboard
+    if filters:
+        if filters.get('date_from'):
+            projects_queryset = projects_queryset.filter(purchase_date__gte=filters['date_from'])
+        if filters.get('date_to'):
+            projects_queryset = projects_queryset.filter(purchase_date__lte=filters['date_to'])
+        if filters.get('product'):
+            projects_queryset = projects_queryset.filter(product_id=filters['product'])
+        if filters.get('dpm'):
+            projects_queryset = projects_queryset.filter(dpm_id=filters['dpm'])
+        if filters.get('city'):
+            projects_queryset = projects_queryset.filter(city_id=filters['city'])
+        if filters.get('project_type'):
+            if filters['project_type'] == 'delivered':
+                projects_queryset = projects_queryset.filter(
+                    current_status__category_two__iexact='Final Delivery'
+                )
+            elif filters['project_type'] == 'pipeline':
+                projects_queryset = projects_queryset.exclude(
+                    current_status__category_two__iexact='Final Delivery'
+                )
+    
+    # Get projects with TAT data
+    projects_with_tat = ProjectService.get_projects_with_tat_data(projects_queryset)
+    
+    # Export data
+    success, result = TATAnalyticsService.export_tat_data(projects_with_tat, format)
+    
+    if success:
+        # Return file download
+        response = FileResponse(
+            open(result, 'rb'),
+            as_attachment=True,
+            filename=os.path.basename(result)
+        )
+        return response
+    else:
+        messages.error(request, f"Export failed: {result}")
+        return redirect('projects:tat_analytics_dashboard')

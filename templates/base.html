@@ -68,6 +68,11 @@
                                             <i class="bi bi-trophy me-2"></i>LoL Report
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:tat_analytics_dashboard' %}">
+                                            <i class="bi bi-clock-history me-2"></i>TAT Analytics
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                             <li class="nav-item">
@@ -106,6 +111,36 @@
                                 <a class="nav-link" href="{% url 'video_production:delivered_projects' %}">
                                     <i class="bi bi-check-circle"></i> Delivered Projects
                                 </a>
+                            </li>
+                        {% endif %}
+                        {% if user.role == 'SENIOR_MANAGER' %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="seniorManagerReportsMenu" 
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-graph-up"></i> Reports
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="seniorManagerReportsMenu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:team_overview_report' %}">
+                                            Team Overview
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:delivery_performance_report' %}">
+                                            Delivery Performance
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:lol_report' %}">
+                                            <i class="bi bi-trophy me-2"></i>LoL Report
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'projects:tat_analytics_dashboard' %}">
+                                            <i class="bi bi-clock-history me-2"></i>TAT Analytics
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         {% endif %}
                     </ul>

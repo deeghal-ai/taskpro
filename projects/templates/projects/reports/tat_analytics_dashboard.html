@@ -1,0 +1,602 @@
+<!-- projects/templates/projects/reports/tat_analytics_dashboard.html -->
+{% extends "projects/reports/base_report.html" %}
+
+{% block report_title %}TAT Analytics Dashboard{% endblock %}
+{% block report_subtitle %}Comprehensive Turnaround Time analysis and performance insights{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* TAT-specific styling */
+    .tat-metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    
+    .tat-metric-card .metric-value {
+        color: white;
+    }
+    
+    .tat-within {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .tat-beyond {
+        background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+    
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 400px;
+        color: #6c757d;
+    }
+    
+    .export-section {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .tat-status-beyond {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .tat-status-within {
+        color: #198754;
+        font-weight: 600;
+    }
+    
+    .project-row-beyond {
+        background: rgba(220, 53, 69, 0.05);
+    }
+    
+    .project-row-within {
+        background: rgba(25, 135, 84, 0.05);
+    }
+    
+    .filter-section {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 2rem;
+    }
+    
+    .filter-section .filter-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0.75rem 0.75rem 0 0;
+    }
+    
+    .filter-section .filter-body {
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block report_content %}
+<!-- Custom Filters for TAT Dashboard -->
+<div class="filter-section">
+    <div class="filter-header">
+        <h5>
+            <i class="bi bi-sliders"></i>
+            TAT Analytics Filters
+        </h5>
+    </div>
+    <div class="filter-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">
+                    <i class="bi bi-calendar-event"></i>
+                    From Date
+                </label>
+                <input type="date" name="date_from" id="date_from" 
+                       class="form-control" value="{{ applied_filters.date_from|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">
+                    <i class="bi bi-calendar-check"></i>
+                    To Date
+                </label>
+                <input type="date" name="date_to" id="date_to" 
+                       class="form-control" value="{{ applied_filters.date_to|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="product" class="form-label">
+                    <i class="bi bi-box"></i>
+                    Product
+                </label>
+                <select name="product" id="product" class="form-select">
+                    <option value="">All Products</option>
+                    {% for product in products %}
+                        <option value="{{ product.id }}" 
+                                {% if applied_filters.product == product.id|stringformat:"s" %}selected{% endif %}>
+                            {{ product.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dpm" class="form-label">
+                    <i class="bi bi-person-badge"></i>
+                    Project Manager
+                </label>
+                <select name="dpm" id="dpm" class="form-select">
+                    <option value="">All DPMs</option>
+                    {% for dpm in dpms %}
+                        <option value="{{ dpm.id }}" 
+                                {% if applied_filters.dpm == dpm.id|stringformat:"s" %}selected{% endif %}>
+                            {{ dpm.get_full_name|default:dpm.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="city" class="form-label">
+                    <i class="bi bi-geo-alt"></i>
+                    City
+                </label>
+                <select name="city" id="city" class="form-select">
+                    <option value="">All Cities</option>
+                    {% for city in cities %}
+                        <option value="{{ city.id }}" 
+                                {% if applied_filters.city == city.id|stringformat:"s" %}selected{% endif %}>
+                            {{ city.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="project_type" class="form-label">
+                    <i class="bi bi-filter"></i>
+                    Project Type
+                </label>
+                <select name="project_type" id="project_type" class="form-select">
+                    <option value="">All Projects</option>
+                    <option value="pipeline" {% if applied_filters.project_type == "pipeline" %}selected{% endif %}>
+                        Pipeline Projects
+                    </option>
+                    <option value="delivered" {% if applied_filters.project_type == "delivered" %}selected{% endif %}>
+                        Delivered Projects
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Apply Filters
+                </button>
+                <a href="{% url 'projects:tat_analytics_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="metric-card tat-metric-card">
+            <div class="metric-label">Total Projects</div>
+            <div class="metric-value">{{ summary_metrics.total_projects|default:0 }}</div>
+            <small>Pipeline: {{ summary_metrics.pipeline_count|default:0 }} | Delivered: {{ summary_metrics.delivered_count|default:0 }}</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card tat-within">
+            <div class="metric-label">Within TAT</div>
+            <div class="metric-value">{{ summary_metrics.within_tat_count|default:0 }}</div>
+            <small>{{ summary_metrics.within_tat_percentage|default:0 }}% of total projects</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card tat-beyond">
+            <div class="metric-label">Beyond TAT</div>
+            <div class="metric-value">{{ summary_metrics.beyond_tat_count|default:0 }}</div>
+            <small>{{ summary_metrics.beyond_tat_percentage|default:0 }}% of total projects</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-label">Average TAT Days</div>
+            <div class="metric-value">{{ summary_metrics.avg_tat_days|default:0 }}</div>
+            <small>Across all projects</small>
+        </div>
+    </div>
+</div>
+
+<!-- Export Section -->
+<div class="export-section">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h6 class="mb-0">
+                <i class="bi bi-download"></i>
+                Export TAT Analytics Data
+            </h6>
+            <small class="text-muted">Download current filtered data for external analysis</small>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="?export=1&format=csv{% for key, value in applied_filters.items %}&{{ key }}={{ value }}{% endfor %}" 
+               class="btn btn-outline-success btn-sm me-2">
+                <i class="bi bi-file-earmark-excel"></i> CSV
+            </a>
+            <a href="?export=1&format=xlsx{% for key, value in applied_filters.items %}&{{ key }}={{ value }}{% endfor %}" 
+               class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="bi bi-pie-chart"></i>
+                    TAT Status Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="tatDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="bi bi-bar-chart"></i>
+                    TAT Days Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="tatDaysChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="bi bi-graph-up"></i>
+                    Product-wise TAT Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="productTatChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="bi bi-people"></i>
+                    DPM-wise TAT Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="dpmTatChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Projects Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">
+            <i class="bi bi-table"></i>
+            Detailed Project TAT Analysis
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if detailed_projects %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Builder</th>
+                            <th>Product</th>
+                            <th>DPM</th>
+                            <th>Current Status</th>
+                            <th>Expected TAT</th>
+                            <th>Actual TAT</th>
+                            <th>TAT Status</th>
+                            <th>Purchase Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in detailed_projects %}
+                            <tr class="{% if project.is_beyond_tat %}project-row-beyond{% else %}project-row-within{% endif %}">
+                                <td>
+                                    <strong>{{ project.hs_id }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ project.opportunity_id }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ project.project_name }}</strong>
+                                    {% if project.is_delivered %}
+                                        <span class="badge bg-success ms-1">Delivered</span>
+                                    {% else %}
+                                        <span class="badge bg-primary ms-1">Pipeline</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ project.builder_name }}</td>
+                                <td>{{ project.product_name }}</td>
+                                <td>{{ project.dpm_name }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ project.current_status_category }}</span>
+                                    <br>
+                                    <small>{{ project.current_status }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <strong>{{ project.expected_tat }}</strong>
+                                    <br>
+                                    <small class="text-muted">days</small>
+                                </td>
+                                <td class="text-center">
+                                    <strong>{{ project.tat_days }}</strong>
+                                    <br>
+                                    <small class="text-muted">days</small>
+                                </td>
+                                <td>
+                                    <span class="{% if project.is_beyond_tat %}tat-status-beyond{% else %}tat-status-within{% endif %}">
+                                        {% if project.is_beyond_tat %}
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                        {% else %}
+                                            <i class="bi bi-check-circle"></i>
+                                        {% endif %}
+                                        {{ project.tat_status }}
+                                    </span>
+                                </td>
+                                <td>{{ project.purchase_date }}</td>
+                                <td>
+                                    <a href="{% url 'projects:project_detail' project.id %}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="View Project Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="mt-3 text-muted">No Projects Found</h5>
+                <p class="text-muted">Try adjusting your filters to see more data.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block report_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart data from Django context
+    const chartData = JSON.parse('{{ chart_data|escapejs }}');
+    
+    // Color schemes
+    const colors = {
+        primary: '#0d6efd',
+        success: '#198754',
+        danger: '#dc3545',
+        warning: '#ffc107',
+        info: '#0dcaf0',
+        gradient: {
+            success: ['#11998e', '#38ef7d'],
+            danger: ['#fc466b', '#3f5efb'],
+            primary: ['#667eea', '#764ba2']
+        }
+    };
+
+    // TAT Distribution Pie Chart
+    if (chartData.tat_distribution && chartData.tat_distribution.data.length > 0) {
+        const ctx1 = document.getElementById('tatDistributionChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.tat_distribution.labels,
+                datasets: [{
+                    data: chartData.tat_distribution.data,
+                    backgroundColor: [colors.success, colors.danger],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // TAT Days Distribution Bar Chart
+    if (chartData.tat_days_distribution && chartData.tat_days_distribution.data.length > 0) {
+        const ctx2 = document.getElementById('tatDaysChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: chartData.tat_days_distribution.labels,
+                datasets: [{
+                    label: 'Projects',
+                    data: chartData.tat_days_distribution.data,
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Product-wise TAT Performance
+    if (chartData.product_tat && chartData.product_tat.labels.length > 0) {
+        const ctx3 = document.getElementById('productTatChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: chartData.product_tat.labels,
+                datasets: [{
+                    label: 'Within TAT',
+                    data: chartData.product_tat.within_tat,
+                    backgroundColor: colors.success,
+                    borderColor: colors.success,
+                    borderWidth: 1
+                }, {
+                    label: 'Beyond TAT',
+                    data: chartData.product_tat.beyond_tat,
+                    backgroundColor: colors.danger,
+                    borderColor: colors.danger,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // DPM-wise TAT Performance
+    if (chartData.dpm_tat && chartData.dpm_tat.labels.length > 0) {
+        const ctx4 = document.getElementById('dpmTatChart').getContext('2d');
+        new Chart(ctx4, {
+            type: 'bar',
+            data: {
+                labels: chartData.dpm_tat.labels,
+                datasets: [{
+                    label: 'Within TAT',
+                    data: chartData.dpm_tat.within_tat,
+                    backgroundColor: colors.success,
+                    borderColor: colors.success,
+                    borderWidth: 1
+                }, {
+                    label: 'Beyond TAT',
+                    data: chartData.dpm_tat.beyond_tat,
+                    backgroundColor: colors.danger,
+                    borderColor: colors.danger,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Filter form enhancements
+    document.getElementById('date_from').addEventListener('change', function() {
+        document.getElementById('date_to').min = this.value;
+    });
+    
+    document.getElementById('date_to').addEventListener('change', function() {
+        document.getElementById('date_from').max = this.value;
+    });
+});
+</script>
+{% endblock %}
