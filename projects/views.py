@@ -2627,13 +2627,13 @@ def tat_analytics_simple(request):
     # Convert to integers to ensure proper JavaScript rendering
     within_tat = int(summary.get('within_tat', 0) or 0)
     beyond_tat = int(summary.get('beyond_tat', 0) or 0)
-    total_projects = int(summary.get('total_projects', 0) or 0)
+    total_projects = int(summary.get('total', 0) or 0)  # Use 'total', not 'total_projects'
     adherence_percentage = float(summary.get('adherence_percentage', 0) or 0)
     
     adherence_summary = {
         'within_tat': within_tat,
         'beyond_tat': beyond_tat,
-        'total_projects': total_projects,
+        'total': total_projects,
         'adherence_percentage': adherence_percentage
     }
     
