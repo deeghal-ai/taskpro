@@ -364,46 +364,6 @@
             </div>
         </div>
         
-        <!-- Regional Performance -->
-        <div class="col-lg-4">
-            <div class="adherence-card">
-                <h5 class="mb-3">
-                    <i class="bi bi-geo-alt-fill"></i> Regional Performance
-                </h5>
-                <div class="table-responsive">
-                    <table class="adherence-table">
-                        <thead>
-                            <tr>
-                                <th>Region</th>
-                                <th>Adherence</th>
-                                <th>Projects</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for region in adherence_data.region_wise %}
-                            <tr>
-                                <td>{{ region.region_name }}</td>
-                                <td>
-                                    <span class="adherence-badge 
-                                        {% if region.adherence_percentage >= 90 %}adherence-high
-                                        {% elif region.adherence_percentage >= 75 %}adherence-medium
-                                        {% else %}adherence-low{% endif %}">
-                                        {{ region.adherence_percentage }}%
-                                    </span>
-                                </td>
-                                <td>{{ region.total_projects }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">No data available</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
         <!-- Product Performance -->
         <div class="col-lg-4">
             <div class="adherence-card">
@@ -432,6 +392,48 @@
                                     </span>
                                 </td>
                                 <td>{{ product.total_projects }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Regional Performance Row -->
+    <div class="row mt-3">
+        <div class="col-lg-4">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-geo-alt-fill"></i> Regional Performance
+                </h5>
+                <div class="table-responsive">
+                    <table class="adherence-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Adherence</th>
+                                <th>Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for region in adherence_data.region_wise %}
+                            <tr>
+                                <td>{{ region.region_name }}</td>
+                                <td>
+                                    <span class="adherence-badge 
+                                        {% if region.adherence_percentage >= 90 %}adherence-high
+                                        {% elif region.adherence_percentage >= 75 %}adherence-medium
+                                        {% else %}adherence-low{% endif %}">
+                                        {{ region.adherence_percentage }}%
+                                    </span>
+                                </td>
+                                <td>{{ region.total_projects }}</td>
                             </tr>
                             {% empty %}
                             <tr>
