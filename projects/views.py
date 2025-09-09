@@ -2611,9 +2611,34 @@ def tat_analytics_simple(request):
             }
         }
     
+    import json
+    
+    # JSON encode trend data for safe JavaScript rendering
+    trend_data = dashboard_data.get('trend_data', {})
+    trend_data_json = {
+        'labels': json.dumps(trend_data.get('labels', [])),
+        'data': json.dumps(trend_data.get('data', []))
+    }
+    
+    # Ensure adherence data has proper defaults for JavaScript rendering
+    adherence_data = dashboard_data.get('adherence_data', {})
+    summary = adherence_data.get('summary', {})
+    adherence_summary = {
+        'within_tat': summary.get('within_tat', 0) or 0,
+        'beyond_tat': summary.get('beyond_tat', 0) or 0,
+        'total_projects': summary.get('total_projects', 0) or 0,
+        'adherence_percentage': summary.get('adherence_percentage', 0) or 0
+    }
+    
     context = {
-        'adherence_data': dashboard_data.get('adherence_data', {}),
-        'trend_data': dashboard_data.get('trend_data', {}),
+        'adherence_data': {
+            'summary': adherence_summary,
+            'dpm_wise': adherence_data.get('dpm_wise', []),
+            'city_wise': adherence_data.get('city_wise', []),
+            'product_wise': adherence_data.get('product_wise', [])
+        },
+        'trend_data': trend_data,
+        'trend_data_json': trend_data_json,
         'total_projects': dashboard_data.get('total_projects', 0),
         'filters': filters,
         'title': 'TAT Adherence Dashboard'

@@ -384,10 +384,10 @@ const trendCtx = document.getElementById('adherenceTrendChart').getContext('2d')
 new Chart(trendCtx, {
     type: 'line',
     data: {
-        labels: JSON.parse('{{ trend_data.labels|default:"[]"|escapejs }}'),
+        labels: {{ trend_data_json.labels|safe }},
         datasets: [{
             label: 'TAT Adherence %',
-            data: JSON.parse('{{ trend_data.data|default:"[]"|escapejs }}'),
+            data: {{ trend_data_json.data|safe }},
             borderColor: chartColors.primary,
             backgroundColor: 'rgba(102, 126, 234, 0.1)',
             borderWidth: 3,
