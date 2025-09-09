@@ -3666,13 +3666,29 @@ class TATAnalyticsService:
                 else:
                     monthly_data[month_key]['within'] += 1
             
-            # Generate labels and data for last 6 months
+            # Generate labels and data for the actual date range
             labels = []
             adherence_data = []
             
             current_date = start_date.replace(day=1)  # First day of start month
+            end_month = end_date.replace(day=1)  # First day of end month
             
-            for i in range(6):
+            # If no filters are provided, show last 6 months
+            if not filters or (not filters.get('date_from') and not filters.get('date_to')):
+                # Default: last 6 months
+                num_months = 6
+            else:
+                # Calculate number of months between start and end date
+                num_months = ((end_month.year - current_date.year) * 12 + 
+                             (end_month.month - current_date.month)) + 1
+                # Limit to maximum 12 months for readability
+                num_months = min(num_months, 12)
+            
+            for i in range(num_months):
+                # Stop if we've exceeded the end date
+                if current_date > end_month:
+                    break
+                    
                 month_key = current_date.strftime('%Y-%m')
                 month_label = current_date.strftime('%b')
                 
