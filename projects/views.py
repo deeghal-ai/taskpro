@@ -135,8 +135,8 @@ def project_detail(request, project_id):
     try:
         project, tat_data = ProjectService.get_project_with_tat_data(project_id)
         
-        # Get status history separately (already prefetched in the service call)
-        status_history = project.status_history.all()
+        # Get status history in chronological order (oldest first)
+        status_history = project.status_history.all().order_by('changed_at')
         
     except Http404:
         messages.error(request, "Project not found.")

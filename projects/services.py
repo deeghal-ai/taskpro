@@ -2964,7 +2964,7 @@ class ProjectService:
                     # Calculate days in this status
                     entry_start_date = entry.changed_at.date()
                     
-                    # Determine end date for this status
+                    # Determine end date for this status (next chronological status OR project end)
                     if i + 1 < len(sorted_entries):
                         # Next status exists - use its start date as end date
                         entry_end_date = sorted_entries[i + 1].changed_at.date()
