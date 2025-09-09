@@ -3453,309 +3453,244 @@ class ReportingService:
 
 
 class TATAnalyticsService:
-    """
-    Service class for TAT analytics and dashboard functionality.
-    Provides comprehensive TAT analysis for Senior Managers.
-    """
-
+    
     @staticmethod
-    def get_tat_dashboard_data(filters=None):
+    def get_simplified_tat_dashboard(filters=None):
         """
-        Get comprehensive TAT analytics data for dashboard.
-        
-        Args:
-            filters: Dict with optional filters like date_range, product, dpm, city, status
-            
-        Returns:
-            dict: Complete dashboard data with metrics and charts
+        Simplified TAT dashboard for senior managers focusing on adherence percentages.
         """
         try:
-            # Apply filters or default to all projects
+            # Get base queryset with optimized queries
             projects_queryset = Project.objects.select_related(
-                'product', 
-                'current_status', 
-                'dpm', 
-                'city',
-                'project_incharge'
+                'product', 'current_status', 'dpm', 'city'
             ).prefetch_related('status_history__status')
             
-            # Apply filters if provided
+            # Apply simple date range filter if provided
             if filters:
-                if filters.get('date_from') or filters.get('date_to'):
-                    # Filter by purchase date or sales confirmation date
-                    if filters.get('date_from'):
-                        projects_queryset = projects_queryset.filter(
-                            purchase_date__gte=filters['date_from']
-                        )
-                    if filters.get('date_to'):
-                        projects_queryset = projects_queryset.filter(
-                            purchase_date__lte=filters['date_to']
-                        )
-                
-                if filters.get('product'):
-                    projects_queryset = projects_queryset.filter(product_id=filters['product'])
-                
-                if filters.get('dpm'):
-                    projects_queryset = projects_queryset.filter(dpm_id=filters['dpm'])
-                
-                if filters.get('city'):
-                    projects_queryset = projects_queryset.filter(city_id=filters['city'])
-                
-                if filters.get('project_type'):
-                    if filters['project_type'] == 'delivered':
-                        projects_queryset = projects_queryset.filter(
-                            current_status__category_two__iexact='Final Delivery'
-                        )
-                    elif filters['project_type'] == 'pipeline':
-                        projects_queryset = projects_queryset.exclude(
-                            current_status__category_two__iexact='Final Delivery'
-                        )
+                if filters.get('date_from'):
+                    projects_queryset = projects_queryset.filter(
+                        purchase_date__gte=filters['date_from']
+                    )
+                if filters.get('date_to'):
+                    projects_queryset = projects_queryset.filter(
+                        purchase_date__lte=filters['date_to']
+                    )
             
             # Get projects with TAT data
             projects_with_tat = ProjectService.get_projects_with_tat_data(projects_queryset)
             
-            # Calculate summary metrics
-            summary_metrics = TATAnalyticsService._calculate_summary_metrics(projects_with_tat)
+            # Calculate adherence metrics
+            overall_adherence = TATAnalyticsService._calculate_overall_adherence(projects_with_tat)
+            dpm_adherence = TATAnalyticsService._calculate_dpm_wise_adherence(projects_with_tat)
+            city_adherence = TATAnalyticsService._calculate_city_wise_adherence(projects_with_tat)
+            product_adherence = TATAnalyticsService._calculate_product_wise_adherence(projects_with_tat)
             
-            # Generate chart data
-            chart_data = TATAnalyticsService._generate_chart_data(projects_with_tat)
-            
-            # Get detailed project list for table
-            detailed_projects = TATAnalyticsService._prepare_detailed_projects(projects_with_tat)
+            # Get monthly trend data
+            trend_data = TATAnalyticsService.get_monthly_adherence_trend(filters)
             
             return {
                 'success': True,
-                'summary_metrics': summary_metrics,
-                'chart_data': chart_data,
-                'detailed_projects': detailed_projects,
-                'total_projects': len(projects_with_tat),
-                'filters_applied': filters or {}
+                'adherence_data': {
+                    'summary': overall_adherence,
+                    'dpm_wise': dpm_adherence,
+                    'city_wise': city_adherence,
+                    'product_wise': product_adherence
+                },
+                'trend_data': trend_data,
+                'total_projects': projects_queryset.count()
             }
             
         except Exception as e:
-            logger.exception(f"Error getting TAT dashboard data: {str(e)}")
-            return {
-                'success': False,
-                'error': f"An error occurred: {str(e)}"
-            }
+            logger.exception(f"Error in simplified TAT dashboard: {str(e)}")
+            return {'success': False, 'error': str(e)}
     
     @staticmethod
-    def _calculate_summary_metrics(projects_with_tat):
-        """Calculate high-level summary metrics for the dashboard."""
+    def _calculate_overall_adherence(projects_with_tat):
+        """Calculate overall TAT adherence percentage."""
         if not projects_with_tat:
-            return {
-                'total_projects': 0,
-                'within_tat_count': 0,
-                'beyond_tat_count': 0,
-                'within_tat_percentage': 0,
-                'beyond_tat_percentage': 0,
-                'avg_tat_days': 0,
-                'delivered_count': 0,
-                'pipeline_count': 0
-            }
+            return {'adherence_percentage': 0, 'within_tat': 0, 'beyond_tat': 0}
         
-        total_projects = len(projects_with_tat)
-        within_tat_count = sum(1 for p in projects_with_tat if not p['tat_data']['is_beyond_tat'])
-        beyond_tat_count = total_projects - within_tat_count
-        delivered_count = sum(1 for p in projects_with_tat if p['project'].is_delivered)
-        pipeline_count = total_projects - delivered_count
-        
-        # Calculate average TAT days
-        total_tat_days = sum(p['tat_data']['days'] for p in projects_with_tat)
-        avg_tat_days = round(total_tat_days / total_projects, 1) if total_projects > 0 else 0
+        total = len(projects_with_tat)
+        within_tat = sum(1 for p in projects_with_tat if not p['tat_data']['is_beyond_tat'])
         
         return {
-            'total_projects': total_projects,
-            'within_tat_count': within_tat_count,
-            'beyond_tat_count': beyond_tat_count,
-            'within_tat_percentage': round((within_tat_count / total_projects) * 100, 1),
-            'beyond_tat_percentage': round((beyond_tat_count / total_projects) * 100, 1),
-            'avg_tat_days': avg_tat_days,
-            'delivered_count': delivered_count,
-            'pipeline_count': pipeline_count
+            'adherence_percentage': round((within_tat / total) * 100, 1),
+            'within_tat': within_tat,
+            'beyond_tat': total - within_tat,
+            'total': total
         }
     
     @staticmethod
-    def _generate_chart_data(projects_with_tat):
-        """Generate data for various charts in the dashboard."""
+    def _calculate_dpm_wise_adherence(projects_with_tat):
+        """Calculate TAT adherence percentage for each DPM."""
         from collections import defaultdict
         
-        # TAT Distribution Chart Data
-        tat_ranges = {
-            'Within TAT': 0,
-            'Beyond TAT': 0
-        }
-        
-        # Product-wise TAT Analysis
-        product_tat_data = defaultdict(lambda: {'within_tat': 0, 'beyond_tat': 0, 'total': 0})
-        
-        # DPM-wise TAT Analysis
-        dpm_tat_data = defaultdict(lambda: {'within_tat': 0, 'beyond_tat': 0, 'total': 0})
-        
-        # TAT Days Distribution (histogram data)
-        tat_days_distribution = defaultdict(int)
+        dpm_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
         
         for project_data in projects_with_tat:
             project = project_data['project']
             tat_data = project_data['tat_data']
             
-            # TAT status distribution
-            if tat_data['is_beyond_tat']:
-                tat_ranges['Beyond TAT'] += 1
-            else:
-                tat_ranges['Within TAT'] += 1
-            
-            # Product-wise analysis
-            product_name = project.product.name
-            product_tat_data[product_name]['total'] += 1
-            if tat_data['is_beyond_tat']:
-                product_tat_data[product_name]['beyond_tat'] += 1
-            else:
-                product_tat_data[product_name]['within_tat'] += 1
-            
-            # DPM-wise analysis
             dpm_name = f"{project.dpm.first_name} {project.dpm.last_name}".strip() or project.dpm.username
-            dpm_tat_data[dpm_name]['total'] += 1
+            dpm_data[dpm_name]['total'] += 1
+            
             if tat_data['is_beyond_tat']:
-                dpm_tat_data[dpm_name]['beyond_tat'] += 1
+                dpm_data[dpm_name]['beyond'] += 1
             else:
-                dpm_tat_data[dpm_name]['within_tat'] += 1
-            
-            # TAT days distribution (group by ranges)
-            days = tat_data['days']
-            if days <= 7:
-                tat_days_distribution['0-7 days'] += 1
-            elif days <= 15:
-                tat_days_distribution['8-15 days'] += 1
-            elif days <= 30:
-                tat_days_distribution['16-30 days'] += 1
-            elif days <= 60:
-                tat_days_distribution['31-60 days'] += 1
-            else:
-                tat_days_distribution['60+ days'] += 1
+                dpm_data[dpm_name]['within'] += 1
         
-        return {
-            'tat_distribution': {
-                'labels': list(tat_ranges.keys()),
-                'data': list(tat_ranges.values())
-            },
-            'product_tat': {
-                'labels': list(product_tat_data.keys()),
-                'within_tat': [data['within_tat'] for data in product_tat_data.values()],
-                'beyond_tat': [data['beyond_tat'] for data in product_tat_data.values()]
-            },
-            'dpm_tat': {
-                'labels': list(dpm_tat_data.keys()),
-                'within_tat': [data['within_tat'] for data in dpm_tat_data.values()],
-                'beyond_tat': [data['beyond_tat'] for data in dpm_tat_data.values()]
-            },
-            'tat_days_distribution': {
-                'labels': list(tat_days_distribution.keys()),
-                'data': list(tat_days_distribution.values())
-            }
-        }
-    
-    @staticmethod
-    def _prepare_detailed_projects(projects_with_tat):
-        """Prepare detailed project data for the dashboard table."""
-        detailed_projects = []
-        
-        for project_data in projects_with_tat:
-            project = project_data['project']
-            tat_data = project_data['tat_data']
-            
-            detailed_projects.append({
-                'id': str(project.id),
-                'hs_id': project.hs_id,
-                'project_name': project.project_name,
-                'opportunity_id': project.opportunity_id,
-                'builder_name': project.builder_name,
-                'product_name': project.product.name,
-                'dpm_name': f"{project.dpm.first_name} {project.dpm.last_name}".strip() or project.dpm.username,
-                'project_incharge': f"{project.project_incharge.first_name} {project.project_incharge.last_name}".strip() if project.project_incharge else "Not Assigned",
-                'current_status': project.current_status.name,
-                'current_status_category': project.current_status.category_one,
-                'purchase_date': project.purchase_date.strftime('%Y-%m-%d'),
-                'expected_tat': project.expected_tat,
-                'tat_days': tat_data['days'],
-                'tat_status': tat_data['status'],
-                'is_beyond_tat': tat_data['is_beyond_tat'],
-                'is_delivered': project.is_delivered,
-                'delivery_date': project.delivery_date.strftime('%Y-%m-%d') if project.delivery_date else None,
-                'calculation_method': tat_data['calculation_method']
+        # Calculate adherence percentage for each DPM
+        result = []
+        for dpm_name, data in dpm_data.items():
+            adherence_pct = round((data['within'] / data['total']) * 100, 1) if data['total'] > 0 else 0
+            result.append({
+                'dpm_name': dpm_name,
+                'adherence_percentage': adherence_pct,
+                'within_tat': data['within'],
+                'beyond_tat': data['beyond'],
+                'total_projects': data['total']
             })
         
-        # Sort by TAT days (highest first) to show problematic projects at top
-        detailed_projects.sort(key=lambda x: (-x['tat_days'], x['hs_id']))
-        
-        return detailed_projects
+        # Sort by adherence percentage (best performers first)
+        result.sort(key=lambda x: -x['adherence_percentage'])
+        return result
     
     @staticmethod
-    def export_tat_data(projects_with_tat, format='csv'):
-        """
-        Export TAT analytics data in specified format.
+    def _calculate_city_wise_adherence(projects_with_tat):
+        """Calculate TAT adherence percentage for each city/region."""
+        from collections import defaultdict
         
-        Args:
-            projects_with_tat: List of projects with TAT data
-            format: 'csv' or 'xlsx'
+        city_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
+        
+        for project_data in projects_with_tat:
+            project = project_data['project']
+            tat_data = project_data['tat_data']
             
-        Returns:
-            tuple: (success, result) - result is file path or error message
-        """
+            city_name = project.city.name if project.city else 'Unknown'
+            city_data[city_name]['total'] += 1
+            
+            if tat_data['is_beyond_tat']:
+                city_data[city_name]['beyond'] += 1
+            else:
+                city_data[city_name]['within'] += 1
+        
+        # Calculate adherence percentage for each city
+        result = []
+        for city_name, data in city_data.items():
+            adherence_pct = round((data['within'] / data['total']) * 100, 1) if data['total'] > 0 else 0
+            result.append({
+                'city_name': city_name,
+                'adherence_percentage': adherence_pct,
+                'within_tat': data['within'],
+                'beyond_tat': data['beyond'],
+                'total_projects': data['total']
+            })
+        
+        # Sort by total projects (most active cities first)
+        result.sort(key=lambda x: -x['total_projects'])
+        return result
+    
+    @staticmethod
+    def _calculate_product_wise_adherence(projects_with_tat):
+        """Calculate TAT adherence percentage for each product."""
+        from collections import defaultdict
+        
+        product_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
+        
+        for project_data in projects_with_tat:
+            project = project_data['project']
+            tat_data = project_data['tat_data']
+            
+            product_name = project.product.name
+            product_data[product_name]['total'] += 1
+            
+            if tat_data['is_beyond_tat']:
+                product_data[product_name]['beyond'] += 1
+            else:
+                product_data[product_name]['within'] += 1
+        
+        # Calculate adherence percentage for each product
+        result = []
+        for product_name, data in product_data.items():
+            adherence_pct = round((data['within'] / data['total']) * 100, 1) if data['total'] > 0 else 0
+            result.append({
+                'product_name': product_name,
+                'adherence_percentage': adherence_pct,
+                'within_tat': data['within'],
+                'beyond_tat': data['beyond'],
+                'total_projects': data['total']
+            })
+        
+        # Sort by adherence percentage (best performing products first)
+        result.sort(key=lambda x: -x['adherence_percentage'])
+        return result
+    
+    @staticmethod
+    def get_monthly_adherence_trend(filters=None):
+        """Get monthly TAT adherence trend data for the last 6 months."""
+        from datetime import datetime, timedelta
+        from django.db.models import Q
+        from collections import defaultdict
+        import calendar
+        
         try:
-            import pandas as pd
-            from django.conf import settings
-            import os
-            from datetime import datetime
+            # Get date range - last 6 months or filtered range
+            end_date = filters.get('date_to') if filters and filters.get('date_to') else datetime.now().date()
+            start_date = filters.get('date_from') if filters and filters.get('date_from') else end_date - timedelta(days=180)
             
-            # Prepare data for export
-            export_data = []
+            # Get projects in date range
+            projects_queryset = Project.objects.select_related(
+                'product', 'current_status', 'dpm', 'city'
+            ).filter(purchase_date__range=[start_date, end_date])
+            
+            # Group projects by month and calculate adherence
+            monthly_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
+            
+            projects_with_tat = ProjectService.get_projects_with_tat_data(projects_queryset)
+            
             for project_data in projects_with_tat:
                 project = project_data['project']
                 tat_data = project_data['tat_data']
                 
-                export_data.append({
-                    'HS_ID': project.hs_id,
-                    'Project_Name': project.project_name,
-                    'Opportunity_ID': project.opportunity_id,
-                    'Builder_Name': project.builder_name,
-                    'Product': project.product.name,
-                    'DPM': f"{project.dpm.first_name} {project.dpm.last_name}".strip() or project.dpm.username,
-                    'Project_Incharge': f"{project.project_incharge.first_name} {project.project_incharge.last_name}".strip() if project.project_incharge else "Not Assigned",
-                    'Current_Status': project.current_status.name,
-                    'Status_Category': project.current_status.category_one,
-                    'Purchase_Date': project.purchase_date,
-                    'Expected_TAT_Days': project.expected_tat,
-                    'Actual_TAT_Days': tat_data['days'],
-                    'TAT_Status': tat_data['status'],
-                    'Is_Beyond_TAT': 'Yes' if tat_data['is_beyond_tat'] else 'No',
-                    'Is_Delivered': 'Yes' if project.is_delivered else 'No',
-                    'Delivery_Date': project.delivery_date if project.delivery_date else '',
-                    'Calculation_Method': tat_data['calculation_method']
-                })
+                # Get month key (YYYY-MM format)
+                month_key = project.purchase_date.strftime('%Y-%m')
+                
+                monthly_data[month_key]['total'] += 1
+                if tat_data['is_beyond_tat']:
+                    monthly_data[month_key]['beyond'] += 1
+                else:
+                    monthly_data[month_key]['within'] += 1
             
-            # Create DataFrame
-            df = pd.DataFrame(export_data)
+            # Generate labels and data for last 6 months
+            labels = []
+            adherence_data = []
             
-            # Generate filename with timestamp
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'tat_analytics_{timestamp}.{format}'
+            current_date = start_date.replace(day=1)  # First day of start month
             
-            # Create exports directory if it doesn't exist
-            exports_dir = os.path.join(settings.MEDIA_ROOT, 'exports')
-            os.makedirs(exports_dir, exist_ok=True)
+            for i in range(6):
+                month_key = current_date.strftime('%Y-%m')
+                month_label = current_date.strftime('%b')
+                
+                data = monthly_data.get(month_key, {'within': 0, 'beyond': 0, 'total': 0})
+                adherence_pct = round((data['within'] / data['total']) * 100, 1) if data['total'] > 0 else 0
+                
+                labels.append(month_label)
+                adherence_data.append(adherence_pct)
+                
+                # Move to next month
+                if current_date.month == 12:
+                    current_date = current_date.replace(year=current_date.year + 1, month=1)
+                else:
+                    current_date = current_date.replace(month=current_date.month + 1)
             
-            file_path = os.path.join(exports_dir, filename)
-            
-            # Export based on format
-            if format == 'xlsx':
-                df.to_excel(file_path, index=False, engine='openpyxl')
-            else:  # default to CSV
-                df.to_csv(file_path, index=False)
-            
-            logger.info(f"TAT analytics data exported to {file_path}")
-            return True, file_path
+            return {
+                'labels': labels,
+                'data': adherence_data
+            }
             
         except Exception as e:
-            logger.exception(f"Error exporting TAT data: {str(e)}")
-            return False, f"Export failed: {str(e)}"
+            logger.exception(f"Error calculating monthly adherence trend: {str(e)}")
+            return {
+                'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                'data': [0, 0, 0, 0, 0, 0]
+            }

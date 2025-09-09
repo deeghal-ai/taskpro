@@ -2573,20 +2573,18 @@ def team_member_daily_roster(request):
 
 
 @login_required
-def tat_analytics_dashboard(request):
+def tat_analytics_simple(request):
     """
-    TAT Analytics Dashboard for Senior Managers.
-    Shows comprehensive TAT analysis with charts and detailed project data.
+    Simplified TAT Analytics Dashboard for Senior Managers.
+    Focuses on TAT adherence percentages across different dimensions.
     """
-    
-    # Check permissions - allow DPM, VIDEO_PM, and SENIOR_MANAGER
+    # Check permissions - allow SENIOR_MANAGER, DPM, and VIDEO_PM
     redirect_response = ensure_has_management_access(request)
     if redirect_response:
         return redirect_response
     
-    # Get filter parameters
+    # Simple date range filter only
     filters = {}
-    
     if request.GET.get('date_from'):
         try:
             filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
@@ -2599,55 +2597,38 @@ def tat_analytics_dashboard(request):
         except ValueError:
             pass
     
-    if request.GET.get('product'):
-        filters['product'] = request.GET.get('product')
-    
-    if request.GET.get('dpm'):
-        filters['dpm'] = request.GET.get('dpm')
-    
-    if request.GET.get('city'):
-        filters['city'] = request.GET.get('city')
-        
-    if request.GET.get('project_type'):
-        filters['project_type'] = request.GET.get('project_type')
-    
-    # Handle export requests
-    if request.GET.get('export'):
-        export_format = request.GET.get('format', 'csv')
-        return export_tat_data(request, filters, export_format)
-    
-    # Get dashboard data
-    dashboard_data = TATAnalyticsService.get_tat_dashboard_data(filters)
+    # Get simplified dashboard data
+    dashboard_data = TATAnalyticsService.get_simplified_tat_dashboard(filters)
     
     if not dashboard_data['success']:
-        messages.error(request, dashboard_data.get('error', 'Error loading TAT analytics data'))
+        messages.error(request, "Error loading TAT analytics")
         dashboard_data = {
-            'success': True,
-            'summary_metrics': {},
-            'chart_data': {},
-            'detailed_projects': [],
-            'total_projects': 0,
-            'filters_applied': {}
+            'adherence_data': {
+                'summary': {},
+                'dpm_wise': [],
+                'city_wise': [],
+                'product_wise': []
+            }
         }
     
-    # Get filter options for dropdowns
-    products = Product.objects.filter(is_active=True).order_by('name')
-    dpms = User.objects.filter(role__in=['DPM', 'VIDEO_PM']).order_by('first_name', 'last_name')
-    cities = City.objects.all().order_by('name')
-    
     context = {
-        'dashboard_data': dashboard_data,
-        'summary_metrics': dashboard_data['summary_metrics'],
-        'chart_data': dashboard_data['chart_data'],
-        'detailed_projects': dashboard_data['detailed_projects'],
-        'products': products,
-        'dpms': dpms,
-        'cities': cities,
-        'applied_filters': dashboard_data['filters_applied'],
-        'title': 'TAT Analytics Dashboard'
+        'adherence_data': dashboard_data.get('adherence_data', {}),
+        'trend_data': dashboard_data.get('trend_data', {}),
+        'total_projects': dashboard_data.get('total_projects', 0),
+        'filters': filters,
+        'title': 'TAT Adherence Dashboard'
     }
     
-    return render(request, 'projects/reports/tat_analytics_dashboard.html', context)
+    return render(request, 'projects/reports/tat_adherence_simple.html', context)
+
+
+@login_required
+def tat_analytics_dashboard(request):
+    """
+    Legacy TAT Analytics Dashboard - redirects to simplified version.
+    """
+    # Redirect to the simplified dashboard
+    return redirect('projects:tat_analytics_simple')
 
 
 def export_tat_data(request, filters, format='csv'):

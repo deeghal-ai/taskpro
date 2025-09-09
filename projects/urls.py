@@ -73,7 +73,10 @@ urlpatterns = [
     path('reports/lol/', report_views.lol_report, name='lol_report'),
     path('reports/lol/export-excel/', report_views.lol_report_export_excel, name='lol_report_export_excel'),
     
-    # TAT Analytics Dashboard (for Senior Managers and above)
+    # TAT Analytics Dashboard (simplified for Senior Managers)
+    path('reports/tat-adherence/', views.tat_analytics_simple, name='tat_analytics_simple'),
+    
+    # TAT Analytics Dashboard (legacy - comprehensive version)
     path('reports/tat-analytics/', views.tat_analytics_dashboard, name='tat_analytics_dashboard'),
     
 ]

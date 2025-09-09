@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}TAT Adherence Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Clean, Professional Dashboard Styling */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .adherence-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: transform 0.2s;
+    }
+    
+    .adherence-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+    }
+    
+    .metric-hero {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .metric-hero .percentage {
+        font-size: 3.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .metric-hero .label {
+        font-size: 1.25rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .adherence-table {
+        width: 100%;
+    }
+    
+    .adherence-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        padding: 0.75rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .adherence-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .adherence-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .adherence-high {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .adherence-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .adherence-low {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .progress-bar-container {
+        position: relative;
+        height: 30px;
+        background: #e9ecef;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        transition: width 0.3s ease;
+    }
+    
+    .date-filter {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1 class="mb-2">TAT Adherence Dashboard</h1>
+        <p class="mb-0">Monitor project turnaround time performance across teams, regions, and products</p>
+    </div>
+    
+    <!-- Simple Date Filter -->
+    <div class="date-filter">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="date_from" name="date_from" 
+                       value="{{ filters.date_from|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="date_to" name="date_to" 
+                       value="{{ filters.date_to|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Apply Filter
+                </button>
+                <a href="{% url 'projects:tat_analytics_simple' %}" class="btn btn-outline-secondary ms-2">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+            <div class="col-md-3 text-end">
+                <span class="text-muted">Total Projects: <strong>{{ total_projects }}</strong></span>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Overall TAT Adherence Hero Metric -->
+    <div class="adherence-card">
+        <div class="metric-hero">
+            <div class="percentage">{{ adherence_data.summary.adherence_percentage }}%</div>
+            <div class="label">Overall TAT Adherence</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">✅ Within TAT: {{ adherence_data.summary.within_tat }}</span>
+                <span>⚠️ Beyond TAT: {{ adherence_data.summary.beyond_tat }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Three Column Layout for Different Dimensions -->
+    <div class="row">
+        <!-- DPM-wise TAT Adherence -->
+        <div class="col-lg-4">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-people-fill"></i> DPM Performance
+                </h5>
+                <div class="table-responsive">
+                    <table class="adherence-table">
+                        <thead>
+                            <tr>
+                                <th>DPM</th>
+                                <th>Adherence</th>
+                                <th>Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dpm in adherence_data.dpm_wise|slice:":10" %}
+                            <tr>
+                                <td>{{ dpm.dpm_name }}</td>
+                                <td>
+                                    <span class="adherence-badge 
+                                        {% if dpm.adherence_percentage >= 90 %}adherence-high
+                                        {% elif dpm.adherence_percentage >= 75 %}adherence-medium
+                                        {% else %}adherence-low{% endif %}">
+                                        {{ dpm.adherence_percentage }}%
+                                    </span>
+                                </td>
+                                <td>{{ dpm.total_projects }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- City/Region-wise TAT Adherence -->
+        <div class="col-lg-4">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-geo-alt-fill"></i> Regional Performance
+                </h5>
+                <div class="table-responsive">
+                    <table class="adherence-table">
+                        <thead>
+                            <tr>
+                                <th>City</th>
+                                <th>Adherence</th>
+                                <th>Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for city in adherence_data.city_wise|slice:":10" %}
+                            <tr>
+                                <td>{{ city.city_name }}</td>
+                                <td>
+                                    <span class="adherence-badge 
+                                        {% if city.adherence_percentage >= 90 %}adherence-high
+                                        {% elif city.adherence_percentage >= 75 %}adherence-medium
+                                        {% else %}adherence-low{% endif %}">
+                                        {{ city.adherence_percentage }}%
+                                    </span>
+                                </td>
+                                <td>{{ city.total_projects }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product-wise TAT Adherence -->
+        <div class="col-lg-4">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-box-fill"></i> Product Performance
+                </h5>
+                <div class="table-responsive">
+                    <table class="adherence-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Adherence</th>
+                                <th>Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in adherence_data.product_wise|slice:":10" %}
+                            <tr>
+                                <td>{{ product.product_name }}</td>
+                                <td>
+                                    <span class="adherence-badge 
+                                        {% if product.adherence_percentage >= 90 %}adherence-high
+                                        {% elif product.adherence_percentage >= 75 %}adherence-medium
+                                        {% else %}adherence-low{% endif %}">
+                                        {{ product.adherence_percentage }}%
+                                    </span>
+                                </td>
+                                <td>{{ product.total_projects }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Visual Charts Row -->
+    <div class="row mt-3">
+        <div class="col-lg-6">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-graph-up"></i> TAT Adherence Trend
+                </h5>
+                <div class="chart-container">
+                    <canvas id="adherenceTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="adherence-card">
+                <h5 class="mb-3">
+                    <i class="bi bi-pie-chart-fill"></i> TAT Distribution
+                </h5>
+                <div class="chart-container">
+                    <canvas id="tatDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Actions -->
+    <div class="text-center mt-4">
+        <button class="btn btn-success me-2" onclick="exportToExcel()">
+            <i class="bi bi-file-earmark-excel"></i> Export to Excel
+        </button>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print Report
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart Configuration
+const chartColors = {
+    primary: '#667eea',
+    success: '#38ef7d',
+    warning: '#ffc107',
+    danger: '#dc3545'
+};
+
+// TAT Distribution Pie Chart
+const distributionCtx = document.getElementById('tatDistributionChart').getContext('2d');
+new Chart(distributionCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Within TAT', 'Beyond TAT'],
+        datasets: [{
+            data: [
+                {{ adherence_data.summary.within_tat|default:0 }},
+                {{ adherence_data.summary.beyond_tat|default:0 }}
+            ],
+            backgroundColor: [chartColors.success, chartColors.danger],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// TAT Adherence Trend Chart with Real Data
+const trendCtx = document.getElementById('adherenceTrendChart').getContext('2d');
+
+new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: JSON.parse('{{ trend_data.labels|default:"[]"|escapejs }}'),
+        datasets: [{
+            label: 'TAT Adherence %',
+            data: JSON.parse('{{ trend_data.data|default:"[]"|escapejs }}'),
+            borderColor: chartColors.primary,
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    callback: function(value) {
+                        return value + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Export to Excel function
+function exportToExcel() {
+    // Prepare data for export
+    const exportData = {
+        'Summary': {
+            'Overall Adherence': '{{ adherence_data.summary.adherence_percentage }}%',
+            'Within TAT': {{ adherence_data.summary.within_tat|default:0 }},
+            'Beyond TAT': {{ adherence_data.summary.beyond_tat|default:0 }}
+        },
+        'DPM Performance': {{ adherence_data.dpm_wise|safe }},
+        'City Performance': {{ adherence_data.city_wise|safe }},
+        'Product Performance': {{ adherence_data.product_wise|safe }}
+    };
+    
+    // Convert to CSV or trigger download
+    alert('Export functionality to be implemented with server-side Excel generation');
+}
+</script>
+{% endblock %}
