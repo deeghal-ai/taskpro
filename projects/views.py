@@ -2637,10 +2637,29 @@ def tat_analytics_simple(request):
         'adherence_percentage': adherence_percentage
     }
     
-    # JSON encode TAT distribution data for safe JavaScript rendering
+    # JSON encode the TAT distribution data for safe JavaScript embedding
     tat_distribution_json = {
         'within_tat': json.dumps(within_tat),
         'beyond_tat': json.dumps(beyond_tat)
+    }
+    
+    # Pipeline vs Delivered adherence data with JSON encoding
+    pipeline_delivered_data = adherence_data.get('pipeline_delivered', {})
+    pipeline_data = pipeline_delivered_data.get('pipeline', {})
+    delivered_data = pipeline_delivered_data.get('delivered', {})
+    
+    pipeline_json = {
+        'within_tat': json.dumps(int(pipeline_data.get('within_tat', 0) or 0)),
+        'beyond_tat': json.dumps(int(pipeline_data.get('beyond_tat', 0) or 0)),
+        'total_projects': int(pipeline_data.get('total_projects', 0) or 0),
+        'adherence_percentage': float(pipeline_data.get('adherence_percentage', 0) or 0)
+    }
+    
+    delivered_json = {
+        'within_tat': json.dumps(int(delivered_data.get('within_tat', 0) or 0)),
+        'beyond_tat': json.dumps(int(delivered_data.get('beyond_tat', 0) or 0)),
+        'total_projects': int(delivered_data.get('total_projects', 0) or 0),
+        'adherence_percentage': float(delivered_data.get('adherence_percentage', 0) or 0)
     }
     
     context = {
@@ -2648,7 +2667,11 @@ def tat_analytics_simple(request):
             'summary': adherence_summary,
             'dpm_wise': adherence_data.get('dpm_wise', []),
             'city_wise': adherence_data.get('city_wise', []),
-            'product_wise': adherence_data.get('product_wise', [])
+            'product_wise': adherence_data.get('product_wise', []),
+            'pipeline_delivered': {
+                'pipeline': pipeline_json,
+                'delivered': delivered_json
+            }
         },
         'trend_data': trend_data,
         'trend_data_json': trend_data_json,

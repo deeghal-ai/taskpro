@@ -3488,13 +3488,17 @@ class TATAnalyticsService:
             # Get monthly trend data
             trend_data = TATAnalyticsService.get_monthly_adherence_trend(filters)
             
+            # Get pipeline vs delivered project adherence
+            pipeline_delivered_adherence = TATAnalyticsService._calculate_pipeline_delivered_adherence(projects_with_tat)
+            
             return {
                 'success': True,
                 'adherence_data': {
                     'summary': overall_adherence,
                     'dpm_wise': dpm_adherence,
                     'city_wise': city_adherence,
-                    'product_wise': product_adherence
+                    'product_wise': product_adherence,
+                    'pipeline_delivered': pipeline_delivered_adherence
                 },
                 'trend_data': trend_data,
                 'total_projects': projects_queryset.count()
@@ -3729,3 +3733,53 @@ class TATAnalyticsService:
                 'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 'data': [0, 0, 0, 0, 0, 0]
             }
+    
+    @staticmethod
+    def _calculate_pipeline_delivered_adherence(projects_with_tat):
+        """Calculate TAT adherence for Pipeline vs Delivered projects using Project model logic."""
+        from collections import defaultdict
+        
+        pipeline_data = {'within': 0, 'beyond': 0, 'total': 0}
+        delivered_data = {'within': 0, 'beyond': 0, 'total': 0}
+        
+        for project_data in projects_with_tat:
+            project = project_data['project']
+            tat_data = project_data['tat_data']
+            
+            # Use the same classification logic as Project model properties
+            # is_delivered: category_two == 'Final Delivery'  
+            # is_pipeline: category_two != 'Final Delivery' (includes "Not Started", "On Hold", "Pipeline", etc.)
+            
+            if project.is_delivered:
+                # Project is delivered (category_two = 'Final Delivery')
+                delivered_data['total'] += 1
+                if tat_data['is_beyond_tat']:
+                    delivered_data['beyond'] += 1
+                else:
+                    delivered_data['within'] += 1
+            elif project.is_pipeline:
+                # Project is in pipeline (category_two != 'Final Delivery')
+                pipeline_data['total'] += 1
+                if tat_data['is_beyond_tat']:
+                    pipeline_data['beyond'] += 1
+                else:
+                    pipeline_data['within'] += 1
+        
+        # Calculate adherence percentages
+        pipeline_adherence_pct = round((pipeline_data['within'] / pipeline_data['total']) * 100, 1) if pipeline_data['total'] > 0 else 0
+        delivered_adherence_pct = round((delivered_data['within'] / delivered_data['total']) * 100, 1) if delivered_data['total'] > 0 else 0
+        
+        return {
+            'pipeline': {
+                'adherence_percentage': pipeline_adherence_pct,
+                'within_tat': pipeline_data['within'],
+                'beyond_tat': pipeline_data['beyond'],
+                'total_projects': pipeline_data['total']
+            },
+            'delivered': {
+                'adherence_percentage': delivered_adherence_pct,
+                'within_tat': delivered_data['within'],
+                'beyond_tat': delivered_data['beyond'],
+                'total_projects': delivered_data['total']
+            }
+        }
