@@ -2090,8 +2090,44 @@ def assignment_graph_view(request):
             success_projects, result_projects = ProjectService.get_dpm_all_task_assignments(
                 assignment_status=assignment_status,
                 team_member=team_member,
-                project=None,
+                project=None,  # Don't filter by project for project choices
                 dpm=dpm,
+                start_date=None,
+                end_date=None
+            )
+            
+            # Get assignments for team members (excluding team member filter)
+            success_members, result_members = ProjectService.get_dpm_all_task_assignments(
+                assignment_status=assignment_status,
+                team_member=None,  # Don't filter by team member for team member choices
+                project=project,
+                dpm=dpm,
+                start_date=None,
+                end_date=None
+            )
+            
+            response_data = {}
+            
+            # Get unique projects
+            if success_projects:
+                project_ids = set()
+                for assignment in result_projects:
+                    project_ids.add(assignment.task.project.id)
+                
+                projects = Project.objects.filter(id__in=project_ids).order_by('project_name')
+                response_data['projects'] = [
+                    {'id': p.id, 'name': p.project_name}
+                    for p in projects
+                ]
+            else:
+                response_data['projects'] = []
+            
+            # Get unique team members
+            if success_members:
+                member_ids = set()
+                for assignment in result_members:
+                    member_ids.add(assignment.assigned_to.id)
+                
                 members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER').order_by('first_name', 'last_name', 'username')
                 response_data['team_members'] = [
                     {
