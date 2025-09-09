@@ -3525,14 +3525,19 @@ class TATAnalyticsService:
         """Calculate TAT adherence percentage for each DPM."""
         from collections import defaultdict
         
-        dpm_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
+        dpm_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0, 'user_obj': None})
         
         for project_data in projects_with_tat:
             project = project_data['project']
             tat_data = project_data['tat_data']
             
+            # Only include users who actually have DPM role
+            if project.dpm.role != 'DPM':
+                continue
+                
             dpm_name = f"{project.dpm.first_name} {project.dpm.last_name}".strip() or project.dpm.username
             dpm_data[dpm_name]['total'] += 1
+            dpm_data[dpm_name]['user_obj'] = project.dpm
             
             if tat_data['is_beyond_tat']:
                 dpm_data[dpm_name]['beyond'] += 1
