@@ -350,8 +350,8 @@ new Chart(distributionCtx, {
         labels: ['Within TAT', 'Beyond TAT'],
         datasets: [{
             data: [
-                {{ adherence_data.summary.within_tat|default:0 }},
-                {{ adherence_data.summary.beyond_tat|default:0 }}
+                {{ tat_distribution_json.within_tat|safe }},
+                {{ tat_distribution_json.beyond_tat|safe }}
             ],
             backgroundColor: [chartColors.success, chartColors.danger],
             borderWidth: 2,
@@ -401,6 +401,16 @@ new Chart(trendCtx, {
         plugins: {
             legend: {
                 display: false
+            },
+            tooltip: {
+                callbacks: {
+                    title: function(context) {
+                        return context[0].label;
+                    },
+                    label: function(context) {
+                        return 'TAT Adherence: ' + context.parsed.y + '%';
+                    }
+                }
             }
         },
         scales: {

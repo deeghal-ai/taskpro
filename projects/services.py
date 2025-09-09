@@ -3641,7 +3641,21 @@ class TATAnalyticsService:
         try:
             # Get date range - last 6 months or filtered range
             end_date = filters.get('date_to') if filters and filters.get('date_to') else datetime.now().date()
-            start_date = filters.get('date_from') if filters and filters.get('date_from') else end_date - timedelta(days=180)
+            if filters and filters.get('date_from'):
+                start_date = filters.get('date_from')
+            else:
+                # For default case, show last 6 months including current month
+                # September 2025 should show: Apr, May, Jun, Jul, Aug, Sep
+                current_date = datetime.now().date()
+                current_month = current_date.replace(day=1)
+                # Go back 5 months to show 6 total months (including current)
+                start_month = current_month
+                for i in range(5):
+                    if start_month.month == 1:
+                        start_month = start_month.replace(year=start_month.year - 1, month=12)
+                    else:
+                        start_month = start_month.replace(month=start_month.month - 1)
+                start_date = start_month
             
             # Get projects in date range
             projects_queryset = Project.objects.select_related(
@@ -3690,7 +3704,7 @@ class TATAnalyticsService:
                     break
                     
                 month_key = current_date.strftime('%Y-%m')
-                month_label = current_date.strftime('%b')
+                month_label = current_date.strftime('%b %Y')  # Include year for better tooltips
                 
                 data = monthly_data.get(month_key, {'within': 0, 'beyond': 0, 'total': 0})
                 adherence_pct = round((data['within'] / data['total']) * 100, 1) if data['total'] > 0 else 0
