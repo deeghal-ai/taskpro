@@ -3479,17 +3479,16 @@ class TATAnalyticsService:
             # Get projects with TAT data
             projects_with_tat = ProjectService.get_projects_with_tat_data(projects_queryset)
             
-            # Calculate adherence metrics
+            # Calculate metrics
             overall_adherence = TATAnalyticsService._calculate_overall_adherence(projects_with_tat)
             dpm_adherence = TATAnalyticsService._calculate_dpm_wise_adherence(projects_with_tat)
             city_adherence = TATAnalyticsService._calculate_city_wise_adherence(projects_with_tat)
+            region_adherence = TATAnalyticsService._calculate_region_wise_adherence(projects_with_tat)
             product_adherence = TATAnalyticsService._calculate_product_wise_adherence(projects_with_tat)
+            pipeline_delivered_adherence = TATAnalyticsService._calculate_pipeline_delivered_adherence(projects_with_tat)
             
             # Get monthly trend data
             trend_data = TATAnalyticsService.get_monthly_adherence_trend(filters)
-            
-            # Get pipeline vs delivered project adherence
-            pipeline_delivered_adherence = TATAnalyticsService._calculate_pipeline_delivered_adherence(projects_with_tat)
             
             return {
                 'success': True,
@@ -3497,6 +3496,7 @@ class TATAnalyticsService:
                     'summary': overall_adherence,
                     'dpm_wise': dpm_adherence,
                     'city_wise': city_adherence,
+                    'region_wise': region_adherence,
                     'product_wise': product_adherence,
                     'pipeline_delivered': pipeline_delivered_adherence
                 },
@@ -3596,6 +3596,41 @@ class TATAnalyticsService:
             })
         
         # Sort by total projects (most active cities first)
+        result.sort(key=lambda x: -x['total_projects'])
+        return result
+    
+    @staticmethod
+    def _calculate_region_wise_adherence(projects_with_tat):
+        """Calculate TAT adherence percentage for each region."""
+        from collections import defaultdict
+        
+        region_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
+        
+        for project_data in projects_with_tat:
+            project = project_data['project']
+            tat_data = project_data['tat_data']
+            
+            region_name = project.city.region.name if project.city and project.city.region else 'Unknown'
+            region_data[region_name]['total'] += 1
+            
+            if tat_data['is_beyond_tat']:
+                region_data[region_name]['beyond'] += 1
+            else:
+                region_data[region_name]['within'] += 1
+        
+        # Calculate adherence percentage for each region
+        result = []
+        for region_name, data in region_data.items():
+            adherence_pct = round((data['within'] / data['total']) * 100, 1) if data['total'] > 0 else 0
+            result.append({
+                'region_name': region_name,
+                'adherence_percentage': adherence_pct,
+                'within_tat': data['within'],
+                'beyond_tat': data['beyond'],
+                'total_projects': data['total']
+            })
+        
+        # Sort by total projects (most active regions first)
         result.sort(key=lambda x: -x['total_projects'])
         return result
     
