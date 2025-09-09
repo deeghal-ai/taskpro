@@ -4,6 +4,8 @@
 {% block title %}TAT Adherence Dashboard{% endblock %}
 
 {% block extra_css %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     /* Clean, Professional Dashboard Styling */
     .dashboard-header {
@@ -246,13 +248,13 @@
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
                 <label for="date_from" class="form-label">From Date</label>
-                <input type="date" class="form-control" id="date_from" name="date_from" 
-                       value="{{ filters.date_from|date:'Y-m-d' }}">
+                <input type="text" class="form-control" id="date_from" name="date_from" 
+                       value="{{ filters.date_from|date:'Y-m-d' }}" placeholder="Select date">
             </div>
             <div class="col-md-3">
                 <label for="date_to" class="form-label">To Date</label>
-                <input type="date" class="form-control" id="date_to" name="date_to" 
-                       value="{{ filters.date_to|date:'Y-m-d' }}">
+                <input type="text" class="form-control" id="date_to" name="date_to" 
+                       value="{{ filters.date_to|date:'Y-m-d' }}" placeholder="Select date">
             </div>
             <div class="col-md-3">
                 <button type="submit" class="btn btn-primary">
@@ -553,5 +555,28 @@ function exportToExcel() {
     // Convert to CSV or trigger download
     alert('Export functionality to be implemented with server-side Excel generation');
 }
+</script>
+
+<!-- Flatpickr JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr for both date inputs
+    flatpickr("#date_from", {
+        dateFormat: "Y-m-d",
+        allowInput: true,
+        position: "auto center",
+        static: false,
+        appendTo: document.body
+    });
+    
+    flatpickr("#date_to", {
+        dateFormat: "Y-m-d", 
+        allowInput: true,
+        position: "auto center",
+        static: false,
+        appendTo: document.body
+    });
+});
 </script>
 {% endblock %}
