@@ -409,11 +409,11 @@ def lol_report_export_excel(request):
     ws.column_dimensions['A'].width = 20  # Name
     ws.column_dimensions['B'].width = 12  # Utilization
     ws.column_dimensions['C'].width = 12  # Productivity  
-    ws.column_dimensions['D'].width = 15  # Quality Rating
-    ws.column_dimensions['E'].width = 15  # Utilization Worked Hours
-    ws.column_dimensions['F'].width = 12  # Available Hours
-    ws.column_dimensions['G'].width = 15  # Productivity Worked Hours
-    ws.column_dimensions['H'].width = 12  # Projected Hours
+    ws.column_dimensions['D'].width = 15  # Avg Quality Score
+    ws.column_dimensions['E'].width = 15  # Sum of Task Hour
+    ws.column_dimensions['F'].width = 20  # Sum of Actual Working hour
+    ws.column_dimensions['G'].width = 15  # Sum of Working Hours
+    ws.column_dimensions['H'].width = 18  # Sum of Projected Hours
     ws.column_dimensions['I'].width = 20  # Individual Ratings
     
     # Overview table columns (starting from column J)
@@ -438,8 +438,8 @@ def lol_report_export_excel(request):
     
     # Raw metrics headers
     raw_headers = [
-        "Name", "Utilization %", "Productivity %", "Avg Quality Rating", 
-        "Utilization Worked Hours", "Available Hours", "Productivity Worked Hours", "Projected Hours", "Individual Quality Ratings"
+        "Name", "Utilization %", "Productivity %", "Avg Quality Score", 
+        "Sum of Task Hour", "Sum of Actual Working hour", "Sum of Working Hours", "Sum of Projected Hours", "Individual Quality Ratings"
     ]
     
     for col_idx, header in enumerate(raw_headers, 1):
