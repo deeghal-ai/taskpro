@@ -410,10 +410,11 @@ def lol_report_export_excel(request):
     ws.column_dimensions['B'].width = 12  # Utilization
     ws.column_dimensions['C'].width = 12  # Productivity  
     ws.column_dimensions['D'].width = 15  # Quality Rating
-    ws.column_dimensions['E'].width = 12  # Worked Hours
+    ws.column_dimensions['E'].width = 15  # Utilization Worked Hours
     ws.column_dimensions['F'].width = 12  # Available Hours
-    ws.column_dimensions['G'].width = 12  # Projected Hours
-    ws.column_dimensions['H'].width = 15  # Individual Ratings
+    ws.column_dimensions['G'].width = 15  # Productivity Worked Hours
+    ws.column_dimensions['H'].width = 12  # Projected Hours
+    ws.column_dimensions['I'].width = 20  # Individual Ratings
     
     # Overview table columns (starting from column J)
     ws.column_dimensions['J'].width = 20  # Name
@@ -428,7 +429,7 @@ def lol_report_export_excel(request):
     current_row = 1
     
     # Main header for raw metrics
-    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws.merge_cells(f'A{current_row}:I{current_row}')
     ws[f'A{current_row}'] = "RAW INDIVIDUAL METRICS"
     ws[f'A{current_row}'].font = Font(bold=True, size=14)
     ws[f'A{current_row}'].alignment = center_alignment
@@ -438,7 +439,7 @@ def lol_report_export_excel(request):
     # Raw metrics headers
     raw_headers = [
         "Name", "Utilization %", "Productivity %", "Avg Quality Rating", 
-        "Worked Hours", "Available Hours", "Projected Hours", "Individual Quality Ratings"
+        "Utilization Worked Hours", "Available Hours", "Productivity Worked Hours", "Projected Hours", "Individual Quality Ratings"
     ]
     
     for col_idx, header in enumerate(raw_headers, 1):
@@ -464,6 +465,7 @@ def lol_report_export_excel(request):
             f"{data['avg_quality_rating']:.2f}" if data['avg_quality_rating'] else "N/A",
             f"{data['utilization_details']['worked_hours']:.1f}",
             f"{data['utilization_details']['available_hours']:.1f}",
+            f"{data['productivity_details']['worked_hours']:.1f}",
             f"{data['productivity_details']['projected_hours']:.1f}",
             individual_ratings
         ]
