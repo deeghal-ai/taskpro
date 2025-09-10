@@ -3501,7 +3501,7 @@ class TATAnalyticsService:
                     'pipeline_delivered': pipeline_delivered_adherence
                 },
                 'trend_data': trend_data,
-                'total_projects': projects_queryset.count()
+                'total_projects': sum(p['project'].quantity for p in projects_with_tat)
             }
             
         except Exception as e:
@@ -3510,12 +3510,12 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_overall_adherence(projects_with_tat):
-        """Calculate overall TAT adherence percentage."""
+        """Calculate overall TAT adherence percentage using quantity weighting."""
         if not projects_with_tat:
             return {'adherence_percentage': 0, 'within_tat': 0, 'beyond_tat': 0}
         
-        total = len(projects_with_tat)
-        within_tat = sum(1 for p in projects_with_tat if not p['tat_data']['is_beyond_tat'])
+        total = sum(p['project'].quantity for p in projects_with_tat)
+        within_tat = sum(p['project'].quantity for p in projects_with_tat if not p['tat_data']['is_beyond_tat'])
         
         return {
             'adherence_percentage': round((within_tat / total) * 100, 1),
@@ -3526,7 +3526,7 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_dpm_wise_adherence(projects_with_tat):
-        """Calculate TAT adherence percentage for each DPM."""
+        """Calculate TAT adherence percentage for each DPM using quantity weighting."""
         from collections import defaultdict
         
         dpm_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0, 'user_obj': None})
@@ -3540,13 +3540,13 @@ class TATAnalyticsService:
                 continue
                 
             dpm_name = f"{project.dpm.first_name} {project.dpm.last_name}".strip() or project.dpm.username
-            dpm_data[dpm_name]['total'] += 1
+            dpm_data[dpm_name]['total'] += project.quantity
             dpm_data[dpm_name]['user_obj'] = project.dpm
             
             if tat_data['is_beyond_tat']:
-                dpm_data[dpm_name]['beyond'] += 1
+                dpm_data[dpm_name]['beyond'] += project.quantity
             else:
-                dpm_data[dpm_name]['within'] += 1
+                dpm_data[dpm_name]['within'] += project.quantity
         
         # Calculate adherence percentage for each DPM
         result = []
@@ -3566,7 +3566,7 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_city_wise_adherence(projects_with_tat):
-        """Calculate TAT adherence percentage for each city/region."""
+        """Calculate TAT adherence percentage for each city/region using quantity weighting."""
         from collections import defaultdict
         
         city_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
@@ -3576,12 +3576,12 @@ class TATAnalyticsService:
             tat_data = project_data['tat_data']
             
             city_name = project.city.name if project.city else 'Unknown'
-            city_data[city_name]['total'] += 1
+            city_data[city_name]['total'] += project.quantity
             
             if tat_data['is_beyond_tat']:
-                city_data[city_name]['beyond'] += 1
+                city_data[city_name]['beyond'] += project.quantity
             else:
-                city_data[city_name]['within'] += 1
+                city_data[city_name]['within'] += project.quantity
         
         # Calculate adherence percentage for each city
         result = []
@@ -3601,7 +3601,7 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_region_wise_adherence(projects_with_tat):
-        """Calculate TAT adherence percentage for each region."""
+        """Calculate TAT adherence percentage for each region using quantity weighting."""
         from collections import defaultdict
         
         region_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
@@ -3611,12 +3611,12 @@ class TATAnalyticsService:
             tat_data = project_data['tat_data']
             
             region_name = project.city.region.name if project.city and project.city.region else 'Unknown'
-            region_data[region_name]['total'] += 1
+            region_data[region_name]['total'] += project.quantity
             
             if tat_data['is_beyond_tat']:
-                region_data[region_name]['beyond'] += 1
+                region_data[region_name]['beyond'] += project.quantity
             else:
-                region_data[region_name]['within'] += 1
+                region_data[region_name]['within'] += project.quantity
         
         # Calculate adherence percentage for each region
         result = []
@@ -3636,7 +3636,7 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_product_wise_adherence(projects_with_tat):
-        """Calculate TAT adherence percentage for each product."""
+        """Calculate TAT adherence percentage for each product using quantity weighting."""
         from collections import defaultdict
         
         product_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
@@ -3646,12 +3646,12 @@ class TATAnalyticsService:
             tat_data = project_data['tat_data']
             
             product_name = project.product.name
-            product_data[product_name]['total'] += 1
+            product_data[product_name]['total'] += project.quantity
             
             if tat_data['is_beyond_tat']:
-                product_data[product_name]['beyond'] += 1
+                product_data[product_name]['beyond'] += project.quantity
             else:
-                product_data[product_name]['within'] += 1
+                product_data[product_name]['within'] += project.quantity
         
         # Calculate adherence percentage for each product
         result = []
@@ -3713,11 +3713,11 @@ class TATAnalyticsService:
                 # Get month key (YYYY-MM format)
                 month_key = project.purchase_date.strftime('%Y-%m')
                 
-                monthly_data[month_key]['total'] += 1
+                monthly_data[month_key]['total'] += project.quantity
                 if tat_data['is_beyond_tat']:
-                    monthly_data[month_key]['beyond'] += 1
+                    monthly_data[month_key]['beyond'] += project.quantity
                 else:
-                    monthly_data[month_key]['within'] += 1
+                    monthly_data[month_key]['within'] += project.quantity
             
             # Generate labels and data for the actual date range
             labels = []
@@ -3771,7 +3771,7 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_pipeline_delivered_adherence(projects_with_tat):
-        """Calculate TAT adherence for Pipeline vs Delivered projects using Project model logic."""
+        """Calculate TAT adherence for Pipeline vs Delivered projects using Project model logic with quantity weighting."""
         from collections import defaultdict
         
         pipeline_data = {'within': 0, 'beyond': 0, 'total': 0}
@@ -3787,18 +3787,18 @@ class TATAnalyticsService:
             
             if project.is_delivered:
                 # Project is delivered (category_two = 'Final Delivery')
-                delivered_data['total'] += 1
+                delivered_data['total'] += project.quantity
                 if tat_data['is_beyond_tat']:
-                    delivered_data['beyond'] += 1
+                    delivered_data['beyond'] += project.quantity
                 else:
-                    delivered_data['within'] += 1
+                    delivered_data['within'] += project.quantity
             elif project.is_pipeline:
                 # Project is in pipeline (category_two != 'Final Delivery')
-                pipeline_data['total'] += 1
+                pipeline_data['total'] += project.quantity
                 if tat_data['is_beyond_tat']:
-                    pipeline_data['beyond'] += 1
+                    pipeline_data['beyond'] += project.quantity
                 else:
-                    pipeline_data['within'] += 1
+                    pipeline_data['within'] += project.quantity
         
         # Calculate adherence percentages
         pipeline_adherence_pct = round((pipeline_data['within'] / pipeline_data['total']) * 100, 1) if pipeline_data['total'] > 0 else 0
