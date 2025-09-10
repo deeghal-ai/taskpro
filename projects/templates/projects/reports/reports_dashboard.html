@@ -127,6 +127,11 @@
         color: white;
     }
 
+    .report-icon.ageing-report {
+        background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+        color: white;
+    }
+
     .report-card h4 {
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -390,6 +395,25 @@
                 <div class="card-footer">
                     <span class="report-link">
                         View Dashboard <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Project Ageing Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:ageing_report_dashboard' %}" class="report-card">
+                <div class="report-icon ageing-report">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h4>Project Ageing Report</h4>
+                <p>
+                    Track project activity levels by analyzing time since last status update. 
+                    Identify stale projects with quantity-weighted metrics across age categories.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
                     </span>
                 </div>
             </a>

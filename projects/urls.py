@@ -76,6 +76,9 @@ urlpatterns = [
     # TAT Analytics Dashboard (simplified for Senior Managers)
     path('reports/tat-adherence/', views.tat_analytics_simple, name='tat_analytics_simple'),
     
+    # Project Ageing Report Dashboard
+    path('reports/ageing-report/', views.ageing_report_dashboard, name='ageing_report_dashboard'),
+    
     # TAT Analytics Dashboard (legacy - comprehensive version)
     path('reports/tat-analytics/', views.tat_analytics_dashboard, name='tat_analytics_dashboard'),
     

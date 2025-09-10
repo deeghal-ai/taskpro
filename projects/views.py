@@ -2685,6 +2685,103 @@ def tat_analytics_simple(request):
     return render(request, 'projects/reports/tat_adherence_simple.html', context)
 
 
+def ageing_report_dashboard(request):
+    """
+    Project Ageing Report Dashboard for Senior Managers.
+    Shows distribution of projects by age categories with quantity weighting.
+    """
+    # Check permissions - allow SENIOR_MANAGER, DPM, and VIDEO_PM
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
+    
+    # Parse filters from request
+    filters = {}
+    if request.GET.get('date_from'):
+        try:
+            filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('date_to'):
+        try:
+            filters['date_to'] = datetime.strptime(request.GET.get('date_to'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('product'):
+        filters['product'] = request.GET.get('product')
+    
+    if request.GET.get('dpm'):
+        filters['dpm'] = request.GET.get('dpm')
+    
+    if request.GET.get('city'):
+        filters['city'] = request.GET.get('city')
+    
+    # Get ageing data from service
+    from .services import AgeingReportService
+    dashboard_data = AgeingReportService.get_ageing_dashboard(filters)
+    
+    if not dashboard_data.get('success'):
+        messages.error(request, f"Error generating ageing report: {dashboard_data.get('error', 'Unknown error')}")
+        dashboard_data = {
+            'category_totals': {'1+ year': 0, '6+ months': 0, '3+ months': 0, 'less than 3 months': 0},
+            'dpm_breakdown': [],
+            'product_breakdown': [],
+            'total_projects': 0,
+            'project_count': 0
+        }
+    
+    # Prepare chart data for frontend
+    category_labels = ['1+ year', '6+ months', '3+ months', 'less than 3 months']
+    category_totals = dashboard_data.get('category_totals', {})
+    category_data = [
+        category_totals.get('one_plus_year', 0),
+        category_totals.get('six_plus_months', 0), 
+        category_totals.get('three_plus_months', 0),
+        category_totals.get('less_than_3_months', 0)
+    ]
+    category_colors = ['#dc3545', '#fd7e14', '#0dcaf0', '#198754']  # Red, Orange, Blue, Green
+    
+    category_chart_json = json.dumps({
+        'labels': category_labels,
+        'data': category_data,
+        'colors': category_colors
+    })
+    
+    # Get filter options for dropdowns
+    products = Product.objects.all().values_list('name', flat=True).distinct()
+    dpms = User.objects.filter(role='DPM').values_list('username', flat=True)
+    cities = City.objects.all().values_list('name', flat=True).distinct()
+    
+    # Prepare DPM chart data arrays
+    dpm_breakdown = dashboard_data.get('dpm_breakdown', [])
+    dpm_labels = [dpm.get('dpm_name', '') for dpm in dpm_breakdown]
+    dpm_one_year = [dpm.get('one_plus_year', 0) for dpm in dpm_breakdown]
+    dpm_six_months = [dpm.get('six_plus_months', 0) for dpm in dpm_breakdown]
+    dpm_three_months = [dpm.get('three_plus_months', 0) for dpm in dpm_breakdown]
+    dpm_less_three = [dpm.get('less_than_3_months', 0) for dpm in dpm_breakdown]
+    
+    context = {
+        'ageing_data': dashboard_data,
+        'category_chart_json': category_chart_json,
+        'total_projects': dashboard_data.get('total_projects', 0),
+        'project_count': dashboard_data.get('project_count', 0),
+        'filters': filters,
+        'products': products,
+        'dpms': dpms,
+        'cities': cities,
+        'dpm_labels': json.dumps(dpm_labels),
+        'dpm_one_year': json.dumps(dpm_one_year),
+        'dmp_six_months': json.dumps(dpm_six_months),
+        'dpm_three_months': json.dumps(dpm_three_months),
+        'dpm_less_three': json.dumps(dpm_less_three),
+        'title': 'Project Ageing Report'
+    }
+    
+    return render(request, 'projects/reports/ageing_report.html', context)
+
+
 @login_required
 def tat_analytics_dashboard(request):
     """

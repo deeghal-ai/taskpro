@@ -3482,6 +3482,191 @@ class ReportingService:
             return None
 
 
+class AgeingReportService:
+    """Service for calculating project ageing metrics with quantity weighting."""
+    
+    @staticmethod
+    def get_ageing_dashboard(filters=None):
+        """
+        Get ageing report data showing project counts by age categories with quantity weighting.
+        """
+        try:
+            # Get base queryset with optimized queries
+            # Filter to only include projects with current status category_two = "Not Started"
+            projects_queryset = Project.objects.select_related(
+                'product', 'current_status', 'dpm', 'city'
+            ).prefetch_related('status_history__status').filter(
+                current_status__category_two='Not Started'
+            )
+            
+            # Apply date range filter if provided (filter by purchase_date)
+            if filters:
+                if filters.get('date_from'):
+                    projects_queryset = projects_queryset.filter(
+                        purchase_date__gte=filters['date_from']
+                    )
+                if filters.get('date_to'):
+                    projects_queryset = projects_queryset.filter(
+                        purchase_date__lte=filters['date_to']
+                    )
+                if filters.get('product'):
+                    projects_queryset = projects_queryset.filter(product__name=filters['product'])
+                if filters.get('dpm'):
+                    projects_queryset = projects_queryset.filter(dpm__username=filters['dpm'])
+                if filters.get('city'):
+                    projects_queryset = projects_queryset.filter(city__name=filters['city'])
+            
+            # Calculate ageing for each project
+            projects_with_ageing = []
+            for project in projects_queryset:
+                latest_status_history = project.status_history.order_by('-changed_at').first()
+                if latest_status_history:
+                    from django.utils import timezone
+                    today = timezone.now().date()
+                    latest_date = timezone.localtime(latest_status_history.changed_at).date()
+                    days_since = (today - latest_date).days
+                    
+                    # Categorize ageing
+                    if days_since >= 365:  # 1+ year
+                        age_category = '1+ year'
+                    elif days_since >= 180:  # 6+ months
+                        age_category = '6+ months'
+                    elif days_since >= 90:  # 3+ months
+                        age_category = '3+ months'
+                    else:  # less than 3 months
+                        age_category = 'less than 3 months'
+                    
+                    projects_with_ageing.append({
+                        'project': project,
+                        'age_category': age_category,
+                        'days_since': days_since
+                    })
+            
+            # Calculate category totals using quantity weighting
+            category_totals = AgeingReportService._calculate_category_totals(projects_with_ageing)
+            
+            # Get additional breakdowns
+            dpm_breakdown = AgeingReportService._calculate_dpm_ageing_breakdown(projects_with_ageing)
+            product_breakdown = AgeingReportService._calculate_product_ageing_breakdown(projects_with_ageing)
+            
+            return {
+                'success': True,
+                'category_totals': category_totals,
+                'dpm_breakdown': dpm_breakdown,
+                'product_breakdown': product_breakdown,
+                'total_projects': sum(p['project'].quantity for p in projects_with_ageing),
+                'project_count': len(projects_with_ageing)
+            }
+            
+        except Exception as e:
+            logger.exception(f"Error in ageing dashboard: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    @staticmethod
+    def _calculate_category_totals(projects_with_ageing):
+        """Calculate total quantities for each age category."""
+        categories = {
+            'one_plus_year': 0,
+            'six_plus_months': 0, 
+            'three_plus_months': 0,
+            'less_than_3_months': 0
+        }
+        
+        for project_data in projects_with_ageing:
+            category = project_data['age_category']
+            # Map category names to underscore format
+            category_mapping = {
+                '1+ year': 'one_plus_year',
+                '6+ months': 'six_plus_months',
+                '3+ months': 'three_plus_months',
+                'less than 3 months': 'less_than_3_months'
+            }
+            mapped_category = category_mapping.get(category, 'less_than_3_months')
+            categories[mapped_category] += project_data['project'].quantity
+            
+        return categories
+    
+    @staticmethod
+    def _calculate_dpm_ageing_breakdown(projects_with_ageing):
+        """Calculate ageing breakdown by DPM using quantity weighting."""
+        from collections import defaultdict
+        
+        dpm_data = defaultdict(lambda: {
+            'one_plus_year': 0,
+            'six_plus_months': 0,
+            'three_plus_months': 0,
+            'less_than_3_months': 0,
+            'total': 0
+        })
+        
+        for project_data in projects_with_ageing:
+            project = project_data['project']
+            category = project_data['age_category']
+            
+            dpm_name = f"{project.dpm.first_name} {project.dpm.last_name}".strip() if project.dpm else 'Unknown'
+            # Map category names to underscore format
+            category_mapping = {
+                '1+ year': 'one_plus_year',
+                '6+ months': 'six_plus_months',
+                '3+ months': 'three_plus_months',
+                'less than 3 months': 'less_than_3_months'
+            }
+            mapped_category = category_mapping.get(category, 'less_than_3_months')
+            dpm_data[dpm_name][mapped_category] += project.quantity
+            dpm_data[dpm_name]['total'] += project.quantity
+        
+        # Convert to list and sort by total
+        result = []
+        for dpm_name, data in dpm_data.items():
+            result.append({
+                'dpm_name': dpm_name,
+                **data
+            })
+        
+        result.sort(key=lambda x: -x['total'])
+        return result
+    
+    @staticmethod
+    def _calculate_product_ageing_breakdown(projects_with_ageing):
+        """Calculate ageing breakdown by product using quantity weighting."""
+        from collections import defaultdict
+        
+        product_data = defaultdict(lambda: {
+            'one_plus_year': 0,
+            'six_plus_months': 0,
+            'three_plus_months': 0,
+            'less_than_3_months': 0,
+            'total': 0
+        })
+        
+        for project_data in projects_with_ageing:
+            project = project_data['project']
+            category = project_data['age_category']
+            
+            product_name = project.product.name
+            # Map category names to underscore format
+            category_mapping = {
+                '1+ year': 'one_plus_year',
+                '6+ months': 'six_plus_months',
+                '3+ months': 'three_plus_months',
+                'less than 3 months': 'less_than_3_months'
+            }
+            mapped_category = category_mapping.get(category, 'less_than_3_months')
+            product_data[product_name][mapped_category] += project.quantity
+            product_data[product_name]['total'] += project.quantity
+        
+        # Convert to list and sort by total
+        result = []
+        for product_name, data in product_data.items():
+            result.append({
+                'product_name': product_name,
+                **data
+            })
+        
+        result.sort(key=lambda x: -x['total'])
+        return result
+
+
 class TATAnalyticsService:
     
     @staticmethod
