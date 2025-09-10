@@ -2863,14 +2863,14 @@ class ProjectService:
                 # Use prefetched data
                 for history in project.status_history.all():
                     if history.status.name.lower() == 'project start date':
-                        return history.changed_at.date()
+                        return timezone.localtime(history.changed_at).date()
                 return None
             else:
                 # Query database
                 history_entry = project.status_history.filter(
                     status__name__iexact='Project Start Date'
                 ).order_by('changed_at').first()
-                return history_entry.changed_at.date() if history_entry else None
+                return timezone.localtime(history_entry.changed_at).date() if history_entry else None
         except Exception as e:
             logger.warning(f"Error getting project start date for {project.hs_id}: {str(e)}")
             return None
@@ -2962,16 +2962,16 @@ class ProjectService:
                 # Check if this status has 'Internal' bucket
                 if entry.status.bucket == 'Internal':
                     # Calculate days in this status
-                    entry_start_date = entry.changed_at.date()
+                    entry_start_date = timezone.localtime(entry.changed_at).date()
                     
                     # Determine end date for this status (next chronological status OR project end)
                     if i + 1 < len(sorted_entries):
                         # Next status exists - use its start date as end date
-                        entry_end_date = sorted_entries[i + 1].changed_at.date()
+                        entry_end_date = timezone.localtime(sorted_entries[i + 1].changed_at).date()
                     else:
                         # This is the current/last status
                         if project.is_delivered and project.delivery_date:
-                            entry_end_date = project.delivery_date.date()
+                            entry_end_date = timezone.localtime(project.delivery_date).date()
                         else:
                             entry_end_date = current_date
                     
@@ -3060,6 +3060,36 @@ class ProjectService:
             ).get(id=project_id)
             
             tat_data = ProjectService.calculate_tat_status(project)
+            
+            # Calculate days since latest status change
+            latest_status_history = project.status_history.order_by('-changed_at').first()
+            if latest_status_history:
+                from django.utils import timezone
+                today = timezone.now().date()
+                # Use timezone.localtime() to match Django's |date filter behavior
+                latest_date = timezone.localtime(latest_status_history.changed_at).date()
+                days_since = (today - latest_date).days
+                
+                # Categorize time elapsed
+                if days_since >= 365:  # 1+ year
+                    time_category = '1+ year'
+                    category_class = 'danger'
+                elif days_since >= 180:  # 6+ months
+                    time_category = '6+ months' 
+                    category_class = 'warning'
+                elif days_since >= 90:  # 3+ months
+                    time_category = '3+ months'
+                    category_class = 'info'
+                else:  # less than 3 months
+                    time_category = 'less than 3 months'
+                    category_class = 'success'
+                
+                tat_data['days_since_category'] = time_category
+                tat_data['days_since_class'] = category_class
+                tat_data['days_since_count'] = days_since
+            else:
+                tat_data['days_since_category'] = None
+                tat_data['days_since_class'] = None
             
             return project, tat_data
             

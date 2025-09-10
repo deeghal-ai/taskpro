@@ -492,6 +492,15 @@
                             <span class="badge bg-success">{{ tat_data.status }}</span>
                         {% endif %}
                     </dd>
+
+                    <dt>Days Since</dt>
+                    <dd>
+                        {% if tat_data.days_since_category %}
+                            <span class="badge bg-{{ tat_data.days_since_class }}">{{ tat_data.days_since_category }} ({{ tat_data.days_since_count }})</span>
+                        {% else %}
+                            <span class="text-muted">No status history</span>
+                        {% endif %}
+                    </dd>
                     
                     <dt>Expected Completion</dt>
                     <dd>
