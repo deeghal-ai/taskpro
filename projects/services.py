@@ -4115,16 +4115,22 @@ class GeneralReportService:
                     sales_confirmation_date__lte=filters['date_to']
                 )
         
-        # Calculate quantity-weighted totals
-        total_quantity = sales_queryset.aggregate(
+        # First get all users who currently have DPM role
+        current_dpms = User.objects.filter(role='DPM').values_list('username', flat=True)
+        
+        # Filter projects to only those assigned to current DPMs
+        dpm_filtered_queryset = sales_queryset.filter(dpm__username__in=current_dpms)
+        
+        # Calculate quantity-weighted totals (only for current DPMs)
+        total_quantity = dpm_filtered_queryset.aggregate(
             total=Sum('quantity')
         )['total'] or 0
         
-        project_count = sales_queryset.count()
+        project_count = dpm_filtered_queryset.count()
         
-        # Get product-wise breakdown
+        # Get product-wise breakdown (only for current DPMs)
         product_breakdown = []
-        products = sales_queryset.values('product__name').annotate(
+        products = dpm_filtered_queryset.values('product__name').annotate(
             quantity_sum=Sum('quantity'),
             project_count=Count('id')
         ).order_by('-quantity_sum')
@@ -4137,15 +4143,9 @@ class GeneralReportService:
                     'project_count': product_data['project_count']
                 })
         
-        # Get DPM-wise breakdown (only include users with current DPM role)
+        # Get DPM-wise breakdown (using the same filtered queryset)
         dpm_breakdown = []
-        # First get all users who currently have DPM role
-        current_dpms = User.objects.filter(role='DPM').values_list('username', flat=True)
-        
-        # Then filter projects to only those assigned to current DPMs
-        dpm_projects = sales_queryset.filter(dpm__username__in=current_dpms)
-        
-        dpms = dpm_projects.values('dpm__username').annotate(
+        dpms = dpm_filtered_queryset.values('dpm__username').annotate(
             quantity_sum=Sum('quantity'),
             project_count=Count('id')
         ).order_by('-quantity_sum')
