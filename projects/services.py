@@ -4137,9 +4137,15 @@ class GeneralReportService:
                     'project_count': product_data['project_count']
                 })
         
-        # Get DPM-wise breakdown
+        # Get DPM-wise breakdown (only include users with current DPM role)
         dpm_breakdown = []
-        dpms = sales_queryset.values('dpm__username').annotate(
+        # First get all users who currently have DPM role
+        current_dpms = User.objects.filter(role='DPM').values_list('username', flat=True)
+        
+        # Then filter projects to only those assigned to current DPMs
+        dpm_projects = sales_queryset.filter(dpm__username__in=current_dpms)
+        
+        dpms = dpm_projects.values('dpm__username').annotate(
             quantity_sum=Sum('quantity'),
             project_count=Count('id')
         ).order_by('-quantity_sum')
