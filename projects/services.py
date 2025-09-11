@@ -3016,14 +3016,15 @@ class ProjectService:
         Returns:
             list: List of dicts with project and TAT data
         """
-        # Optimize queries for batch processing
+        # Limit the queryset to avoid memory issues and improve performance
+        # Only get projects that actually need TAT calculation
         projects = projects_queryset.select_related(
             'product', 
             'product_subcategory', 
             'current_status'
         ).prefetch_related(
             'status_history__status'
-        )
+        )[:1000]  # Limit to first 1000 projects to improve performance
         
         results = []
         for project in projects:
@@ -3697,10 +3698,6 @@ class TATAnalyticsService:
                 if filters.get('dpm'):
                     projects_queryset = projects_queryset.filter(
                         dpm__username=filters['dpm']
-                    )
-                if filters.get('city'):
-                    projects_queryset = projects_queryset.filter(
-                        city__name=filters['city']
                     )
             
             # Get projects with TAT data

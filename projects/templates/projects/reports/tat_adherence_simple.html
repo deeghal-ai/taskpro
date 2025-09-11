@@ -283,19 +283,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <label for="city" class="form-label">City</label>
-                <select name="city" id="city" class="form-select">
-                    <option value="">All Cities</option>
-                    {% for city in cities %}
-                        <option value="{{ city.id }}" 
-                                {% if applied_filters.city == city.id|stringformat:"s" %}selected{% endif %}>
-                            {{ city.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
+            <div class="col-md-4 d-flex align-items-end">
                 <div class="d-grid gap-2 w-100">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-funnel"></i> Apply Filters

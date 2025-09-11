@@ -733,10 +733,9 @@ def tat_analytics_simple(request):
         return redirect_response
     
     # Get filter data for dropdowns
-    from .models import Product, City
+    from .models import Product
     products = Product.objects.all().order_by('name')
     dpms = User.objects.filter(role='DPM').order_by('first_name', 'last_name')
-    cities = City.objects.all().order_by('name')
     
     # Build filters dictionary
     filters = {}
@@ -775,14 +774,15 @@ def tat_analytics_simple(request):
         except (User.DoesNotExist, ValueError):
             pass
     
-    # City filter
-    if request.GET.get('city'):
-        try:
-            city_obj = City.objects.get(id=request.GET.get('city'))
-            filters['city'] = city_obj.name
-            applied_filters['city'] = request.GET.get('city')
-        except (City.DoesNotExist, ValueError):
-            pass
+    # Add default date range if no filters provided to improve performance
+    if not any([request.GET.get('date_from'), request.GET.get('date_to'), 
+                request.GET.get('product'), request.GET.get('dpm')]):
+        # Default to last 3 months for better performance
+        from datetime import timedelta
+        today = datetime.now().date()
+        default_start = today - timedelta(days=90)
+        filters['date_from'] = default_start
+        applied_filters['date_from'] = default_start
     
     # Get simplified dashboard data
     dashboard_data = TATAnalyticsService.get_simplified_tat_dashboard(filters)
@@ -869,7 +869,6 @@ def tat_analytics_simple(request):
         'applied_filters': applied_filters,
         'products': products,
         'dpms': dpms,
-        'cities': cities,
         'title': 'TAT Adherence Dashboard'
     }
     
