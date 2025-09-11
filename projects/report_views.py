@@ -568,3 +568,101 @@ def lol_report_export_excel(request):
     
     wb.save(response)
     return response
+
+
+@login_required
+def general_report_dashboard(request):
+    """
+    General Report Dashboard with date range filtering and multiple business metrics.
+    Shows Sales Confirmed and other key metrics with quantity weighting.
+    """
+    # Check permissions - allow SENIOR_MANAGER, DPM, and VIDEO_PM
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
+    
+    # Parse filters from request
+    filters = {}
+    if request.GET.get('date_from'):
+        try:
+            from datetime import datetime
+            filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('date_to'):
+        try:
+            from datetime import datetime
+            filters['date_to'] = datetime.strptime(request.GET.get('date_to'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('product'):
+        filters['product'] = request.GET.get('product')
+    
+    if request.GET.get('dpm'):
+        filters['dpm'] = request.GET.get('dpm')
+    
+    if request.GET.get('city'):
+        filters['city'] = request.GET.get('city')
+    
+    # Get general report data from service
+    from .services import GeneralReportService
+    report_data = GeneralReportService.get_general_report_data(filters)
+    
+    if not report_data.get('success'):
+        messages.error(request, f"Error generating general report: {report_data.get('error', 'Unknown error')}")
+        report_data = {
+            'sales_confirmed': {
+                'total_quantity': 0,
+                'project_count': 0,
+                'product_breakdown': [],
+                'dpm_breakdown': []
+            }
+        }
+    
+    # Get filter options for dropdowns
+    from .models import Product
+    from accounts.models import User
+    from locations.models import City
+    
+    products = Product.objects.all().values_list('name', flat=True).distinct()
+    dpms = User.objects.filter(role='DPM').values_list('username', flat=True)
+    cities = City.objects.all().values_list('name', flat=True).distinct()
+    
+    # Prepare chart data for Sales Confirmed - Product breakdown
+    sales_confirmed = report_data.get('sales_confirmed', {})
+    product_breakdown = sales_confirmed.get('product_breakdown', [])
+    product_labels = [item['product_name'] for item in product_breakdown]
+    product_quantities = [item['quantity'] for item in product_breakdown]
+    
+    product_chart_json = json.dumps({
+        'labels': product_labels,
+        'data': product_quantities,
+        'colors': ['#dc3545', '#fd7e14', '#ffc107', '#198754', '#0dcaf0', '#6f42c1', '#d63384', '#20c997']
+    })
+    
+    # Prepare DPM chart data for Sales Confirmed
+    dpm_breakdown = sales_confirmed.get('dpm_breakdown', [])
+    dpm_labels = [item['dpm_name'] for item in dpm_breakdown]
+    dpm_quantities = [item['quantity'] for item in dpm_breakdown]
+    
+    dmp_chart_json = json.dumps({
+        'labels': dpm_labels,
+        'data': dpm_quantities,
+        'colors': ['#198754', '#0dcaf0', '#6f42c1', '#dc3545', '#fd7e14', '#ffc107']
+    })
+    
+    context = {
+        'report_data': report_data,
+        'sales_confirmed': sales_confirmed,
+        'filters': filters,
+        'products': products,
+        'dpms': dpms,
+        'cities': cities,
+        'product_chart_json': product_chart_json,
+        'dpm_chart_json': dmp_chart_json,
+        'title': 'General Business Report'
+    }
+    
+    return render(request, 'projects/reports/general_report.html', context)

@@ -4033,3 +4033,128 @@ class TATAnalyticsService:
                 'total_projects': delivered_data['total']
             }
         }
+
+
+class GeneralReportService:
+    """
+    Service class for generating general business reports with various metrics
+    based on date ranges and other filters.
+    """
+    
+    @staticmethod
+    def get_general_report_data(filters=None):
+        """
+        Get general report data including Sales Confirmed and other metrics.
+        
+        Args:
+            filters: Dictionary containing filter options
+                - date_from: Start date for the report range
+                - date_to: End date for the report range
+                - product: Filter by specific product
+                - dpm: Filter by specific DPM
+                - city: Filter by specific city
+                
+        Returns:
+            Dictionary containing report data
+        """
+        try:
+            # Start with all projects
+            projects_queryset = Project.objects.select_related(
+                'product', 'dpm', 'city', 'current_status'
+            )
+            
+            # Apply filters if provided
+            if filters:
+                if filters.get('product'):
+                    projects_queryset = projects_queryset.filter(product__name=filters['product'])
+                if filters.get('dpm'):
+                    projects_queryset = projects_queryset.filter(dpm__username=filters['dpm'])
+                if filters.get('city'):
+                    projects_queryset = projects_queryset.filter(city__name=filters['city'])
+            
+            # Calculate Sales Confirmed metric (quantity weighted)
+            sales_confirmed_data = GeneralReportService._calculate_sales_confirmed(
+                projects_queryset, filters
+            )
+            
+            return {
+                'success': True,
+                'sales_confirmed': sales_confirmed_data,
+                'filters_applied': filters or {}
+            }
+            
+        except Exception as e:
+            logger.exception(f"Error generating general report data: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    @staticmethod
+    def _calculate_sales_confirmed(projects_queryset, filters):
+        """
+        Calculate Sales Confirmed metric based on sales_confirmation_date.
+        
+        Args:
+            projects_queryset: Base queryset of projects
+            filters: Date filters to apply
+            
+        Returns:
+            Dictionary with sales confirmed data
+        """
+        # Filter by sales_confirmation_date range if specified
+        sales_queryset = projects_queryset
+        
+        if filters:
+            if filters.get('date_from'):
+                sales_queryset = sales_queryset.filter(
+                    sales_confirmation_date__gte=filters['date_from']
+                )
+            if filters.get('date_to'):
+                sales_queryset = sales_queryset.filter(
+                    sales_confirmation_date__lte=filters['date_to']
+                )
+        
+        # Calculate quantity-weighted totals
+        total_quantity = sales_queryset.aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+        
+        project_count = sales_queryset.count()
+        
+        # Get product-wise breakdown
+        product_breakdown = []
+        products = sales_queryset.values('product__name').annotate(
+            quantity_sum=Sum('quantity'),
+            project_count=Count('id')
+        ).order_by('-quantity_sum')
+        
+        for product_data in products:
+            if product_data['quantity_sum'] > 0:
+                product_breakdown.append({
+                    'product_name': product_data['product__name'],
+                    'quantity': product_data['quantity_sum'],
+                    'project_count': product_data['project_count']
+                })
+        
+        # Get DPM-wise breakdown
+        dpm_breakdown = []
+        dpms = sales_queryset.values('dpm__username').annotate(
+            quantity_sum=Sum('quantity'),
+            project_count=Count('id')
+        ).order_by('-quantity_sum')
+        
+        for dpm_data in dpms:
+            if dpm_data['quantity_sum'] > 0:
+                dpm_breakdown.append({
+                    'dpm_name': dpm_data['dpm__username'],
+                    'quantity': dpm_data['quantity_sum'],
+                    'project_count': dpm_data['project_count']
+                })
+        
+        return {
+            'total_quantity': total_quantity,
+            'project_count': project_count,
+            'product_breakdown': product_breakdown,
+            'dpm_breakdown': dpm_breakdown
+        }

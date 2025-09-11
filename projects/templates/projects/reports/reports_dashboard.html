@@ -132,6 +132,11 @@
         color: white;
     }
 
+    .report-icon.general-report {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        color: white;
+    }
+
     .report-card h4 {
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -410,6 +415,25 @@
                 <p>
                     Track project activity levels by analyzing time since last status update. 
                     Identify stale projects with quantity-weighted metrics across age categories.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- General Business Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:general_report_dashboard' %}" class="report-card">
+                <div class="report-icon general-report">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h4>General Business Report</h4>
+                <p>
+                    Comprehensive business metrics with date range filtering including Sales Confirmed, 
+                    deliveries, and other key performance indicators with quantity-weighted calculations.
                 </p>
                 <div class="card-footer">
                     <span class="report-link">
