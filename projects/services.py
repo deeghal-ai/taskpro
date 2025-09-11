@@ -4077,9 +4077,15 @@ class GeneralReportService:
                 projects_queryset, filters
             )
             
+            # Calculate 1st Cut Deliveries metric
+            first_cut_deliveries_data = GeneralReportService._calculate_first_cut_deliveries(
+                projects_queryset, filters
+            )
+            
             return {
                 'success': True,
                 'sales_confirmed': sales_confirmed_data,
+                'first_cut_deliveries': first_cut_deliveries_data,
                 'filters_applied': filters or {}
             }
             
@@ -4154,6 +4160,103 @@ class GeneralReportService:
             if dpm_data['quantity_sum'] > 0:
                 dpm_breakdown.append({
                     'dpm_name': dpm_data['dpm__username'],
+                    'quantity': dpm_data['quantity_sum'],
+                    'project_count': dpm_data['project_count']
+                })
+        
+        return {
+            'total_quantity': total_quantity,
+            'project_count': project_count,
+            'product_breakdown': product_breakdown,
+            'dpm_breakdown': dpm_breakdown
+        }
+    
+    @staticmethod
+    def _calculate_first_cut_deliveries(projects_queryset, filters):
+        """
+        Calculate 1st Cut Deliveries metric based on ProjectStatusHistory.
+        
+        Args:
+            projects_queryset: Base queryset of projects (for DPM filtering)
+            filters: Date filters to apply
+            
+        Returns:
+            Dictionary with first cut deliveries data
+        """
+        from .models import ProjectStatusHistory
+        
+        # Start with status history entries for "1st Cut Delivered"
+        status_history_queryset = ProjectStatusHistory.objects.select_related(
+            'project', 'project__product', 'project__dpm', 'project__city'
+        ).filter(
+            category_one_snapshot="1st Cut Delivered"
+        )
+        
+        # Apply date filters to the changed_at field
+        if filters:
+            if filters.get('date_from'):
+                status_history_queryset = status_history_queryset.filter(
+                    changed_at__date__gte=filters['date_from']
+                )
+            if filters.get('date_to'):
+                status_history_queryset = status_history_queryset.filter(
+                    changed_at__date__lte=filters['date_to']
+                )
+        
+        # Apply project-level filters (product, dpm, city)
+        if filters:
+            if filters.get('product'):
+                status_history_queryset = status_history_queryset.filter(
+                    project__product__name=filters['product']
+                )
+            if filters.get('dpm'):
+                status_history_queryset = status_history_queryset.filter(
+                    project__dpm__username=filters['dpm']
+                )
+            if filters.get('city'):
+                status_history_queryset = status_history_queryset.filter(
+                    project__city__name=filters['city']
+                )
+        
+        # Filter to only include projects assigned to current DPMs
+        current_dpms = User.objects.filter(role='DPM').values_list('username', flat=True)
+        dpm_filtered_queryset = status_history_queryset.filter(
+            project__dpm__username__in=current_dpms
+        )
+        
+        # Calculate quantity-weighted totals from associated projects
+        total_quantity = dpm_filtered_queryset.aggregate(
+            total=Sum('project__quantity')
+        )['total'] or 0
+        
+        project_count = dpm_filtered_queryset.values('project').distinct().count()
+        
+        # Get product-wise breakdown
+        product_breakdown = []
+        products = dpm_filtered_queryset.values('project__product__name').annotate(
+            quantity_sum=Sum('project__quantity'),
+            project_count=Count('project', distinct=True)
+        ).order_by('-quantity_sum')
+        
+        for product_data in products:
+            if product_data['quantity_sum'] > 0:
+                product_breakdown.append({
+                    'product_name': product_data['project__product__name'],
+                    'quantity': product_data['quantity_sum'],
+                    'project_count': product_data['project_count']
+                })
+        
+        # Get DPM-wise breakdown
+        dpm_breakdown = []
+        dpms = dpm_filtered_queryset.values('project__dpm__username').annotate(
+            quantity_sum=Sum('project__quantity'),
+            project_count=Count('project', distinct=True)
+        ).order_by('-quantity_sum')
+        
+        for dpm_data in dpms:
+            if dpm_data['quantity_sum'] > 0:
+                dpm_breakdown.append({
+                    'dpm_name': dpm_data['project__dpm__username'],
                     'quantity': dpm_data['quantity_sum'],
                     'project_count': dpm_data['project_count']
                 })

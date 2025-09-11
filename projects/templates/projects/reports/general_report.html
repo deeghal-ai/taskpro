@@ -327,11 +327,143 @@
         </div>
     </div>
     
+    <!-- 1st Cut Deliveries Metric Section -->
+    <div class="metric-section">
+        <h4 class="metric-title">
+            <i class="bi bi-truck"></i> 1st Cut Deliveries
+        </h4>
+        
+        <!-- Hero Metric -->
+        <div class="metric-hero">
+            <div class="total">{{ first_cut_deliveries.total_quantity|default:0 }}</div>
+            <div class="label">Total Quantity (1st Cut Delivered)</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">📊 Projects: {{ first_cut_deliveries.project_count|default:0 }}</span>
+                {% if filters.date_from or filters.date_to %}
+                    <span>📅 Date Range: 
+                        {% if filters.date_from %}{{ filters.date_from|date:"M j, Y" }}{% else %}Start{% endif %} - 
+                        {% if filters.date_to %}{{ filters.date_to|date:"M j, Y" }}{% else %}End{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Product-wise 1st Cut Deliveries -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box"></i> Product-wise Distribution
+                    </h5>
+                    {% if first_cut_deliveries.product_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="productFCDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No 1st cut delivery data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- DPM-wise 1st Cut Deliveries -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people"></i> DPM-wise Distribution
+                    </h5>
+                    {% if first_cut_deliveries.dpm_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="dpmFCDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bar-chart fs-1"></i>
+                            <p class="mt-2">No 1st cut delivery data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Breakdowns -->
+        <div class="row mt-3">
+            <!-- Product Breakdown Table -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box-fill"></i> Product Details
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in first_cut_deliveries.product_breakdown %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td><strong>{{ product.quantity }}</strong></td>
+                                    <td>{{ product.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- DPM Breakdown Table -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people-fill"></i> DPM Details
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>DPM</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dpm in first_cut_deliveries.dpm_breakdown %}
+                                <tr>
+                                    <td>{{ dpm.dpm_name }}</td>
+                                    <td><strong>{{ dpm.quantity }}</strong></td>
+                                    <td>{{ dpm.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Placeholder for Future Metrics -->
     <div class="metric-placeholder">
         <h5><i class="bi bi-plus-circle"></i> Additional Metrics Coming Soon</h5>
         <p>More business metrics will be added here progressively:<br>
-        Product-wise Sales • 1st Cut Deliveries • Final Deliveries • Performance Analytics</p>
+        Product-wise Sales • Final Deliveries • Performance Analytics</p>
     </div>
 </div>
 {% endblock %}
@@ -414,6 +546,95 @@ if (dpmChartData.labels && dpmChartData.labels.length > 0) {
                 backgroundColor: '#198754',
                 borderColor: '#198754',
                 borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'DPM'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.y + ' units';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 1st Cut Deliveries - Product Doughnut Chart
+const fcdProductChartData = JSON.parse('{{ fcd_product_chart_json|escapejs }}');
+if (fcdProductChartData.labels && fcdProductChartData.labels.length > 0) {
+    const fcdProductCtx = document.getElementById('productFCDChart').getContext('2d');
+    
+    new Chart(fcdProductCtx, {
+        type: 'doughnut',
+        data: {
+            labels: fcdProductChartData.labels,
+            datasets: [{
+                data: fcdProductChartData.data,
+                backgroundColor: fcdProductChartData.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' units';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 1st Cut Deliveries - DPM Bar Chart
+const fcdDpmChartData = JSON.parse('{{ fcd_dpm_chart_json|escapejs }}');
+if (fcdDpmChartData.labels && fcdDpmChartData.labels.length > 0) {
+    const fcdDpmCtx = document.getElementById('dpmFCDChart').getContext('2d');
+    
+    new Chart(fcdDpmCtx, {
+        type: 'bar',
+        data: {
+            labels: fcdDpmChartData.labels,
+            datasets: [{
+                data: fcdDpmChartData.data,
+                backgroundColor: fcdDpmChartData.colors,
+                borderWidth: 1,
+                borderColor: '#fff'
             }]
         },
         options: {

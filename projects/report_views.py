@@ -654,15 +654,41 @@ def general_report_dashboard(request):
         'colors': ['#198754', '#0dcaf0', '#6f42c1', '#dc3545', '#fd7e14', '#ffc107']
     })
     
+    # Prepare chart data for 1st Cut Deliveries
+    first_cut_deliveries = report_data.get('first_cut_deliveries', {})
+    fcd_product_breakdown = first_cut_deliveries.get('product_breakdown', [])
+    fcd_product_labels = [item['product_name'] for item in fcd_product_breakdown]
+    fcd_product_quantities = [item['quantity'] for item in fcd_product_breakdown]
+    
+    fcd_product_chart_json = json.dumps({
+        'labels': fcd_product_labels,
+        'data': fcd_product_quantities,
+        'colors': ['#6f42c1', '#20c997', '#fd7e14', '#dc3545', '#198754', '#0dcaf0', '#ffc107', '#d63384']
+    })
+    
+    # Prepare DPM chart data for 1st Cut Deliveries
+    fcd_dpm_breakdown = first_cut_deliveries.get('dpm_breakdown', [])
+    fcd_dpm_labels = [item['dpm_name'] for item in fcd_dpm_breakdown]
+    fcd_dpm_quantities = [item['quantity'] for item in fcd_dpm_breakdown]
+    
+    fcd_dpm_chart_json = json.dumps({
+        'labels': fcd_dpm_labels,
+        'data': fcd_dpm_quantities,
+        'colors': ['#6f42c1', '#20c997', '#fd7e14', '#dc3545', '#198754', '#0dcaf0']
+    })
+    
     context = {
         'report_data': report_data,
         'sales_confirmed': sales_confirmed,
+        'first_cut_deliveries': first_cut_deliveries,
         'filters': filters,
         'products': products,
         'dpms': dpms,
         'cities': cities,
         'product_chart_json': product_chart_json,
         'dpm_chart_json': dmp_chart_json,
+        'fcd_product_chart_json': fcd_product_chart_json,
+        'fcd_dpm_chart_json': fcd_dpm_chart_json,
         'title': 'General Business Report'
     }
     
