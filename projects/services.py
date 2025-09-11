@@ -4082,10 +4082,16 @@ class GeneralReportService:
                 projects_queryset, filters
             )
             
+            # Calculate Final Deliveries metric
+            final_deliveries_data = GeneralReportService._calculate_final_deliveries(
+                projects_queryset, filters
+            )
+            
             return {
                 'success': True,
                 'sales_confirmed': sales_confirmed_data,
                 'first_cut_deliveries': first_cut_deliveries_data,
+                'final_deliveries': final_deliveries_data,
                 'filters_applied': filters or {}
             }
             
@@ -4170,7 +4176,7 @@ class GeneralReportService:
             'product_breakdown': product_breakdown,
             'dpm_breakdown': dpm_breakdown
         }
-    
+
     @staticmethod
     def _calculate_first_cut_deliveries(projects_queryset, filters):
         """
@@ -4259,6 +4265,105 @@ class GeneralReportService:
                     'dpm_name': dpm_data['project__dpm__username'],
                     'quantity': dpm_data['quantity_sum'],
                     'project_count': dpm_data['project_count']
+                })
+        
+        return {
+            'total_quantity': total_quantity,
+            'project_count': project_count,
+            'product_breakdown': product_breakdown,
+            'dpm_breakdown': dpm_breakdown
+        }
+
+    @staticmethod
+    def _calculate_final_deliveries(projects_queryset, filters):
+        """
+        Calculate Final Deliveries metric using ProjectStatusHistory
+        Looks for status histories with category_one_snapshot = "Final Delivery"
+        Uses changed_at field for date filtering and associated project for DPM/quantity
+        """
+        from django.db.models import Sum, Count, Q
+        from projects.models import ProjectStatusHistory, User
+        
+        # Get current DPM users to ensure filtering consistency
+        current_dpm_users = User.objects.filter(role='DPM')
+        
+        # Base queryset - filter projects to only those assigned to current DPMs
+        dpm_projects_queryset = projects_queryset.filter(dpm__in=current_dpm_users)
+        
+        # Start with ProjectStatusHistory for Final Delivery status
+        status_history_queryset = ProjectStatusHistory.objects.select_related(
+            'project', 'project__product', 'project__dpm', 'project__city'
+        ).filter(
+            category_one_snapshot="Final Delivery"
+        )
+        
+        # Filter by date range using changed_at field
+        if filters.get('date_from'):
+            status_history_queryset = status_history_queryset.filter(
+                changed_at__date__gte=filters['date_from']
+            )
+        if filters.get('date_to'):
+            status_history_queryset = status_history_queryset.filter(
+                changed_at__date__lte=filters['date_to']
+            )
+        
+        # Filter by associated project filters
+        project_filter = Q()
+        if filters.get('product'):
+            project_filter &= Q(project__product=filters['product'])
+        if filters.get('dpm'):
+            project_filter &= Q(project__dpm=filters['dpm'])
+        if filters.get('city'):
+            project_filter &= Q(project__city=filters['city'])
+        
+        if project_filter:
+            status_history_queryset = status_history_queryset.filter(project_filter)
+        
+        # Further filter to only projects assigned to current DPMs
+        status_history_queryset = status_history_queryset.filter(
+            project__in=dpm_projects_queryset
+        )
+        
+        # Calculate total quantity (sum of associated project quantities)
+        total_quantity = status_history_queryset.aggregate(
+            total=Sum('project__quantity')
+        )['total'] or 0
+        
+        # Count unique projects with Final Delivery status
+        project_count = status_history_queryset.values('project').distinct().count()
+        
+        # Product-wise breakdown
+        product_breakdown = []
+        product_data = status_history_queryset.values(
+            'project__product__name'
+        ).annotate(
+            quantity=Sum('project__quantity'),
+            project_count=Count('project', distinct=True)
+        ).order_by('-quantity')
+        
+        for item in product_data:
+            if item['project__product__name']:
+                product_breakdown.append({
+                    'product_name': item['project__product__name'],
+                    'quantity': item['quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+        
+        # DPM-wise breakdown
+        dpm_breakdown = []
+        dpm_data = status_history_queryset.values(
+            'project__dpm__username'
+        ).annotate(
+            quantity=Sum('project__quantity'),
+            project_count=Count('project', distinct=True)
+        ).order_by('-quantity')
+        
+        for item in dpm_data:
+            if item['project__dpm__username']:
+                dpm_breakdown.append({
+                    'dpm_name': item['project__dpm__username'],
+                    'quantity': item['quantity'] or 0,
+                    'project_count': item['project_count'] or 0
                 })
         
         return {

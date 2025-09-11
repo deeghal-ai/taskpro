@@ -459,11 +459,134 @@
         </div>
     </div>
     
-    <!-- Placeholder for Future Metrics -->
-    <div class="metric-placeholder">
-        <h5><i class="bi bi-plus-circle"></i> Additional Metrics Coming Soon</h5>
-        <p>More business metrics will be added here progressively:<br>
-        Product-wise Sales • Final Deliveries • Performance Analytics</p>
+    <!-- Final Deliveries Metric Section -->
+    <div class="report-card metric-section">
+        <h4 class="metric-title">
+            <i class="bi bi-check-circle-fill"></i> Final Deliveries
+        </h4>
+        
+        <!-- Hero Metric -->
+        <div class="metric-hero">
+            <div class="total">{{ final_deliveries.total_quantity|default:0 }}</div>
+            <div class="label">Total Quantity (Final Delivered)</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">📊 Projects: {{ final_deliveries.project_count|default:0 }}</span>
+                {% if filters.date_from or filters.date_to %}
+                    <span>📅 Date Range: 
+                        {% if filters.date_from %}{{ filters.date_from|date:"M j, Y" }}{% else %}Start{% endif %} - 
+                        {% if filters.date_to %}{{ filters.date_to|date:"M j, Y" }}{% else %}End{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Product-wise Final Deliveries -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box"></i> Product-wise Distribution
+                    </h5>
+                    {% if final_deliveries.product_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="productFDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No final delivery data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- DPM-wise Final Deliveries -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people"></i> DPM-wise Distribution
+                    </h5>
+                    {% if final_deliveries.dpm_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="dpmFDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bar-chart fs-1"></i>
+                            <p class="mt-2">No DPM delivery data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Tables Row -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-table"></i> Product-wise Breakdown
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in final_deliveries.product_breakdown %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td><strong>{{ product.quantity }}</strong></td>
+                                    <td>{{ product.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-table"></i> DPM-wise Breakdown
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>DPM</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dpm in final_deliveries.dpm_breakdown %}
+                                <tr>
+                                    <td>{{ dpm.dpm_name }}</td>
+                                    <td><strong>{{ dpm.quantity }}</strong></td>
+                                    <td>{{ dpm.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -633,6 +756,95 @@ if (fcdDpmChartData.labels && fcdDpmChartData.labels.length > 0) {
             datasets: [{
                 data: fcdDpmChartData.data,
                 backgroundColor: fcdDpmChartData.colors,
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'DPM'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.y + ' units';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Final Deliveries - Product Doughnut Chart
+const fdProductChartData = JSON.parse('{{ fd_product_chart_json|escapejs }}');
+if (fdProductChartData.labels && fdProductChartData.labels.length > 0) {
+    const fdProductCtx = document.getElementById('productFDChart').getContext('2d');
+    
+    new Chart(fdProductCtx, {
+        type: 'doughnut',
+        data: {
+            labels: fdProductChartData.labels,
+            datasets: [{
+                data: fdProductChartData.data,
+                backgroundColor: fdProductChartData.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' units';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Final Deliveries - DPM Bar Chart
+const fdDpmChartData = JSON.parse('{{ fd_dpm_chart_json|escapejs }}');
+if (fdDpmChartData.labels && fdDpmChartData.labels.length > 0) {
+    const fdDpmCtx = document.getElementById('dpmFDChart').getContext('2d');
+    
+    new Chart(fdDpmCtx, {
+        type: 'bar',
+        data: {
+            labels: fdDpmChartData.labels,
+            datasets: [{
+                data: fdDpmChartData.data,
+                backgroundColor: fdDpmChartData.colors,
                 borderWidth: 1,
                 borderColor: '#fff'
             }]
