@@ -4310,11 +4310,11 @@ class GeneralReportService:
         # Filter by associated project filters
         project_filter = Q()
         if filters.get('product'):
-            project_filter &= Q(project__product=filters['product'])
+            project_filter &= Q(project__product__name=filters['product'])
         if filters.get('dpm'):
-            project_filter &= Q(project__dpm=filters['dpm'])
+            project_filter &= Q(project__dpm__username=filters['dpm'])
         if filters.get('city'):
-            project_filter &= Q(project__city=filters['city'])
+            project_filter &= Q(project__city__name=filters['city'])
         
         if project_filter:
             status_history_queryset = status_history_queryset.filter(project_filter)
