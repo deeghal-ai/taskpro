@@ -732,18 +732,56 @@ def tat_analytics_simple(request):
     if redirect_response:
         return redirect_response
     
-    # Simple date range filter only
+    # Get filter data for dropdowns
+    from .models import Product, City
+    products = Product.objects.all().order_by('name')
+    dpms = User.objects.filter(role='DPM').order_by('first_name', 'last_name')
+    cities = City.objects.all().order_by('name')
+    
+    # Build filters dictionary
     filters = {}
+    applied_filters = {}
+    
+    # Date filters
     if request.GET.get('date_from'):
         try:
             filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
+            applied_filters['date_from'] = filters['date_from']
         except ValueError:
             pass
     
     if request.GET.get('date_to'):
         try:
             filters['date_to'] = datetime.strptime(request.GET.get('date_to'), '%Y-%m-%d').date()
+            applied_filters['date_to'] = filters['date_to']
         except ValueError:
+            pass
+    
+    # Product filter
+    if request.GET.get('product'):
+        try:
+            product_obj = Product.objects.get(id=request.GET.get('product'))
+            filters['product'] = product_obj.name
+            applied_filters['product'] = request.GET.get('product')
+        except (Product.DoesNotExist, ValueError):
+            pass
+    
+    # DPM filter
+    if request.GET.get('dpm'):
+        try:
+            dpm_obj = User.objects.get(id=request.GET.get('dpm'), role='DPM')
+            filters['dpm'] = dpm_obj.username
+            applied_filters['dpm'] = request.GET.get('dpm')
+        except (User.DoesNotExist, ValueError):
+            pass
+    
+    # City filter
+    if request.GET.get('city'):
+        try:
+            city_obj = City.objects.get(id=request.GET.get('city'))
+            filters['city'] = city_obj.name
+            applied_filters['city'] = request.GET.get('city')
+        except (City.DoesNotExist, ValueError):
             pass
     
     # Get simplified dashboard data
@@ -828,6 +866,10 @@ def tat_analytics_simple(request):
         'tat_distribution_json': tat_distribution_json,
         'total_projects': dashboard_data.get('total_projects', 0),
         'filters': filters,
+        'applied_filters': applied_filters,
+        'products': products,
+        'dpms': dpms,
+        'cities': cities,
         'title': 'TAT Adherence Dashboard'
     }
     

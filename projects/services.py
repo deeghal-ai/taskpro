@@ -3680,7 +3680,7 @@ class TATAnalyticsService:
                 'product', 'current_status', 'dpm', 'city'
             ).prefetch_related('status_history__status')
             
-            # Apply simple date range filter if provided
+            # Apply filters if provided
             if filters:
                 if filters.get('date_from'):
                     projects_queryset = projects_queryset.filter(
@@ -3689,6 +3689,18 @@ class TATAnalyticsService:
                 if filters.get('date_to'):
                     projects_queryset = projects_queryset.filter(
                         purchase_date__lte=filters['date_to']
+                    )
+                if filters.get('product'):
+                    projects_queryset = projects_queryset.filter(
+                        product__name=filters['product']
+                    )
+                if filters.get('dpm'):
+                    projects_queryset = projects_queryset.filter(
+                        dpm__username=filters['dpm']
+                    )
+                if filters.get('city'):
+                    projects_queryset = projects_queryset.filter(
+                        city__name=filters['city']
                     )
             
             # Get projects with TAT data

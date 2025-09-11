@@ -243,31 +243,72 @@
         <p class="mb-0">Monitor project turnaround time performance across teams, regions, and products</p>
     </div>
     
-    <!-- Simple Date Filter -->
-    <div class="date-filter">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-3">
+    <!-- Enhanced Filters -->
+    <div class="adherence-card">
+        <h5 class="mb-3">
+            <i class="bi bi-sliders"></i> Filter Options
+        </h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
                 <label for="date_from" class="form-label">From Date</label>
                 <input type="text" class="form-control" id="date_from" name="date_from" 
                        value="{{ filters.date_from|date:'Y-m-d' }}" placeholder="Select date">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="date_to" class="form-label">To Date</label>
                 <input type="text" class="form-control" id="date_to" name="date_to" 
                        value="{{ filters.date_to|date:'Y-m-d' }}" placeholder="Select date">
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-funnel"></i> Apply Filter
-                </button>
-                <a href="{% url 'projects:tat_analytics_simple' %}" class="btn btn-outline-secondary ms-2">
-                    <i class="bi bi-arrow-clockwise"></i> Reset
-                </a>
+            <div class="col-md-2">
+                <label for="product" class="form-label">Product</label>
+                <select name="product" id="product" class="form-select">
+                    <option value="">All Products</option>
+                    {% for product in products %}
+                        <option value="{{ product.id }}" 
+                                {% if applied_filters.product == product.id|stringformat:"s" %}selected{% endif %}>
+                            {{ product.name }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="col-md-3 text-end">
-                <span class="text-muted">Total Projects: <strong>{{ total_projects }}</strong></span>
+            <div class="col-md-2">
+                <label for="dpm" class="form-label">Project Manager</label>
+                <select name="dpm" id="dpm" class="form-select">
+                    <option value="">All DPMs</option>
+                    {% for dpm in dpms %}
+                        <option value="{{ dpm.id }}" 
+                                {% if applied_filters.dpm == dpm.id|stringformat:"s" %}selected{% endif %}>
+                            {{ dpm.get_full_name|default:dpm.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="city" class="form-label">City</label>
+                <select name="city" id="city" class="form-select">
+                    <option value="">All Cities</option>
+                    {% for city in cities %}
+                        <option value="{{ city.id }}" 
+                                {% if applied_filters.city == city.id|stringformat:"s" %}selected{% endif %}>
+                            {{ city.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="d-grid gap-2 w-100">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'projects:tat_analytics_simple' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
+                </div>
             </div>
         </form>
+        <div class="mt-3 text-end">
+            <span class="text-muted">Total Projects: <strong>{{ total_projects }}</strong></span>
+        </div>
     </div>
     
     <!-- Overall TAT Adherence Hero Metric -->
