@@ -2378,6 +2378,11 @@ class ProjectService:
             start_date = date(year, month, 1)
             end_date = date(year, month, last_day)
             
+            # If this is the current month, only count up to today
+            today = timezone.localtime(timezone.now()).date()
+            if year == today.year and month == today.month:
+                end_date = min(end_date, today)
+            
             # Fetch existing roster entries in a single query
             roster_entries = DailyRoster.objects.filter(
                 team_member=team_member,
