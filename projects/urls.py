@@ -57,6 +57,7 @@ urlpatterns = [
     
     # API endpoints
     path('api/cities/', views.get_cities, name='api_cities'),
+    path('api/active-timers/', views.get_active_timers_json, name='api_active_timers'),
     
     # Team Roster URLs (for DPMs)
     path('team-roster/', views.team_roster_list, name='team_roster_list'),

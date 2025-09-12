@@ -1,0 +1,227 @@
+### Step 7: Update Base Template (5 minutes)
+**File**: `templates/base.html`
+
+Locate the navbar section and add the widget inclusion after the navbar brand:
+
+```html
+<!-- Find this line -->
+<a class="navbar-brand" href="/">TasksPro</a>
+
+<!-- Add this after it -->
+{% include 'partials/active_timers_widget.html' %}
+
+<!-- Continue with existing navbar code -->
+<button class="navbar-toggler" type="button"...>
+```
+
+## Testing Checklist
+
+### Functionality Tests
+- [ ] Widget appears in header for DPM users
+- [ ] Widget does NOT appear for TEAM_MEMBER users
+- [ ] Badge shows correct count of active timers
+- [ ] Dropdown opens/closes on click
+- [ ] Timer displays update every second
+- [ ] Data refreshes every 30 seconds
+- [ ] Manual refresh button works
+- [ ] Progress bars display correctly
+- [ ] Urgency indicators show appropriate colors
+
+### Visual Tests
+- [ ] Widget styling matches navbar theme
+- [ ] Dropdown panel is properly positioned
+- [ ] Responsive design works on mobile
+- [ ] Animations are smooth
+- [ ] No visual glitches or overlaps
+
+### Performance Tests
+- [ ] Page load time not significantly impacted
+- [ ] AJAX calls complete within 1 second
+- [ ] No memory leaks from timer intervals
+- [ ] Database queries are optimized (check Django Debug Toolbar)
+
+## Troubleshooting Guide
+
+### Common Issues and Solutions
+
+#### Issue: Widget not appearing
+**Solution**: 
+1. Check context processor is registered in settings.py
+2. Verify user role is DPM, VIDEO_PM, or SENIOR_MANAGER
+3. Check template syntax in base.html
+
+#### Issue: Timers not updating
+**Solution**:
+1. Check JavaScript console for errors
+2. Verify AJAX endpoint is accessible
+3. Check network tab for 403/404 errors
+4. Ensure URL pattern is correct
+
+#### Issue: Dropdown not opening
+**Solution**:
+1. Verify Bootstrap JavaScript is loaded
+2. Check for JavaScript errors
+3. Ensure data-bs-toggle attribute is present
+
+#### Issue: Poor performance
+**Solution**:
+1. Check number of database queries in Django Debug Toolbar
+2. Verify select_related and prefetch_related are working
+3. Consider implementing caching
+
+#### Issue: Timer shows wrong time
+**Solution**:
+1. Check timezone settings in Django
+2. Verify JavaScript date parsing
+3. Ensure started_at timestamp is in correct format
+
+## Database Query Optimization
+
+### Verify Efficient Queries
+The service method should generate only 1-2 queries:
+```python
+# Check with Django Debug Toolbar
+# Should see:
+# 1. SELECT from active_timer with JOINs
+# 2. SELECT from daily_time_total (prefetch)
+```
+
+### Add Index if Needed
+If performance is slow with many timers:
+```python
+# In projects/models.py
+class ActiveTimer(models.Model):
+    # ... existing fields ...
+    
+    class Meta:
+        verbose_name = 'Active Timer'
+        verbose_name_plural = 'Active Timers'
+        indexes = [
+            models.Index(fields=['started_at']),
+        ]
+```
+
+## Security Considerations
+
+### Role-Based Access
+- Only management roles can see timers
+- Context processor checks user role
+- AJAX endpoint validates authorization
+
+### Data Exposure
+- No sensitive data in timer display
+- Assignment IDs are UUIDs (not sequential)
+- No ability to modify timers from widget
+
+## Rollback Plan
+
+### Quick Disable
+If issues arise, disable the feature by:
+
+**Option 1**: Remove from context processors
+```python
+# In settings.py, comment out:
+# 'projects.context_processors.active_timers_context',
+```
+
+**Option 2**: Add feature flag
+```python
+# In context_processors.py
+def active_timers_context(request):
+    # Add at the beginning:
+    if not getattr(settings, 'ENABLE_ACTIVE_TIMERS', True):
+        return {}
+    # ... rest of the function
+```
+
+### Full Rollback
+1. Remove context processor from settings.py
+2. Remove widget inclusion from base.html
+3. Delete created files (optional)
+4. Remove URL pattern (optional)
+
+## Deployment Steps
+
+### Development Environment
+1. Implement all changes
+2. Run development server
+3. Test with different user roles
+4. Check performance metrics
+
+### Staging Environment
+1. Deploy code changes
+2. Run migrations (if any)
+3. Clear cache
+4. Test functionality
+5. Monitor for errors
+
+### Production Environment
+1. Deploy during low-traffic period
+2. Monitor error logs
+3. Check performance metrics
+4. Gather user feedback
+
+## Post-Deployment Monitoring
+
+### Metrics to Track
+- Page load times
+- AJAX response times
+- Error rates
+- User engagement with feature
+- Database query performance
+
+### Log Monitoring
+Watch for:
+- 500 errors in AJAX endpoint
+- JavaScript errors in browser console
+- Slow query warnings
+- Memory usage patterns
+
+## Future Enhancements
+
+### Planned Improvements
+1. **WebSocket Support**: Real-time updates without polling
+2. **Timer Controls**: Stop/pause timers from header
+3. **Notifications**: Alert when timer runs too long
+4. **Filters**: Show/hide by project or team
+5. **Sound Effects**: Optional audio notifications
+6. **Dark Mode**: Theme-aware styling
+7. **Export**: Download timer report
+
+## Documentation Updates
+
+After implementation, update:
+1. User manual for DPMs
+2. Developer documentation
+3. API documentation
+4. System architecture diagram
+
+## Success Criteria
+
+The implementation is successful when:
+- ✅ All management users can see active timers
+- ✅ Timers update in real-time
+- ✅ No performance degradation
+- ✅ No errors in production logs
+- ✅ Positive user feedback
+
+## Estimated Implementation Time
+
+- **Total Time**: 45-60 minutes
+- **Testing Time**: 15-20 minutes
+- **Documentation**: 10 minutes
+- **Risk Level**: Low
+- **Complexity**: Medium
+
+## Support Contact
+
+If issues arise during implementation:
+1. Check this documentation first
+2. Review error logs
+3. Check Django Debug Toolbar
+4. Test in incognito mode
+5. Verify all files are saved
+
+---
+
+**Note**: This feature enhances team visibility for management without impacting regular team member workflows. The implementation is designed to be non-intrusive and easily reversible if needed.
