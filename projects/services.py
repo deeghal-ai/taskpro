@@ -3470,19 +3470,15 @@ class ProjectService:
         import math
         
         try:
-            # Fetch all active timers with related data in a single query
-            active_timers = ActiveTimer.objects.select_related(
-                'team_member',
-                'assignment__task__project__product',
-                'assignment__task__product_task',
-                'assignment__assigned_by'
-            ).prefetch_related(
-                Prefetch(
-                    'assignment__daily_totals',
-                    queryset=DailyTimeTotal.objects.all(),
-                    to_attr='all_daily_totals'
-                )
-            ).order_by('started_at')
+            # Fetch all active timers with essential related data
+        # Using left joins to ensure timers aren't filtered out due to missing relations
+        active_timers = ActiveTimer.objects.select_related(
+            'team_member',
+            'assignment__task__project',
+            'assignment__task__project__product'
+        ).prefetch_related(
+            'assignment__task__product_task'
+        ).order_by('started_at')
             
             enriched_timers = []
             current_time = timezone.now()
@@ -3500,9 +3496,8 @@ class ProjectService:
                 elapsed_formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
                 
                 # Calculate total worked minutes for this assignment
-                total_worked_minutes = sum(
-                    dt.total_minutes for dt in timer.assignment.all_daily_totals
-                )
+                daily_totals = DailyTimeTotal.objects.filter(assignment=timer.assignment)
+                total_worked_minutes = sum(dt.total_minutes for dt in daily_totals)
                 
                 # Add today's current session (approximate)
                 total_worked_minutes += elapsed_minutes
