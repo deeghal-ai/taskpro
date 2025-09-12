@@ -231,10 +231,8 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.5rem;
-        background: var(--light-bg);
-        border-radius: 0.375rem;
-        margin-bottom: 0.375rem;
-        font-size: 0.875rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
     }
 
     .task-item:hover, .misc-item:hover {
@@ -260,11 +258,14 @@
         margin-top: 0.125rem;
     }
 
-    .product-name {
+    .product-name-middle {
         font-size: 0.7rem;
         color: #28a745;
-        margin-top: 0.125rem;
         font-weight: 500;
+        text-align: center;
+        flex-shrink: 0;
+        padding: 0 0.5rem;
+        align-self: center;
     }
 
     .time-badge {
@@ -479,8 +480,8 @@
                                                         <div class="task-details">
                                                             <div class="task-name">{{ task.task_name }}</div>
                                                             <div class="project-name">{{ task.project_hs_id }} - {{ task.project_name }}</div>
-                                                            <div class="product-name">{{ task.product_name }}</div>
                                                         </div>
+                                                        <div class="product-name-middle">{{ task.product_name }}</div>
                                                         <span class="time-badge">{{ task.formatted_time }}</span>
                                                     </li>
                                                 {% endfor %}
