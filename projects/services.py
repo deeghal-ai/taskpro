@@ -3471,14 +3471,14 @@ class ProjectService:
         
         try:
             # Fetch all active timers with essential related data
-        # Using left joins to ensure timers aren't filtered out due to missing relations
-        active_timers = ActiveTimer.objects.select_related(
-            'team_member',
-            'assignment__task__project',
-            'assignment__task__project__product'
-        ).prefetch_related(
-            'assignment__task__product_task'
-        ).order_by('started_at')
+            # Using left joins to ensure timers aren't filtered out due to missing relations
+            active_timers = ActiveTimer.objects.select_related(
+                'team_member',
+                'assignment__task__project',
+                'assignment__task__project__product'
+            ).prefetch_related(
+                'assignment__task__product_task'
+            ).order_by('started_at')
             
             enriched_timers = []
             current_time = timezone.now()
