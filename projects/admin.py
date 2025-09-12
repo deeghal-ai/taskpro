@@ -197,6 +197,7 @@ class ProjectAdmin(admin.ModelAdmin):
         'expected_tat',
         'expected_completion_date',
         'purchase_date',
+        'sales_confirmation_date',
         'view_details_link',
     )
     
