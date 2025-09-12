@@ -472,15 +472,34 @@
         },
         
         refreshTimerData() {
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                             document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
             // Fetch updated timer data via AJAX
-            fetch('/projects/api/active-timers/')
-                .then(response => response.json())
+            fetch('/projects/api/active-timers/', {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Active timers data received:', data);
                     this.updateTimerList(data.timers);
                     this.updateBadgeCount(data.summary);
                 })
                 .catch(error => {
                     console.error('Failed to refresh timers:', error);
+                    // Don't clear the existing server-side data on AJAX failure
                 });
         },
         
@@ -488,8 +507,58 @@
             const listContainer = document.getElementById('activeTimersList');
             if (!listContainer) return;
             
-            // Update existing timers and add new ones
-            // Implementation depends on your specific needs
+            if (!timers || timers.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-pause-circle" style="font-size: 3rem; color: #6c757d;"></i>
+                        </div>
+                        <p class="mb-0">No active timers</p>
+                        <small class="text-muted">Team members will appear here when they start timing</small>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Generate timer cards HTML
+            const timerCardsHTML = timers.map(timer => `
+                <div class="timer-card" data-assignment-id="${timer.assignment.id}">
+                    <div class="d-flex align-items-center">
+                        <div class="team-member-avatar">
+                            ${timer.team_member.initials}
+                        </div>
+                        <div class="timer-info flex-grow-1">
+                            <div class="timer-header">
+                                <h6 class="mb-0">${timer.team_member.full_name}</h6>
+                                <span class="timer-display" data-started="${timer.timer.started_at}">
+                                    ${timer.timer.elapsed_formatted}
+                                </span>
+                            </div>
+                            <div class="project-info">
+                                <span class="project-name">${timer.project.name}</span>
+                                <span class="task-name">${timer.task.name}</span>
+                            </div>
+                            <div class="progress-section">
+                                <div class="progress-info">
+                                    <span>${timer.progress.total_worked_formatted} / ${timer.assignment.projected_formatted}</span>
+                                    <span class="urgency-badge ${timer.urgency.status_class}">
+                                        ${timer.urgency.display_text}
+                                    </span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar ${timer.progress.status_class}" 
+                                         data-width="${timer.progress.percentage}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            listContainer.innerHTML = timerCardsHTML;
+            
+            // Re-attach event handlers for new content
+            this.attachEventHandlers();
         },
         
         updateBadgeCount(summary) {
@@ -552,15 +621,18 @@
             dropdown.style.display = 'none';
             button.setAttribute('aria-expanded', 'false');
         } else {
-            // Refresh data when opening
-            refreshActiveTimers();
-            
-            // Show dropdown
+            // Show dropdown first with server-side data
             dropdown.style.display = 'block';
             button.setAttribute('aria-expanded', 'true');
             
             // Position dropdown
             positionDropdown();
+            
+            // Only refresh data if this isn't the first time opening
+            // (to preserve server-side rendered data)
+            setTimeout(() => {
+                refreshActiveTimers();
+            }, 100);
         }
     }
     
