@@ -3185,12 +3185,14 @@ class ProjectService:
                 if dt.total_minutes > 0:
                     task_name = dt.assignment.task.product_task.name if dt.assignment.task.product_task else dt.assignment.task.custom_task_name
                     project = dt.assignment.task.project
+                    product_name = project.product.name if project.product else 'No Product'
                     
                     tasks.append({
                         'assignment_id': dt.assignment.assignment_id,
                         'task_name': task_name[:30] + '...' if len(task_name) > 30 else task_name,
                         'project_name': project.project_name[:25] + '...' if len(project.project_name) > 25 else project.project_name,
                         'project_hs_id': project.hs_id,
+                        'product_name': product_name,
                         'minutes_worked': dt.total_minutes,
                         'formatted_time': ProjectService._format_minutes(dt.total_minutes),
                         'is_completed': dt.assignment.is_completed
@@ -3336,12 +3338,14 @@ class ProjectService:
                 
                 task_name = dt.assignment.task.product_task.name if dt.assignment.task.product_task else dt.assignment.task.custom_task_name
                 project = dt.assignment.task.project
+                product_name = project.product.name if project.product else 'No Product'
                 
                 member_tasks[dt.team_member_id].append({
                     'assignment_id': dt.assignment.assignment_id,
                     'task_name': task_name[:30] + '...' if len(task_name) > 30 else task_name,
                     'project_name': project.project_name[:25] + '...' if len(project.project_name) > 25 else project.project_name,
                     'project_hs_id': project.hs_id,
+                    'product_name': product_name,
                     'minutes_worked': dt.total_minutes,
                     'formatted_time': ProjectService._format_minutes(dt.total_minutes),
                     'is_completed': dt.assignment.is_completed

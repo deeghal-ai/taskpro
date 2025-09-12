@@ -2387,7 +2387,7 @@ def team_roster_list(request):
         # Calculate efficiency percentage for previous day
         if previous_day['total_minutes'] > 0:
             # Assuming 8 hours (480 minutes) as standard working day
-            efficiency_percentage = min(100, (previous_day['total_minutes'] / 480) * 100)
+            efficiency_percentage = (previous_day['total_minutes'] / 480) * 100
         else:
             efficiency_percentage = 0
         

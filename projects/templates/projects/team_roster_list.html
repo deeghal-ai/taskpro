@@ -254,12 +254,17 @@
         text-overflow: ellipsis;
     }
 
-    .project-name, .activity-type {
+    .project-name {
         font-size: 0.75rem;
         color: #6c757d;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-top: 0.125rem;
+    }
+
+    .product-name {
+        font-size: 0.7rem;
+        color: #28a745;
+        margin-top: 0.125rem;
+        font-weight: 500;
     }
 
     .time-badge {
@@ -474,6 +479,7 @@
                                                         <div class="task-details">
                                                             <div class="task-name">{{ task.task_name }}</div>
                                                             <div class="project-name">{{ task.project_hs_id }} - {{ task.project_name }}</div>
+                                                            <div class="product-name">{{ task.product_name }}</div>
                                                         </div>
                                                         <span class="time-badge">{{ task.formatted_time }}</span>
                                                     </li>
