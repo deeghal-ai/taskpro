@@ -449,10 +449,17 @@
                    
                     <h4>{{ project.project_name }}</h4>
                 </div>
+                {% if user.role == 'SENIOR_MANAGER' %}
+                <a href="{% url 'projects:all_projects' %}" 
+                   class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Projects
+                </a>
+                {% else %}
                 <a href="{% url 'projects:dpm_task_dashboard' %}" 
                    class="btn btn-outline-light btn-sm">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
+                {% endif %}
             </div>
         </div>
         <div class="card-body">
