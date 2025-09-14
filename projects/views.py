@@ -1749,13 +1749,13 @@ def _export_delivered_to_xlsx(projects, headers):
 @login_required
 def assignment_timesheet(request, assignment_id):
     """View detailed timesheet for a specific assignment."""
-    # Allow both team members and DPMs to access timesheets
-    if request.user.role not in ['TEAM_MEMBER', 'DPM']:
+    # Allow team members, DPMs, and Senior Managers to access timesheets
+    if request.user.role not in ['TEAM_MEMBER', 'DPM', 'SENIOR_MANAGER']:
         messages.error(request, "Access denied")
         return redirect('home')
     
-    # For DPMs, just verify the assignment exists (any DPM can view any timesheet)
-    if request.user.role == 'DPM':
+    # For DPMs and Senior Managers, just verify the assignment exists (they can view any timesheet)
+    if request.user.role in ['DPM', 'SENIOR_MANAGER']:
         try:
             assignment = TaskAssignment.objects.select_related('task__project').get(id=assignment_id)
         except TaskAssignment.DoesNotExist:
@@ -1799,9 +1799,9 @@ def assignment_timesheet(request, assignment_id):
         return redirect('projects:assignment_timesheet', assignment_id=assignment_id)
 
     # Get timesheet data using service layer (no date filtering)
-    # For DPMs, pass the actual team member instead of the DPM
-    if request.user.role == 'DPM':
-        # assignment is already fetched above for DPM access check
+    # For DPMs and Senior Managers, pass the actual team member instead of the current user
+    if request.user.role in ['DPM', 'SENIOR_MANAGER']:
+        # assignment is already fetched above for DPM/Senior Manager access check
         team_member = assignment.assigned_to
     else:
         team_member = request.user
@@ -1812,7 +1812,7 @@ def assignment_timesheet(request, assignment_id):
 
     if not success:
         messages.error(request, result)
-        if request.user.role == 'DPM':
+        if request.user.role in ['DPM', 'SENIOR_MANAGER']:
             return redirect('projects:dpm_assignments_overview')
         else:
             return redirect('projects:team_member_dashboard')
@@ -1827,7 +1827,7 @@ def assignment_timesheet(request, assignment_id):
     print(f"DEBUG assignment_timesheet: original_referer from URL = '{original_referer}'")
     print(f"DEBUG assignment_timesheet: HTTP_REFERER = '{request.META.get('HTTP_REFERER', '')}'")
     
-    if request.user.role == 'DPM':
+    if request.user.role in ['DPM', 'SENIOR_MANAGER']:
         # Check if we have a preserved original_referer from quality rating flow
         if original_referer:
             referer = original_referer

@@ -526,6 +526,12 @@
         <div class="card-body bg-light">
             <div class="info-grid">
                 <div class="info-item">
+                    <span class="info-label">HS ID</span>
+                    <span class="info-value">
+                        <span class="badge bg-dark">{{ assignment.task.project.hs_id }}</span>
+                    </span>
+                </div>
+                <div class="info-item">
                     <span class="info-label">Project</span>
                     <span class="info-value">{{ assignment.task.project.project_name }}</span>
                 </div>
@@ -938,7 +944,7 @@
                                         </td>
                                         {% if not assignment.is_completed %}
                                             <td class="text-center">
-                                                {% if session.is_editable %}
+                                                {% if session.is_editable and user.role == 'TEAM_MEMBER' %}
                                                     <button class="btn btn-sm btn-outline-primary edit-session-btn"
                                                             data-session-id="{{ session.id }}"
                                                             data-duration-minutes="{{ session.duration_minutes }}"
