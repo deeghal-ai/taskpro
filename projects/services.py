@@ -3470,6 +3470,13 @@ class ProjectService:
         import math
         
         try:
+            # Debug: First check if any timers exist at all
+            total_count = ActiveTimer.objects.count()
+            logger.info(f"DEBUG: Total active timers count: {total_count}")
+            
+            if total_count == 0:
+                return []
+            
             # Fetch all active timers with essential related data
             # Using left joins to ensure timers aren't filtered out due to missing relations
             active_timers = ActiveTimer.objects.select_related(
@@ -3480,113 +3487,127 @@ class ProjectService:
                 'assignment__task__product_task'
             ).order_by('started_at')
             
+            logger.info(f"DEBUG: Query returned {active_timers.count()} timers")
+            
             enriched_timers = []
             current_time = timezone.now()
             today = timezone.localtime(current_time).date()
             
             for timer in active_timers:
-                # Calculate elapsed time
-                elapsed_seconds = (current_time - timer.started_at).total_seconds()
-                elapsed_minutes = int(elapsed_seconds // 60)
-                hours = elapsed_minutes // 60
-                minutes = elapsed_minutes % 60
-                seconds = int(elapsed_seconds % 60)
+                logger.info(f"DEBUG: Processing timer {timer.id} for user {timer.team_member.username}")
                 
-                # Format elapsed time
-                elapsed_formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-                
-                # Calculate total worked minutes for this assignment
-                daily_totals = DailyTimeTotal.objects.filter(assignment=timer.assignment)
-                total_worked_minutes = sum(dt.total_minutes for dt in daily_totals)
-                
-                # Add today's current session (approximate)
-                total_worked_minutes += elapsed_minutes
-                
-                # Get projected hours
-                projected_minutes = timer.assignment.projected_hours or 0
-                
-                # Calculate progress percentage
-                if projected_minutes > 0:
-                    progress_percentage = min(100, (total_worked_minutes / projected_minutes) * 100)
-                else:
-                    progress_percentage = 0
-                
-                # Calculate deadline urgency
-                urgency_status = 'normal'
-                days_until_deadline = None
-                
-                if timer.assignment.expected_delivery_date:
-                    days_until_deadline = (timer.assignment.expected_delivery_date - today).days
+                try:
+                    # Calculate elapsed time
+                    elapsed_seconds = (current_time - timer.started_at).total_seconds()
+                    elapsed_minutes = int(elapsed_seconds // 60)
+                    hours = elapsed_minutes // 60
+                    minutes = elapsed_minutes % 60
+                    seconds = int(elapsed_seconds % 60)
                     
-                    if days_until_deadline < 0:
-                        urgency_status = 'overdue'
-                    elif days_until_deadline == 0:
-                        urgency_status = 'today'
-                    elif days_until_deadline == 1:
-                        urgency_status = 'tomorrow'
-                    elif days_until_deadline <= 3:
-                        urgency_status = 'soon'
-                
-                # Determine if timer is running long
-                is_long_running = elapsed_minutes > 240  # More than 4 hours
-                
-                # Get task and project info
-                task = timer.assignment.task
-                project = task.project
-                product_task = task.product_task
-                
-                # Build enriched timer object
-                enriched_timer = {
-                    'id': timer.id,
-                    'team_member': {
-                        'id': timer.team_member.id,
-                        'username': timer.team_member.username,
-                        'full_name': timer.team_member.get_full_name() or timer.team_member.username,
-                        'first_name': timer.team_member.first_name,
-                        'last_name': timer.team_member.last_name,
-                        'initials': ProjectService._get_user_initials(timer.team_member)
-                    },
-                    'assignment': {
-                        'id': timer.assignment.id,
-                        'assignment_id': timer.assignment.assignment_id,
-                        'sub_task': timer.assignment.sub_task or 'No description',
-                        'expected_delivery_date': timer.assignment.expected_delivery_date,
-                        'projected_hours': timer.assignment.projected_hours,
-                        'projected_formatted': ProjectService._format_minutes(projected_minutes)
-                    },
-                    'project': {
-                        'id': project.id,
-                        'hs_id': project.hs_id,
-                        'name': project.project_name,
-                        'product': project.product.name if project.product else 'Unknown'
-                    },
-                    'task': {
-                        'id': task.id,
-                        'name': product_task.name if product_task else task.custom_task_name or 'Unknown Task'
-                    },
-                    'timer': {
-                        'started_at': timer.started_at,
-                        'started_at_formatted': timer.started_at.strftime('%I:%M %p'),
-                        'elapsed_seconds': int(elapsed_seconds),
-                        'elapsed_minutes': elapsed_minutes,
-                        'elapsed_formatted': elapsed_formatted,
-                        'is_long_running': is_long_running
-                    },
-                    'progress': {
-                        'total_worked_minutes': total_worked_minutes,
-                        'total_worked_formatted': ProjectService._format_minutes(total_worked_minutes),
-                        'percentage': round(progress_percentage, 1),
-                        'status_class': ProjectService._get_progress_status_class(progress_percentage)
-                    },
-                    'urgency': {
-                        'status': urgency_status,
-                        'days_until_deadline': days_until_deadline,
-                        'status_class': ProjectService._get_urgency_status_class(urgency_status),
-                        'display_text': ProjectService._get_deadline_display_text(days_until_deadline)
+                    # Format elapsed time
+                    elapsed_formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+                    
+                    # Calculate total worked minutes for this assignment
+                    daily_totals = DailyTimeTotal.objects.filter(assignment=timer.assignment)
+                    total_worked_minutes = sum(dt.total_minutes for dt in daily_totals)
+                    
+                    # Add today's current session (approximate)
+                    total_worked_minutes += elapsed_minutes
+                    
+                    # Get projected hours
+                    projected_minutes = timer.assignment.projected_hours or 0
+                    
+                    # Calculate progress percentage
+                    if projected_minutes > 0:
+                        progress_percentage = min(100, (total_worked_minutes / projected_minutes) * 100)
+                    else:
+                        progress_percentage = 0
+                    
+                    # Calculate deadline urgency
+                    urgency_status = 'normal'
+                    days_until_deadline = None
+                    
+                    if timer.assignment.expected_delivery_date:
+                        # Convert datetime to date for comparison
+                        delivery_date = timer.assignment.expected_delivery_date
+                        if hasattr(delivery_date, 'date'):
+                            delivery_date = delivery_date.date()
+                        days_until_deadline = (delivery_date - today).days
+                        
+                        if days_until_deadline < 0:
+                            urgency_status = 'overdue'
+                        elif days_until_deadline == 0:
+                            urgency_status = 'today'
+                        elif days_until_deadline == 1:
+                            urgency_status = 'tomorrow'
+                        elif days_until_deadline <= 3:
+                            urgency_status = 'soon'
+                    
+                    # Determine if timer is running long
+                    is_long_running = elapsed_minutes > 240  # More than 4 hours
+                    
+                    # Get task and project info
+                    task = timer.assignment.task
+                    project = task.project
+                    product_task = task.product_task
+                    
+                    # Build enriched timer object
+                    enriched_timer = {
+                        'id': timer.id,
+                        'team_member': {
+                            'id': timer.team_member.id,
+                            'username': timer.team_member.username,
+                            'full_name': timer.team_member.get_full_name() or timer.team_member.username,
+                            'first_name': timer.team_member.first_name,
+                            'last_name': timer.team_member.last_name,
+                            'initials': ProjectService._get_user_initials(timer.team_member)
+                        },
+                        'assignment': {
+                            'id': timer.assignment.id,
+                            'assignment_id': timer.assignment.assignment_id,
+                            'sub_task': timer.assignment.sub_task or 'No description',
+                            'expected_delivery_date': timer.assignment.expected_delivery_date,
+                            'projected_hours': timer.assignment.projected_hours,
+                            'projected_formatted': ProjectService._format_minutes(projected_minutes)
+                        },
+                        'project': {
+                            'id': project.id,
+                            'hs_id': project.hs_id,
+                            'name': project.project_name,
+                            'product': project.product.name if project.product else 'Unknown'
+                        },
+                        'task': {
+                            'id': task.id,
+                            'name': product_task.name if product_task else task.custom_task_name or 'Unknown Task'
+                        },
+                        'timer': {
+                            'started_at': timer.started_at,
+                            'started_at_formatted': timer.started_at.strftime('%I:%M %p'),
+                            'elapsed_seconds': int(elapsed_seconds),
+                            'elapsed_minutes': elapsed_minutes,
+                            'elapsed_formatted': elapsed_formatted,
+                            'is_long_running': is_long_running
+                        },
+                        'progress': {
+                            'total_worked_minutes': total_worked_minutes,
+                            'total_worked_formatted': ProjectService._format_minutes(total_worked_minutes),
+                            'percentage': round(progress_percentage, 1),
+                            'status_class': ProjectService._get_progress_status_class(progress_percentage)
+                        },
+                        'urgency': {
+                            'status': urgency_status,
+                            'days_until_deadline': days_until_deadline,
+                            'status_class': ProjectService._get_urgency_status_class(urgency_status),
+                            'display_text': ProjectService._get_deadline_display_text(days_until_deadline)
+                        }
                     }
-                }
-                
-                enriched_timers.append(enriched_timer)
+                    
+                    enriched_timers.append(enriched_timer)
+                    logger.info(f"DEBUG: Successfully processed timer {timer.id}")
+                    
+                except Exception as e:
+                    logger.exception(f"DEBUG: Error processing timer {timer.id}: {str(e)}")
+                    continue
             
             return enriched_timers
             

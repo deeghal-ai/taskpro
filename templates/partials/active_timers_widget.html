@@ -60,22 +60,35 @@
                             {% endif %}
                         </div>
                         
-                        <!-- Project & Task Info -->
+                        <!-- Task & Product Info -->
                         <div class="timer-details">
-                            <div class="project-info">
+                            <!-- Primary: Sub Task or Task Name -->
+                            <div class="primary-task">
+                                <i class="bi bi-play-circle me-1"></i>
+                                <strong>
+                                    {% if timer.assignment.sub_task %}
+                                        {{ timer.assignment.sub_task|truncatechars:45 }}
+                                    {% else %}
+                                        {{ timer.task.name|truncatechars:45 }}
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            
+                            <!-- Secondary: Product & Project Info -->
+                            <div class="secondary-info">
+                                <span class="product-badge">
+                                    <i class="bi bi-tag me-1"></i>{{ timer.project.product }}
+                                </span>
+                                <span class="project-ref">
+                                    {{ timer.project.hs_id }}
+                                </span>
+                            </div>
+                            
+                            <!-- Project Name -->
+                            <div class="project-name-info">
                                 <i class="bi bi-folder me-1"></i>
-                                <strong>{{ timer.project.hs_id }}</strong> - {{ timer.project.name|truncatechars:30 }}
+                                <span>{{ timer.project.name|truncatechars:35 }}</span>
                             </div>
-                            <div class="task-info">
-                                <i class="bi bi-check2-square me-1"></i>
-                                {{ timer.task.name|truncatechars:35 }}
-                            </div>
-                            {% if timer.assignment.sub_task %}
-                                <div class="subtask-info">
-                                    <i class="bi bi-arrow-return-right me-1"></i>
-                                    <small>{{ timer.assignment.sub_task|truncatechars:40 }}</small>
-                                </div>
-                            {% endif %}
                         </div>
                         
                         <!-- Progress & Deadline -->
@@ -344,6 +357,44 @@
         max-width: 200px;
     }
     
+    .primary-task {
+        font-size: 0.9rem;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+    
+    .secondary-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .product-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    
+    .project-ref {
+        color: #6c757d;
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .project-name-info {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+    
     .progress-info small {
         display: block;
         margin-bottom: 0.25rem;
@@ -522,33 +573,66 @@
             
             // Generate timer cards HTML
             const timerCardsHTML = timers.map(timer => `
-                <div class="timer-card" data-assignment-id="${timer.assignment.id}">
-                    <div class="d-flex align-items-center">
-                        <div class="team-member-avatar">
+                <div class="timer-card" data-timer-id="${timer.id}" data-assignment-id="${timer.assignment.id}">
+                    <!-- Team Member Header -->
+                    <div class="timer-member">
+                        <div class="member-avatar">
                             ${timer.team_member.initials}
                         </div>
-                        <div class="timer-info flex-grow-1">
-                            <div class="timer-header">
-                                <h6 class="mb-0">${timer.team_member.full_name}</h6>
-                                <span class="timer-display" data-started="${timer.timer.started_at}">
-                                    ${timer.timer.elapsed_formatted}
-                                </span>
+                        <div class="member-info">
+                            <strong>${timer.team_member.full_name}</strong>
+                            <div class="timer-display" data-started="${timer.timer.started_at}">
+                                ${timer.timer.elapsed_formatted}
                             </div>
-                            <div class="project-info">
-                                <span class="project-name">${timer.project.name}</span>
-                                <span class="task-name">${timer.task.name}</span>
-                            </div>
-                            <div class="progress-section">
-                                <div class="progress-info">
-                                    <span>${timer.progress.total_worked_formatted} / ${timer.assignment.projected_formatted}</span>
-                                    <span class="urgency-badge ${timer.urgency.status_class}">
-                                        ${timer.urgency.display_text}
-                                    </span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar ${timer.progress.status_class}" 
-                                         data-width="${timer.progress.percentage}"></div>
-                                </div>
+                        </div>
+                        ${timer.timer.is_long_running ? `
+                            <span class="badge bg-warning" title="Running for over 4 hours">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </span>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Task & Product Info -->
+                    <div class="timer-details">
+                        <!-- Primary: Sub Task or Task Name -->
+                        <div class="primary-task">
+                            <i class="bi bi-play-circle me-1"></i>
+                            <strong>
+                                ${timer.assignment.sub_task && timer.assignment.sub_task.trim() ? 
+                                    timer.assignment.sub_task.substring(0, 45) + (timer.assignment.sub_task.length > 45 ? '...' : '') :
+                                    timer.task.name.substring(0, 45) + (timer.task.name.length > 45 ? '...' : '')
+                                }
+                            </strong>
+                        </div>
+                        
+                        <!-- Secondary: Product & Project Info -->
+                        <div class="secondary-info">
+                            <span class="product-badge">
+                                <i class="bi bi-tag me-1"></i>${timer.project.product}
+                            </span>
+                            <span class="project-ref">
+                                ${timer.project.hs_id}
+                            </span>
+                        </div>
+                        
+                        <!-- Project Name -->
+                        <div class="project-name-info">
+                            <i class="bi bi-folder me-1"></i>
+                            <span>${timer.project.name.length > 35 ? timer.project.name.substring(0, 35) + '...' : timer.project.name}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress & Deadline -->
+                    <div class="timer-footer">
+                        <div class="deadline-info ${timer.urgency.status_class}">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            ${timer.urgency.display_text}
+                        </div>
+                        <div class="progress-info">
+                            <small>Progress: ${timer.progress.percentage}%</small>
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar ${timer.progress.status_class}" 
+                                     style="width: ${timer.progress.percentage}%"></div>
                             </div>
                         </div>
                     </div>
@@ -580,7 +664,7 @@
                 card.addEventListener('click', function() {
                     const assignmentId = this.dataset.assignmentId;
                     if (assignmentId) {
-                        window.location.href = `/projects/assignment/${assignmentId}/timesheet/`;
+                        window.location.href = `/projects/assignments/${assignmentId}/timesheet/`;
                     }
                 });
             });
