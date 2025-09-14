@@ -553,6 +553,20 @@
                     <a href="{% url 'projects:project_list' %}" class="btn btn-outline-light">
                         <i class="bi bi-arrow-left"></i> Back to Pipeline
                     </a>
+                    <!-- Export Buttons -->
+                    <div class="btn-group" role="group" aria-label="Export options">
+                        <button type="button" class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="exportDeliveredProjects('csv')">
+                                <i class="bi bi-filetype-csv"></i> Export as CSV
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportDeliveredProjects('xlsx')">
+                                <i class="bi bi-file-earmark-excel"></i> Export as Excel
+                            </a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -957,6 +971,31 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
+
+// Export function to handle CSV and XLSX downloads for delivered projects
+function exportDeliveredProjects(format) {
+    // Get current filter values from the form
+    const searchParams = new URLSearchParams();
+    
+    // Get all form inputs and build query string
+    const form = document.querySelector('form');
+    const formData = new FormData(form);
+    
+    for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+            searchParams.append(key, value);
+        }
+    }
+    
+    // Add format parameter
+    searchParams.append('format', format);
+    
+    // Build export URL for delivered projects
+    const exportUrl = '/projects/delivered/export/?' + searchParams.toString();
+    
+    // Trigger download
+    window.location.href = exportUrl;
+}
 </script>
 
 {% endblock %}
