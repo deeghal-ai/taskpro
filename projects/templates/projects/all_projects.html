@@ -307,6 +307,66 @@
         border-color: var(--primary-color) !important;
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
     }
+    
+    /* Type Filter Header Styling */
+    .table thead th.type-filter-header {
+        cursor: pointer !important;
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+        transition: all var(--transition-speed) ease !important;
+        position: relative !important;
+        box-shadow: 0 2px 8px rgba(32, 201, 151, 0.3) !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    .table thead th.type-filter-header:hover {
+        background: linear-gradient(135deg, #1ea673 0%, #138496 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4) !important;
+    }
+    
+    .type-filter-header .fw-semibold {
+        color: #ffffff !important;
+        font-size: 0.75rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .type-filter-header:hover .fw-semibold {
+        color: #ffffff !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    
+    .type-filter-header #typeSortIcon {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.7rem;
+    }
+    
+    .type-filter-header:hover #typeSortIcon {
+        color: white !important;
+    }
+    
+    /* Make sure other headers stay normal */
+    .table thead th:not(.type-filter-header) {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%) !important;
+        color: #495057 !important;
+    }
+    
+    /* Override Bootstrap table header styles completely */
+    .table thead th {
+        background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%) !important;
+        color: #495057 !important;
+    }
+    
+    /* Force turquoise background for type header */
+    .table thead th.type-filter-header,
+    .table > thead > tr > th.type-filter-header {
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%) !important;
+        background-color: #20c997 !important;
+    }
 </style>
 {% endblock %}
 
@@ -497,14 +557,41 @@
         </div>
     </div>
 
+    <!-- Project Count Display -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="project-count-info">
+            {% if filtered_count != total_count %}
+                <h6 class="mb-0 text-muted">
+                    <i class="fas fa-filter me-2"></i>
+                    Showing <span class="fw-bold text-primary">{{ filtered_count }}</span> of <span class="fw-bold">{{ total_count }}</span> projects
+                </h6>
+            {% else %}
+                <h6 class="mb-0 text-muted">
+                    <i class="fas fa-list me-2"></i>
+                    <span class="fw-bold">{{ total_count }}</span> projects total
+                </h6>
+            {% endif %}
+        </div>
+        
+        {% if projects.has_other_pages and projects.paginator.count > 10 %}
+        <div class="pagination-info">
+            <small class="text-muted">
+                Showing {{ projects.start_index }}-{{ projects.end_index }} of {{ projects.paginator.count }}
+            </small>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Projects Table -->
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th width="5%" style="cursor: pointer;" onclick="toggleTypeFilter()" title="Click to filter by type">
-                        Type
-                        <i class="fas fa-sort ms-1" id="typeSortIcon"></i>
+                    <th width="5%" class="type-filter-header" onclick="toggleTypeFilter()" title="Click to filter by type">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <span class="fw-semibold">Type</span>
+                            <i class="fas fa-sort ms-2" id="typeSortIcon"></i>
+                        </div>
                     </th>
                     <th width="10%">HS ID</th>
                     <th width="15%">Project Name</th>

@@ -433,6 +433,16 @@ def all_projects(request):
 
     projects, filters_applied = result
 
+    # Get total count of all projects (unfiltered)
+    total_success, total_result = ProjectService.get_project_list(
+        project_type='all',
+        page=1,
+        items_per_page=1  # We only need the count
+    )
+    total_count = 0
+    if total_success:
+        total_count = total_result[0].paginator.count
+
     # Get filter options
     success, filter_options_result = ProjectService.get_filter_options()
     if not success:
@@ -495,7 +505,9 @@ def all_projects(request):
         },
         'filters_applied': filters_applied,
         'filter_text': filter_text,
-        'date_filter_active': date_filter_active
+        'date_filter_active': date_filter_active,
+        'total_count': total_count,
+        'filtered_count': projects.paginator.count
     }
 
     return render(request, 'projects/all_projects.html', context)
