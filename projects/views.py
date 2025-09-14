@@ -367,6 +367,324 @@ def project_list(request):
 
 
 @login_required
+def all_projects(request):
+    """
+    Displays a filterable list of ALL projects (both pipeline and delivered).
+    Only accessible by DPMs.
+    """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
+    # Get filter parameters from request
+    search_query = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    product = request.GET.get('product', '')
+    region = request.GET.get('region', '')
+    city = request.GET.get('city', '')
+    dpm = request.GET.get('dpm', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    type_filter = request.GET.get('type', 'all')
+    page = request.GET.get('page', 1)
+
+    # Convert date strings to date objects if provided
+    date_from_obj = None
+    date_to_obj = None
+    if date_from:
+        try:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    # Determine project_type based on type_filter
+    if type_filter == 'pipeline':
+        project_type = 'pipeline'
+    elif type_filter == 'delivered':
+        project_type = 'delivered'
+    else:
+        project_type = 'all'
+    
+    # Get projects using service with type filtering
+    success, result = ProjectService.get_project_list(
+        search_query=search_query,
+        status=status,
+        product=product,
+        region=region,
+        city=city,
+        dpm=dpm,
+        date_from=date_from_obj,
+        date_to=date_to_obj,
+        page=page,
+        project_type=project_type
+    )
+
+    if not success:
+        messages.error(request, result)
+        return redirect('home')
+
+    projects, filters_applied = result
+
+    # Get filter options
+    success, filter_options_result = ProjectService.get_filter_options()
+    if not success:
+        messages.warning(request, filter_options_result)
+        filter_options = {
+            'statuses': [],
+            'products': [],
+            'cities': [],
+            'regions': [],
+            'dpms': []
+        }
+    else:
+        filter_options = filter_options_result
+
+    # Build filter text for display
+    filter_parts = []
+    if search_query:
+        filter_parts.append(f"Search: {search_query}")
+    if status:
+        status_name = next((s.name for s in filter_options['statuses'] if str(s.id) == status), status)
+        filter_parts.append(f"Status: {status_name}")
+    if product:
+        product_name = next((p.name for p in filter_options['products'] if str(p.id) == product), product)
+        filter_parts.append(f"Product: {product_name}")
+    if region:
+        region_name = next((r.name for r in filter_options['regions'] if str(r.id) == region), region)
+        filter_parts.append(f"Region: {region_name}")
+    if city:
+        city_name = next((c.name for c in filter_options['cities'] if str(c.id) == city), city)
+        filter_parts.append(f"City: {city_name}")
+    if dpm:
+        dpm_name = next((d.username for d in filter_options['dpms'] if str(d.id) == dpm), dpm)
+        filter_parts.append(f"DPM: {dpm_name}")
+    if type_filter and type_filter != 'all':
+        type_display = 'Pipeline' if type_filter == 'pipeline' else 'Delivered'
+        filter_parts.append(f"Type: {type_display}")
+    if date_from:
+        filter_parts.append(f"From: {date_from}")
+    if date_to:
+        filter_parts.append(f"To: {date_to}")
+
+    filter_text = " | ".join(filter_parts) if filter_parts else "No filters applied"
+    
+    # Check if any date filters are active
+    date_filter_active = bool(date_from or date_to)
+
+    context = {
+        'projects': projects,
+        'filter_options': filter_options,
+        'current_filters': {
+            'search': search_query,
+            'status': status,
+            'product': product,
+            'region': region,
+            'city': city,
+            'dpm': dpm,
+            'type': type_filter,
+            'date_from': date_from,
+            'date_to': date_to,
+        },
+        'filters_applied': filters_applied,
+        'filter_text': filter_text,
+        'date_filter_active': date_filter_active
+    }
+
+    return render(request, 'projects/all_projects.html', context)
+
+
+@login_required
+def export_all_projects(request):
+    """
+    Export all projects (both pipeline and delivered) to CSV or XLSX format.
+    Uses the same filtering logic as all_projects view.
+    Only accessible by DPMs.
+    """
+    # Check if user is a DPM
+    if request.user.role != 'DPM':
+        messages.error(request, "Access denied. This page is only for Project Managers.")
+        return redirect('home')
+    
+    # Get export format from request (default to CSV)
+    export_format = request.GET.get('format', 'csv').lower()
+    
+    # Get filter parameters from request (same as all_projects view)
+    search_query = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    product = request.GET.get('product', '')
+    region = request.GET.get('region', '')
+    city = request.GET.get('city', '')
+    dpm = request.GET.get('dpm', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    # Convert date strings to date objects if provided
+    date_from_obj = None
+    date_to_obj = None
+    if date_from:
+        try:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    # Get ALL projects (no pagination for export)
+    success, result = ProjectService.get_project_list(
+        search_query=search_query,
+        status=status,
+        product=product,
+        region=region,
+        city=city,
+        dpm=dpm,
+        date_from=date_from_obj,
+        date_to=date_to_obj,
+        page=1,
+        items_per_page=10000,  # Large number to get all results
+        project_type='all'  # Get all projects (both pipeline and delivered)
+    )
+
+    if not success:
+        messages.error(request, f"Error exporting projects: {result}")
+        return redirect('projects:all_projects')
+
+    projects, _ = result
+    projects_list = projects.object_list if hasattr(projects, 'object_list') else projects
+
+    # Define the columns for export
+    headers = [
+        'HS ID', 'Opportunity ID', 'Project Name', 'Builder Name', 'City', 'Region',
+        'Product', 'Product Subcategory', 'Package ID', 'Quantity', 'Purchase Date',
+        'Sales Confirmation Date', 'Expected TAT', 'Account Manager', 'DPM',
+        'Current Status', 'Project Incharge', 'Expected Completion Date',
+        'Delivery Performance Rating', 'Created At', 'Project Type'
+    ]
+
+    if export_format == 'xlsx':
+        return _export_all_to_xlsx(projects_list, headers)
+    else:
+        return _export_all_to_csv(projects_list, headers)
+
+
+def _export_all_to_csv(projects, headers):
+    """Helper function to export all projects to CSV format."""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="all_projects_{date.today().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(headers)
+    
+    for project in projects:
+        row = [
+            project.hs_id,
+            project.opportunity_id,
+            project.project_name,
+            project.builder_name,
+            project.city.name if project.city else '',
+            project.city.region.name if project.city and project.city.region else '',
+            project.product.name if project.product else '',
+            project.product_subcategory.name if project.product_subcategory else '',
+            project.package_id or '',
+            project.quantity,
+            project.purchase_date.strftime('%Y-%m-%d') if project.purchase_date else '',
+            project.sales_confirmation_date.strftime('%Y-%m-%d') if project.sales_confirmation_date else '',
+            project.expected_tat,
+            project.account_manager,
+            project.dpm.get_full_name() if project.dpm else '',
+            project.current_status.name if project.current_status else '',
+            project.project_incharge.get_full_name() if project.project_incharge else '',
+            project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
+            str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            'Delivered' if project.is_delivered else 'Pipeline'
+        ]
+        writer.writerow(row)
+    
+    return response
+
+
+def _export_all_to_xlsx(projects, headers):
+    """Helper function to export all projects to XLSX format."""
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "All Projects"
+    
+    # Style for headers
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    
+    # Write headers
+    for col_num, header in enumerate(headers, 1):
+        cell = worksheet.cell(row=1, column=col_num, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+    
+    # Write data
+    for row_num, project in enumerate(projects, 2):
+        data = [
+            project.hs_id,
+            project.opportunity_id,
+            project.project_name,
+            project.builder_name,
+            project.city.name if project.city else '',
+            project.city.region.name if project.city and project.city.region else '',
+            project.product.name if project.product else '',
+            project.product_subcategory.name if project.product_subcategory else '',
+            project.package_id or '',
+            project.quantity,
+            project.purchase_date.strftime('%Y-%m-%d') if project.purchase_date else '',
+            project.sales_confirmation_date.strftime('%Y-%m-%d') if project.sales_confirmation_date else '',
+            project.expected_tat,
+            project.account_manager,
+            project.dpm.get_full_name() if project.dpm else '',
+            project.current_status.name if project.current_status else '',
+            project.project_incharge.get_full_name() if project.project_incharge else '',
+            project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
+            str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            'Delivered' if project.is_delivered else 'Pipeline'
+        ]
+        
+        for col_num, value in enumerate(data, 1):
+            worksheet.cell(row=row_num, column=col_num, value=value)
+    
+    # Auto-adjust column widths
+    for column in worksheet.columns:
+        max_length = 0
+        column_letter = get_column_letter(column[0].column)
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+        worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    # Create response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="all_projects_{date.today().strftime("%Y%m%d")}.xlsx"'
+    
+    workbook.save(response)
+    return response
+
+
+@login_required
 def export_pipeline_projects(request):
     """
     Export pipeline projects (non-delivered) to CSV or XLSX format.

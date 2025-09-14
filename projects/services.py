@@ -263,6 +263,10 @@ class ProjectService:
                     # No such statuses defined, return empty queryset
                     queryset = queryset.none()
 
+            elif project_type == 'all':
+                # Include all projects (both pipeline and delivered) - no filtering by status type
+                pass
+
             # Store all applied filters to pass back to the template
             filters_applied = {
                 'search': search_query,

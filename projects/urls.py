@@ -8,6 +8,8 @@ app_name = 'projects'
 urlpatterns = [
     # Project Management URLs
     path('', views.project_list, name='project_list'),
+    path('all/', views.all_projects, name='all_projects'),
+    path('all/export/', views.export_all_projects, name='export_all_projects'),
     path('delivered/', views.delivered_projects, name='delivered_projects'),
     path('export/', views.export_pipeline_projects, name='export_pipeline_projects'),
     path('delivered/export/', views.export_delivered_projects, name='export_delivered_projects'),
