@@ -92,7 +92,7 @@ def create_project(request):
     """
     View for creating a new project. Handles form processing and
     delegates business logic to the service layer.
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
     # Check if user is a DPM
     if request.user.role != 'DPM':
@@ -125,10 +125,10 @@ def create_project(request):
 
 @login_required
 def project_detail(request, project_id):
-    """Display detailed information about a specific project. Only accessible by DPMs."""
-    # Check if user is a DPM first
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. Only Project Managers can view project details.")
+    """Display detailed information about a specific project. Only accessible by DPMs and Senior Managers."""
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. Only Project Managers and Senior Managers can view project details.")
         return redirect('home')
     
     # Get project data with TAT calculation using service
@@ -169,7 +169,7 @@ def update_project_status(request, project_id):
     """
     Handle status updates for a project.
     Now supports both regular and AJAX requests.
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
     # Check if user is a DPM first
     if request.user.role != 'DPM':
@@ -249,11 +249,11 @@ def update_project_status(request, project_id):
 def project_list(request):
     """
     Displays a filterable list of pipeline projects (not yet delivered).
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. This page is only for Project Managers and Senior Managers.")
         return redirect('home')
     
     # Get filter parameters from request
@@ -370,11 +370,11 @@ def project_list(request):
 def all_projects(request):
     """
     Displays a filterable list of ALL projects (both pipeline and delivered).
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. This page is only for Project Managers and Senior Managers.")
         return redirect('home')
     
     # Get filter parameters from request
@@ -518,11 +518,11 @@ def export_all_projects(request):
     """
     Export all projects (both pipeline and delivered) to CSV or XLSX format.
     Uses the same filtering logic as all_projects view.
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. This page is only for Project Managers and Senior Managers.")
         return redirect('home')
     
     # Get export format from request (default to CSV)
@@ -701,11 +701,11 @@ def export_pipeline_projects(request):
     """
     Export pipeline projects (non-delivered) to CSV or XLSX format.
     Uses the same filtering logic as project_list view.
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. This page is only for Project Managers and Senior Managers.")
         return redirect('home')
     
     # Get export format from request (default to CSV)
@@ -881,11 +881,11 @@ def _export_to_xlsx(projects, headers):
 def delivered_projects(request):
     """
     Displays a filterable list of delivered projects (category_two = 'Final Delivery').
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. This page is only for Project Managers and Senior Managers.")
         return redirect('home')
     
     # Get filter parameters from request
@@ -1034,7 +1034,12 @@ def get_cities(request):
 
 @login_required
 def project_management(request, project_id):
-    """Display project management page with forms and tasks."""
+    """Display project management page with forms and tasks. Accessible by DPMs and Senior Managers."""
+    # Check if user has access (DPM or Senior Manager)
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. Only Project Managers and Senior Managers can access this page.")
+        return redirect('home')
+    
     # Get project for permission check
     success, result = ProjectService.get_project(project_id)
     if not success:
@@ -1042,11 +1047,6 @@ def project_management(request, project_id):
         return redirect('projects:project_list')
 
     project = result
-
-    # Use the permission helper function
-    redirect_response = ensure_is_dpm(request, project)
-    if redirect_response:
-        return redirect_response
 
     # Get project with tasks using the service method
     success, result = ProjectService.get_project_with_tasks(project_id)
@@ -1176,7 +1176,12 @@ def update_project_configuration(request, project_id):
 
 @login_required
 def task_detail(request, project_id, task_id):
-    """Display task details and assignment list."""
+    """Display task details and assignment list. Accessible by DPMs and Senior Managers."""
+    # Check if user has access (DPM or Senior Manager)
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. Only Project Managers and Senior Managers can view task details.")
+        return redirect('home')
+    
     # Get the project
     success, project_result = ProjectService.get_project(project_id)
     if not success:
@@ -1184,11 +1189,6 @@ def task_detail(request, project_id, task_id):
         return redirect('projects:project_list')
 
     project = project_result
-
-    # Check if user is the DPM
-    redirect_response = ensure_is_dpm(request, project)
-    if redirect_response:
-        return redirect_response
 
     # Get task and assignments
     success, task_result = ProjectService.get_task_with_assignments(task_id)
@@ -1569,11 +1569,11 @@ def export_delivered_projects(request):
     """
     Export delivered projects (Final Delivery status) to CSV or XLSX format.
     Uses the same filtering logic as delivered_projects view.
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
-    # Check if user is a DPM
-    if request.user.role != 'DPM':
-        messages.error(request, "Access denied. This page is only for Project Managers.")
+    # Check if user is a DPM or Senior Manager
+    if request.user.role not in ['DPM', 'SENIOR_MANAGER']:
+        messages.error(request, "Access denied. This page is only for Project Managers and Senior Managers.")
         return redirect('home')
     
     # Get export format from request (default to CSV)
@@ -2203,7 +2203,7 @@ def update_quality_rating(request, project_id, task_id, assignment_id):
 def update_quality_rating_timesheet(request, assignment_id):
     """
     Update quality rating for a completed assignment directly from the timesheet.
-    Only accessible by DPMs.
+    Only accessible by DPMs and Senior Managers.
     """
     if request.user.role != 'DPM':
         messages.error(request, "Access denied. Only Project Managers can rate assignments.")

@@ -137,6 +137,11 @@
         color: white;
     }
 
+    .report-icon.all-projects {
+        background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+        color: white;
+    }
+
     .report-card h4 {
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -438,6 +443,25 @@
                 <div class="card-footer">
                     <span class="report-link">
                         View Report <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- All Projects -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:all_projects' %}" class="report-card">
+                <div class="report-icon all-projects">
+                    <i class="bi bi-folder-fill"></i>
+                </div>
+                <h4>All Projects</h4>
+                <p>
+                    Complete project database with advanced filtering, search, and export capabilities. 
+                    View all projects from pipeline to delivered with detailed project information and status tracking.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Projects <i class="bi bi-arrow-right"></i>
                     </span>
                 </div>
             </a>
