@@ -532,7 +532,7 @@
             </div>
 
             <div class="text-end mt-3">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary"{% if user != project.dpm %} disabled{% endif %}>
                     <i class="bi bi-check-lg"></i> Update Configuration
                 </button>
             </div>
@@ -697,32 +697,12 @@
     // Configuration Manager
     const ConfigManager = {
         init() {
-            this.checkConfiguration();
+            // No automatic checking - only show task section after form submission
             this.attachListeners();
         },
         
-        checkConfiguration() {
-            const inchargeSelect = document.querySelector('[name="project_incharge"]');
-            const completionDate = document.querySelector('[name="expected_completion_date"]');
-            const taskSection = document.getElementById('taskCreationSection');
-            
-            if (inchargeSelect && completionDate && taskSection) {
-                const hasConfig = inchargeSelect.value && completionDate.value;
-                
-                if (hasConfig) {
-                    taskSection.style.display = 'block';
-                    taskSection.classList.add('fade-in');
-                } else {
-                    taskSection.style.display = 'none';
-                }
-            }
-        },
-        
         attachListeners() {
-            const configForm = document.getElementById('configForm');
-            if (configForm) {
-                configForm.addEventListener('change', () => this.checkConfiguration());
-            }
+            // No change listeners - task section will only show after Update Configuration is clicked
         }
     };
     
