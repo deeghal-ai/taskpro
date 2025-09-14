@@ -602,14 +602,20 @@
                                         Worked: <strong>{{ assignment.working_hours }}</strong>
                                     </span>
                                 </div>
-                                {% if user == project.dpm %}
-                                <button class="btn btn-sm btn-outline-primary update-btn" 
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#updateForm{{ assignment.id }}"
-                                        aria-expanded="false">
-                                    <i class="bi bi-pencil"></i> Update
-                                </button>
-                                {% endif %}
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'projects:assignment_timesheet' assignment.id %}?from=task_detail" 
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-clock-history"></i> Timesheet
+                                    </a>
+                                    {% if user == project.dpm %}
+                                    <button class="btn btn-sm btn-outline-primary update-btn" 
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#updateForm{{ assignment.id }}"
+                                            aria-expanded="false">
+                                        <i class="bi bi-pencil"></i> Update
+                                    </button>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         
@@ -743,14 +749,20 @@
                                         Worked: <strong>{{ assignment.working_hours }}</strong>
                                     </span>
                                 </div>
-                                {% if user == project.dpm %}
-                                <button class="btn btn-sm btn-outline-success rate-btn" 
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#rateForm{{ assignment.id }}"
-                                        aria-expanded="false">
-                                    <i class="bi bi-star"></i> Rate Quality
-                                </button>
-                                {% endif %}
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'projects:assignment_timesheet' assignment.id %}?from=task_detail" 
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-clock-history"></i> Timesheet
+                                    </a>
+                                    {% if user == project.dpm %}
+                                    <button class="btn btn-sm btn-outline-success rate-btn" 
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#rateForm{{ assignment.id }}"
+                                            aria-expanded="false">
+                                        <i class="bi bi-star"></i> Rate Quality
+                                    </button>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         

@@ -1828,13 +1828,20 @@ def assignment_timesheet(request, assignment_id):
     print(f"DEBUG assignment_timesheet: HTTP_REFERER = '{request.META.get('HTTP_REFERER', '')}'")
     
     if request.user.role in ['DPM', 'SENIOR_MANAGER']:
-        # First check if coming from team roster
+        # First check if coming from team roster or task detail
         from_param = request.GET.get('from', '')
         if from_param == 'team_roster':
             # Get the assigned team member for the back URL
             assigned_team_member = timesheet_data['assignment'].assigned_to
             back_url = f"/projects/team-roster/daily/?team_member={assigned_team_member.id}"
             back_text = 'Back to Roster'
+            back_is_full_url = True
+        elif from_param == 'task_detail':
+            # Get project and task IDs for the back URL
+            project_id = timesheet_data['assignment'].task.project.id
+            task_id = timesheet_data['assignment'].task.id
+            back_url = f"/projects/{project_id}/tasks/{task_id}/"
+            back_text = 'Back to Task'
             back_is_full_url = True
         else:
             # Check if we have a preserved original_referer from quality rating flow
@@ -1871,7 +1878,7 @@ def assignment_timesheet(request, assignment_id):
                 
             back_text = 'Back to Assignments'
     else:
-        # Check if coming from daily roster or team roster
+        # Check if coming from daily roster, team roster, or task detail
         from_param = request.GET.get('from', '')
         if from_param == 'daily_roster':
             back_url = 'projects:daily_roster'
@@ -1881,6 +1888,13 @@ def assignment_timesheet(request, assignment_id):
             back_url = 'projects:team_member_daily_roster'
             back_text = 'Back to Roster'
             back_is_full_url = False
+        elif from_param == 'task_detail':
+            # Get project and task IDs for the back URL
+            project_id = timesheet_data['assignment'].task.project.id
+            task_id = timesheet_data['assignment'].task.id
+            back_url = f"/projects/{project_id}/tasks/{task_id}/"
+            back_text = 'Back to Task'
+            back_is_full_url = True
         else:
             back_url = 'projects:team_member_dashboard'
             back_text = 'Back to Dashboard'
