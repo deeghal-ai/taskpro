@@ -1828,43 +1828,63 @@ def assignment_timesheet(request, assignment_id):
     print(f"DEBUG assignment_timesheet: HTTP_REFERER = '{request.META.get('HTTP_REFERER', '')}'")
     
     if request.user.role in ['DPM', 'SENIOR_MANAGER']:
-        # Check if we have a preserved original_referer from quality rating flow
-        if original_referer:
-            referer = original_referer
+        # First check if coming from team roster
+        from_param = request.GET.get('from', '')
+        if from_param == 'team_roster':
+            # Get the assigned team member for the back URL
+            assigned_team_member = timesheet_data['assignment'].assigned_to
+            back_url = f"/projects/team-roster/daily/?team_member={assigned_team_member.id}"
+            back_text = 'Back to Roster'
+            back_is_full_url = True
         else:
-            # Extract filter parameters from HTTP_REFERER if coming from assignments overview
-            referer = request.META.get('HTTP_REFERER', '')
-            
-        if '/projects/tasks/assignments/' in referer and '?' in referer:
-            # Extract query parameters from referer URL
-            from urllib.parse import urlparse, parse_qs
-            parsed_url = urlparse(referer)
-            query_params = parse_qs(parsed_url.query)
-            
-            # Build filter parameters
-            filter_params = []
-            for param in ['assignment_status', 'team_member', 'dpm', 'project', 'start_date', 'end_date']:
-                if param in query_params and query_params[param][0]:
-                    filter_params.append(f"{param}={query_params[param][0]}")
-            
-            if filter_params:
-                # Reconstruct the assignments overview URL with filters
-                back_url = f"/projects/tasks/assignments/?{'&'.join(filter_params)}"
-                back_is_full_url = True
+            # Check if we have a preserved original_referer from quality rating flow
+            if original_referer:
+                referer = original_referer
+            else:
+                # Extract filter parameters from HTTP_REFERER if coming from assignments overview
+                referer = request.META.get('HTTP_REFERER', '')
+                
+            if '/projects/tasks/assignments/' in referer and '?' in referer:
+                # Extract query parameters from referer URL
+                from urllib.parse import urlparse, parse_qs
+                parsed_url = urlparse(referer)
+                query_params = parse_qs(parsed_url.query)
+                
+                # Build filter parameters
+                filter_params = []
+                for param in ['assignment_status', 'team_member', 'dpm', 'project', 'start_date', 'end_date']:
+                    if param in query_params and query_params[param][0]:
+                        filter_params.append(f"{param}={query_params[param][0]}")
+                
+                if filter_params:
+                    # Reconstruct the assignments overview URL with filters
+                    back_url = f"/projects/tasks/assignments/?{'&'.join(filter_params)}"
+                    back_is_full_url = True
+                else:
+                    # Default assignments overview
+                    back_url = 'projects:dpm_assignments_overview'
+                    back_is_full_url = False
             else:
                 # Default assignments overview
                 back_url = 'projects:dpm_assignments_overview'
                 back_is_full_url = False
-        else:
-            # Default assignments overview
-            back_url = 'projects:dpm_assignments_overview'
-            back_is_full_url = False
-            
-        back_text = 'Back to Assignments'
+                
+            back_text = 'Back to Assignments'
     else:
-        back_url = 'projects:team_member_dashboard'
-        back_text = 'Back to Dashboard'
-        back_is_full_url = False
+        # Check if coming from daily roster or team roster
+        from_param = request.GET.get('from', '')
+        if from_param == 'daily_roster':
+            back_url = 'projects:daily_roster'
+            back_text = 'Back to Roster'
+            back_is_full_url = False
+        elif from_param == 'team_roster':
+            back_url = 'projects:team_member_daily_roster'
+            back_text = 'Back to Roster'
+            back_is_full_url = False
+        else:
+            back_url = 'projects:team_member_dashboard'
+            back_text = 'Back to Dashboard'
+            back_is_full_url = False
 
     # Prepare quality rating options for DPMs (only for the project's DPM)
     quality_rating_options = []

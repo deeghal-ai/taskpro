@@ -531,7 +531,7 @@
                                             <div class="row align-items-center">
                                                 <div class="col-md-5">
                                                     <div class="fw-bold mb-1">
-                                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
+                                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}?from=daily_roster">
                                                             {{ daily_total.assignment.assignment_id }}
                                                         </a>
                                                         <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
@@ -558,7 +558,7 @@
                                                 <div class="col-md-3 text-md-end text-start">
                                                     <div class="time-display">{{ daily_total.get_formatted_total }}</div>
                                                     <div class="mt-2">
-                                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
+                                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}?from=daily_roster" 
                                                            class="btn btn-sm btn-outline-primary view-details-btn">
                                                             <i class="bi bi-eye"></i> View Timesheet
                                                         </a>
@@ -643,7 +643,7 @@
                             <div class="row align-items-center">
                                 <div class="col-md-5">
                                     <div class="fw-bold mb-1">
-                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}">
+                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}?from=daily_roster">
                                             {{ daily_total.assignment.assignment_id }}
                                         </a>
                                         <span class="badge {% if daily_total.assignment.task.task_type == 'NEW' %}bg-success{% else %}bg-warning{% endif %} ms-2">
@@ -669,7 +669,7 @@
                                 <div class="col-md-3 text-md-end text-start">
                                     <div class="time-display">{{ daily_total.get_formatted_total }}</div>
                                     <div class="mt-2">
-                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}" 
+                                        <a href="{% url 'projects:assignment_timesheet' daily_total.assignment.id %}?from=daily_roster" 
                                            class="btn btn-sm btn-outline-primary view-details-btn">
                                             <i class="bi bi-eye"></i> View Timesheet
                                         </a>
