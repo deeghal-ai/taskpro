@@ -63,7 +63,7 @@ def team_member_report(request, team_member_id=None):
     delivery_history = ProjectDelivery.objects.filter(
         project_incharge=team_member,
         delivery_date__range=[start_date, end_date]
-    ).order_by('-delivery_date')
+    ).select_related('project').order_by('-delivery_date')
     
     # Prepare context in the format expected by template
     report_data = {
