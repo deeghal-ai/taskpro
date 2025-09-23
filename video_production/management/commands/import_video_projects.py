@@ -150,6 +150,11 @@ class Command(BaseCommand):
         # Bulk create projects
         if projects_to_create and not self.dry_run:
             self.stdout.write('\n💾 Saving projects...')
+            
+            # Manually generate hs_id for each project since bulk_create doesn't trigger pre_save signals
+            for i, project in enumerate(projects_to_create, 1):
+                project.hs_id = f'VP_{i:05d}'
+            
             created_projects = VideoProject.objects.bulk_create(projects_to_create, batch_size=100)
             self.stdout.write(self.style.SUCCESS(f'  Created {len(created_projects)} projects'))
             
