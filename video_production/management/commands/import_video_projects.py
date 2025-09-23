@@ -245,8 +245,11 @@ class Command(BaseCommand):
 
     def create_status_histories(self, csv_file, created_projects):
         """Create status histories for the imported projects - exactly 4 types as required"""
-        # Create a mapping of opportunity_id to project
-        project_map = {p.opportunity_id: p for p in created_projects}
+        # Create a unique mapping using opportunity_id + product + project_name to handle duplicates
+        project_map = {}
+        for p in created_projects:
+            unique_key = f"{p.opportunity_id}|{p.product.name}|{p.project_name}"
+            project_map[unique_key] = p
         
         histories_to_create = []
         
@@ -267,9 +270,15 @@ class Command(BaseCommand):
             
             for row in reader:
                 opportunity_id = row.get('opportunity_id', '').strip()
-                project = project_map.get(opportunity_id)
+                product_name = row.get('product_name', '').strip()
+                project_name = row.get('project_name', '').strip()
+                
+                # Create same unique key used in project mapping
+                unique_key = f"{opportunity_id}|{product_name}|{project_name}"
+                project = project_map.get(unique_key)
                 
                 if not project:
+                    self.stdout.write(self.style.WARNING(f'  Project not found for key: {unique_key}'))
                     continue
                 
                 try:
