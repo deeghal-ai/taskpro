@@ -413,7 +413,7 @@ class VideoProjectService:
             
             # Get projects that reached 1st cut delivery status
             first_cut_status_ids = VideoProjectStatusHistory.objects.filter(
-                category_one_snapshot__icontains='1st Cut'
+                status__name__icontains='1st Cut'
             ).values_list('project_id', flat=True).distinct()
             
             first_cut_projects = base_queryset.filter(id__in=first_cut_status_ids)
