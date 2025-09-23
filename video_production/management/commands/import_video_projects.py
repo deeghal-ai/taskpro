@@ -147,19 +147,25 @@ class Command(BaseCommand):
             if len(errors) > 10:
                 self.stdout.write(self.style.WARNING(f'  ... and {len(errors) - 10} more'))
         
-        # Bulk create projects
+        # Create projects one by one to avoid bulk_create issues with status histories
         if projects_to_create and not self.dry_run:
             self.stdout.write('\n💾 Saving projects...')
             
-            # Manually generate hs_id for each project since bulk_create doesn't trigger pre_save signals
-            for i, project in enumerate(projects_to_create, 1):
-                project.hs_id = f'VP_{i:05d}'
+            created_projects = []
+            for i, project_data in enumerate(projects_to_create, 1):
+                # Manually set hs_id
+                project_data.hs_id = f'VP_{i:05d}'
+                
+                # Set flag to skip automatic status history creation in model.save()
+                project_data._skip_status_history = True
+                
+                # Save project
+                project_data.save()
+                created_projects.append(project_data)
             
-            created_projects = VideoProject.objects.bulk_create(projects_to_create, batch_size=100)
             self.stdout.write(self.style.SUCCESS(f'  Created {len(created_projects)} projects'))
             
-            # Re-read from CSV to create status histories
-            # (We need to match the data back to the created projects)
+            # Create status histories manually with correct logic
             self.stdout.write('\n📝 Creating status histories...')
             histories_count = self.create_status_histories(csv_file, created_projects)
             
@@ -238,7 +244,7 @@ class Command(BaseCommand):
         return project_data
 
     def create_status_histories(self, csv_file, created_projects):
-        """Create status histories for the imported projects"""
+        """Create status histories for the imported projects - exactly 4 types as required"""
         # Create a mapping of opportunity_id to project
         project_map = {p.opportunity_id: p for p in created_projects}
         
@@ -246,7 +252,7 @@ class Command(BaseCommand):
         
         # Get the required status options
         purchase_status = self.statuses.get('purchase date')
-        sales_status = self.statuses.get('sale confirmation')  # Note: without 's'
+        sales_status = self.statuses.get('sale confirmation')  
         project_start_status = self.statuses.get('project start date')
         
         if not purchase_status:
@@ -266,69 +272,64 @@ class Command(BaseCommand):
                 if not project:
                     continue
                 
-                # 1. Create Purchase Date history
-                if purchase_status and row.get('purchase_date'):
-                    try:
+                try:
+                    # 1. ALWAYS create Purchase Date history (required)
+                    if purchase_status and row.get('purchase_date', '').strip():
                         purchase_date = self.parse_date(row.get('purchase_date'), 'purchase_date')
                         histories_to_create.append(VideoProjectStatusHistory(
                             project=project,
                             status=purchase_status,
                             changed_by=self.default_video_pm,
                             changed_at=timezone.make_aware(datetime.combine(purchase_date, datetime.min.time())),
-                            comments='Imported from legacy data',
+                            comments='Purchase Date - imported from legacy data',
                             category_one_snapshot=purchase_status.category_one,
                             category_two_snapshot=purchase_status.category_two
                         ))
-                    except Exception as e:
-                        self.stdout.write(self.style.WARNING(f'  Could not create purchase date history for {opportunity_id}: {e}'))
-                
-                # 2. Create Sales Confirmation history
-                if sales_status and row.get('sales_confirmation_date'):
-                    try:
+                    
+                    # 2. ALWAYS create Sales Confirmation history (required)
+                    if sales_status and row.get('sales_confirmation_date', '').strip():
                         sales_date = self.parse_date(row.get('sales_confirmation_date'), 'sales_confirmation_date')
                         histories_to_create.append(VideoProjectStatusHistory(
                             project=project,
                             status=sales_status,
                             changed_by=self.default_video_pm,
                             changed_at=timezone.make_aware(datetime.combine(sales_date, datetime.min.time())),
-                            comments='Imported from legacy data',
+                            comments='Sales Confirmation - imported from legacy data',
                             category_one_snapshot=sales_status.category_one,
                             category_two_snapshot=sales_status.category_two
                         ))
-                    except Exception as e:
-                        self.stdout.write(self.style.WARNING(f'  Could not create sales confirmation history for {opportunity_id}: {e}'))
-                
-                # 3. Create Current Status history (using Latest_date)
-                if row.get('Latest_date'):
-                    try:
+                    
+                    # 3. ALWAYS create Current Status history using Latest_date (required)
+                    if row.get('Latest_date', '').strip():
                         latest_date = self.parse_date(row.get('Latest_date'), 'Latest_date')
                         histories_to_create.append(VideoProjectStatusHistory(
                             project=project,
                             status=project.current_status,
                             changed_by=self.default_video_pm,
                             changed_at=timezone.make_aware(datetime.combine(latest_date, datetime.min.time())),
-                            comments='Current status - imported from legacy data',
+                            comments=f'{project.current_status.name} - imported from legacy data',
                             category_one_snapshot=project.current_status.category_one,
                             category_two_snapshot=project.current_status.category_two
                         ))
-                    except Exception as e:
-                        self.stdout.write(self.style.WARNING(f'  Could not create current status history for {opportunity_id}: {e}'))
-                
-                # 4. Create Project Start Date history (if exists)
-                if project_start_status and row.get('project_start_date'):
-                    try:
+                    
+                    # 4. CONDITIONALLY create Project Start Date history (only if project_start_date exists)
+                    if (project_start_status and 
+                        row.get('project_start_date', '').strip() and 
+                        row.get('project_start_date', '').strip() != ''):
                         start_date = self.parse_date(row.get('project_start_date'), 'project_start_date')
                         histories_to_create.append(VideoProjectStatusHistory(
                             project=project,
                             status=project_start_status,
                             changed_by=self.default_video_pm,
                             changed_at=timezone.make_aware(datetime.combine(start_date, datetime.min.time())),
-                            comments='Imported from legacy data',
+                            comments='Project Start Date - imported from legacy data',
                             category_one_snapshot=project_start_status.category_one,
                             category_two_snapshot=project_start_status.category_two
                         ))
-                    except Exception as e:
-                        self.stdout.write(self.style.WARNING(f'  Could not create project start history for {opportunity_id}: {e}'))
+                        
+                except Exception as e:
+                    self.stdout.write(self.style.WARNING(f'  Could not create status histories for {opportunity_id}: {e}'))
+                    continue
         
         # Bulk create histories
         if histories_to_create:
