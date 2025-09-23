@@ -1,0 +1,794 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Video Production Report{% endblock %}
+
+{% block extra_css %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    /* Clean, Professional Dashboard Styling */
+    .dashboard-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: transform 0.2s;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+    }
+    
+    .metric-hero {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .metric-hero .total {
+        font-size: 3.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .metric-hero .label {
+        font-size: 1.25rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .report-table {
+        width: 100%;
+    }
+    
+    .report-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        padding: 0.75rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .report-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .filter-form {
+        background: #f8f9fa;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .metric-section {
+        border-left: 4px solid #6f42c1;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        margin-bottom: 2rem;
+    }
+    
+    .metric-title {
+        color: #6f42c1;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1 class="mb-2">Video Production Report</h1>
+        <p class="mb-0">Comprehensive video project metrics with date range filtering and quantity weighting</p>
+    </div>
+    
+    <!-- Filter Form -->
+    <div class="filter-form">
+        <form method="GET">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">Date From</label>
+                    <input type="text" class="form-control" id="date_from" name="date_from" 
+                           value="{{ filters.date_from|date:'Y-m-d' }}" placeholder="Select start date">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">Date To</label>
+                    <input type="text" class="form-control" id="date_to" name="date_to" 
+                           value="{{ filters.date_to|date:'Y-m-d' }}" placeholder="Select end date">
+                </div>
+                <div class="col-md-2">
+                    <label for="product" class="form-label">Product</label>
+                    <select class="form-select" id="product" name="product">
+                        <option value="">All Products</option>
+                        {% for product in products %}
+                            <option value="{{ product }}" {% if filters.product == product %}selected{% endif %}>
+                                {{ product }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="video_pm" class="form-label">Video PM</label>
+                    <select class="form-select" id="video_pm" name="video_pm">
+                        <option value="">All Video PMs</option>
+                        {% for pm in video_pms %}
+                            <option value="{{ pm }}" {% if filters.video_pm == pm %}selected{% endif %}>
+                                {{ pm }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-funnel"></i> Apply
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{% url 'video_production:video_report' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-clockwise"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Sales Confirmed Metric Section -->
+    <div class="report-card metric-section">
+        <h4 class="metric-title">
+            <i class="bi bi-check-circle"></i> Sales Confirmed
+        </h4>
+        
+        <!-- Hero Metric -->
+        <div class="metric-hero">
+            <div class="total">{{ sales_confirmed.total_quantity|default:0 }}</div>
+            <div class="label">Total Quantity (Sales Confirmed)</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">📊 Projects: {{ sales_confirmed.project_count|default:0 }}</span>
+                {% if filters.date_from or filters.date_to %}
+                    <span>📅 Date Range: 
+                        {% if filters.date_from %}{{ filters.date_from|date:"M j, Y" }}{% else %}Start{% endif %} - 
+                        {% if filters.date_to %}{{ filters.date_to|date:"M j, Y" }}{% else %}End{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Product-wise Sales Confirmed -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box"></i> Product-wise Distribution
+                    </h5>
+                    {% if sales_confirmed.product_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="productSalesChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No sales data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Video PM-wise Sales Confirmed -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people"></i> Video PM-wise Distribution
+                    </h5>
+                    {% if sales_confirmed.video_pm_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="videoPmSalesChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bar-chart fs-1"></i>
+                            <p class="mt-2">No sales data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Breakdowns -->
+        <div class="row mt-3">
+            <!-- Product Breakdown Table -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box-fill"></i> Product Details
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in sales_confirmed.product_breakdown %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td><strong>{{ product.quantity }}</strong></td>
+                                    <td>{{ product.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Video PM Breakdown Table -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people-fill"></i> Video PM Details
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Video PM</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pm in sales_confirmed.video_pm_breakdown %}
+                                <tr>
+                                    <td>{{ pm.video_pm_name }}</td>
+                                    <td><strong>{{ pm.quantity }}</strong></td>
+                                    <td>{{ pm.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 1st Cut Deliveries Metric Section -->
+    <div class="report-card metric-section">
+        <h4 class="metric-title">
+            <i class="bi bi-truck"></i> 1st Cut Deliveries
+        </h4>
+        
+        <!-- Hero Metric -->
+        <div class="metric-hero">
+            <div class="total">{{ first_cut_deliveries.total_quantity|default:0 }}</div>
+            <div class="label">Total Quantity (1st Cut Delivered)</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">📊 Projects: {{ first_cut_deliveries.project_count|default:0 }}</span>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Product-wise 1st Cut Deliveries -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box"></i> Product-wise Distribution
+                    </h5>
+                    {% if first_cut_deliveries.product_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="productFCDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No 1st cut delivery data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Video PM-wise 1st Cut Deliveries -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people"></i> Video PM-wise Distribution
+                    </h5>
+                    {% if first_cut_deliveries.video_pm_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="videoPmFCDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bar-chart fs-1"></i>
+                            <p class="mt-2">No 1st cut delivery data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Breakdowns -->
+        <div class="row mt-3">
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box-fill"></i> Product Details
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in first_cut_deliveries.product_breakdown %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td><strong>{{ product.quantity }}</strong></td>
+                                    <td>{{ product.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people-fill"></i> Video PM Details
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Video PM</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pm in first_cut_deliveries.video_pm_breakdown %}
+                                <tr>
+                                    <td>{{ pm.video_pm_name }}</td>
+                                    <td><strong>{{ pm.quantity }}</strong></td>
+                                    <td>{{ pm.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Final Deliveries Metric Section -->
+    <div class="report-card metric-section">
+        <h4 class="metric-title">
+            <i class="bi bi-check-circle-fill"></i> Final Deliveries
+        </h4>
+        
+        <!-- Hero Metric -->
+        <div class="metric-hero">
+            <div class="total">{{ final_deliveries.total_quantity|default:0 }}</div>
+            <div class="label">Total Quantity (Final Delivered)</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">📊 Projects: {{ final_deliveries.project_count|default:0 }}</span>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box"></i> Product-wise Distribution
+                    </h5>
+                    {% if final_deliveries.product_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="productFDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No final delivery data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people"></i> Video PM-wise Distribution
+                    </h5>
+                    {% if final_deliveries.video_pm_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="videoPmFDChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bar-chart fs-1"></i>
+                            <p class="mt-2">No final delivery data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Tables Row -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-table"></i> Product-wise Breakdown
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in final_deliveries.product_breakdown %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td><strong>{{ product.quantity }}</strong></td>
+                                    <td>{{ product.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-table"></i> Video PM-wise Breakdown
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Video PM</th>
+                                    <th>Quantity</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pm in final_deliveries.video_pm_breakdown %}
+                                <tr>
+                                    <td>{{ pm.video_pm_name }}</td>
+                                    <td><strong>{{ pm.quantity }}</strong></td>
+                                    <td>{{ pm.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+// Initialize date pickers
+flatpickr("#date_from", {
+    dateFormat: "Y-m-d",
+    allowInput: true
+});
+flatpickr("#date_to", {
+    dateFormat: "Y-m-d",
+    allowInput: true
+});
+
+// Chart colors
+const chartColors = ['#dc3545', '#fd7e14', '#ffc107', '#198754', '#0dcaf0', '#6f42c1', '#d63384', '#20c997'];
+
+// Product Sales Doughnut Chart
+const productChartData = JSON.parse('{{ product_chart_json|escapejs }}');
+if (productChartData.labels && productChartData.labels.length > 0) {
+    const productCtx = document.getElementById('productSalesChart').getContext('2d');
+    
+    new Chart(productCtx, {
+        type: 'doughnut',
+        data: {
+            labels: productChartData.labels,
+            datasets: [{
+                data: productChartData.data,
+                backgroundColor: productChartData.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Video PM Sales Bar Chart
+const videoPmChartData = JSON.parse('{{ video_pm_chart_json|escapejs }}');
+if (videoPmChartData.labels && videoPmChartData.labels.length > 0) {
+    const videoPmCtx = document.getElementById('videoPmSalesChart').getContext('2d');
+    
+    new Chart(videoPmCtx, {
+        type: 'bar',
+        data: {
+            labels: videoPmChartData.labels,
+            datasets: [{
+                label: 'Sales Confirmed (Quantity)',
+                data: videoPmChartData.data,
+                backgroundColor: '#6f42c1',
+                borderColor: '#6f42c1',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Video PM'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// 1st Cut Deliveries - Product Doughnut Chart
+const fcdProductChartData = JSON.parse('{{ fcd_product_chart_json|escapejs }}');
+if (fcdProductChartData.labels && fcdProductChartData.labels.length > 0) {
+    const fcdProductCtx = document.getElementById('productFCDChart').getContext('2d');
+    
+    new Chart(fcdProductCtx, {
+        type: 'doughnut',
+        data: {
+            labels: fcdProductChartData.labels,
+            datasets: [{
+                data: fcdProductChartData.data,
+                backgroundColor: fcdProductChartData.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 1st Cut Deliveries - Video PM Bar Chart
+const fcdVideoPmChartData = JSON.parse('{{ fcd_video_pm_chart_json|escapejs }}');
+if (fcdVideoPmChartData.labels && fcdVideoPmChartData.labels.length > 0) {
+    const fcdVideoPmCtx = document.getElementById('videoPmFCDChart').getContext('2d');
+    
+    new Chart(fcdVideoPmCtx, {
+        type: 'bar',
+        data: {
+            labels: fcdVideoPmChartData.labels,
+            datasets: [{
+                data: fcdVideoPmChartData.data,
+                backgroundColor: fcdVideoPmChartData.colors,
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Video PM'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Final Deliveries - Product Doughnut Chart
+const fdProductChartData = JSON.parse('{{ fd_product_chart_json|escapejs }}');
+if (fdProductChartData.labels && fdProductChartData.labels.length > 0) {
+    const fdProductCtx = document.getElementById('productFDChart').getContext('2d');
+    
+    new Chart(fdProductCtx, {
+        type: 'doughnut',
+        data: {
+            labels: fdProductChartData.labels,
+            datasets: [{
+                data: fdProductChartData.data,
+                backgroundColor: fdProductChartData.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Final Deliveries - Video PM Bar Chart
+const fdVideoPmChartData = JSON.parse('{{ fd_video_pm_chart_json|escapejs }}');
+if (fdVideoPmChartData.labels && fdVideoPmChartData.labels.length > 0) {
+    const fdVideoPmCtx = document.getElementById('videoPmFDChart').getContext('2d');
+    
+    new Chart(fdVideoPmCtx, {
+        type: 'bar',
+        data: {
+            labels: fdVideoPmChartData.labels,
+            datasets: [{
+                data: fdVideoPmChartData.data,
+                backgroundColor: fdVideoPmChartData.colors,
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Video PM'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -142,6 +142,11 @@
         color: white;
     }
 
+    .report-icon.video-production {
+        background: linear-gradient(135deg, #d63384 0%, #6f42c1 100%);
+        color: white;
+    }
+
     .report-card h4 {
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -462,6 +467,25 @@
                 <div class="card-footer">
                     <span class="report-link">
                         View Projects <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Video Production Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'video_production:video_report' %}" class="report-card">
+                <div class="report-icon video-production">
+                    <i class="bi bi-camera-video-fill"></i>
+                </div>
+                <h4>Video Production Report</h4>
+                <p>
+                    Comprehensive video project metrics with Sales Confirmed, 1st Cut Deliveries, and Final Deliveries tracking. 
+                    Monitor video production performance with product and Video PM breakdowns.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
                     </span>
                 </div>
             </a>

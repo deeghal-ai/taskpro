@@ -17,4 +17,7 @@ urlpatterns = [
     
     # Status management
     path('<uuid:project_id>/update-status/', views.video_update_project_status, name='update_status'),
+    
+    # Reports
+    path('reports/video-report/', views.video_report, name='video_report'),
 ]

@@ -371,3 +371,174 @@ class VideoProjectService:
             )
             
             return delivery 
+    
+    @staticmethod
+    def get_video_report_data(filters=None):
+        """
+        Generate comprehensive video project report data similar to general_report.
+        Returns sales confirmed, 1st cut deliveries, and final deliveries metrics.
+        
+        Args:
+            filters: Dictionary with date_from, date_to, product, video_pm filters
+            
+        Returns:
+            Dictionary with report metrics
+        """
+        from django.db.models import Count
+        import json
+        
+        try:
+            # Build base queryset
+            base_queryset = VideoProject.objects.select_related(
+                'product', 'video_pm', 'current_status'
+            )
+            
+            # Apply filters
+            if filters:
+                if filters.get('date_from'):
+                    base_queryset = base_queryset.filter(
+                        sales_confirmation_date__gte=filters['date_from']
+                    )
+                if filters.get('date_to'):
+                    base_queryset = base_queryset.filter(
+                        sales_confirmation_date__lte=filters['date_to']
+                    )
+                if filters.get('product'):
+                    base_queryset = base_queryset.filter(product__name=filters['product'])
+                if filters.get('video_pm'):
+                    base_queryset = base_queryset.filter(video_pm__username=filters['video_pm'])
+            
+            # Get sales confirmed projects (all video projects are sales confirmed)
+            sales_confirmed_projects = base_queryset.all()
+            
+            # Get projects that reached 1st cut delivery status
+            first_cut_status_ids = VideoProjectStatusHistory.objects.filter(
+                category_one_snapshot__icontains='1st Cut'
+            ).values_list('project_id', flat=True).distinct()
+            
+            first_cut_projects = base_queryset.filter(id__in=first_cut_status_ids)
+            
+            # Get projects that reached final delivery status  
+            final_delivery_status_ids = VideoProjectStatusHistory.objects.filter(
+                category_two_snapshot__iexact='Final Delivery'
+            ).values_list('project_id', flat=True).distinct()
+            
+            final_delivery_projects = base_queryset.filter(id__in=final_delivery_status_ids)
+            
+            # Calculate metrics for each category
+            sales_confirmed_data = VideoProjectService._calculate_video_metrics(
+                sales_confirmed_projects, 'Sales Confirmed'
+            )
+            
+            first_cut_data = VideoProjectService._calculate_video_metrics(
+                first_cut_projects, '1st Cut Deliveries'
+            )
+            
+            final_delivery_data = VideoProjectService._calculate_video_metrics(
+                final_delivery_projects, 'Final Deliveries'
+            )
+            
+            # Get filter options
+            products = VideoProduct.objects.filter(is_active=True).values_list('name', flat=True)
+            video_pms = User.objects.filter(role='VIDEO_PM').values_list('username', flat=True)
+            
+            return {
+                'sales_confirmed': sales_confirmed_data,
+                'first_cut_deliveries': first_cut_data,
+                'final_deliveries': final_delivery_data,
+                'filters': filters or {},
+                'products': products,
+                'video_pms': video_pms,
+                # Chart data for frontend
+                'product_chart_json': json.dumps(sales_confirmed_data.get('product_chart_data', {})),
+                'video_pm_chart_json': json.dumps(sales_confirmed_data.get('video_pm_chart_data', {})),
+                'fcd_product_chart_json': json.dumps(first_cut_data.get('product_chart_data', {})),
+                'fcd_video_pm_chart_json': json.dumps(first_cut_data.get('video_pm_chart_data', {})),
+                'fd_product_chart_json': json.dumps(final_delivery_data.get('product_chart_data', {})),
+                'fd_video_pm_chart_json': json.dumps(final_delivery_data.get('video_pm_chart_data', {})),
+            }
+            
+        except Exception as e:
+            logger.exception(f"Error in get_video_report_data: {str(e)}")
+            return {
+                'sales_confirmed': {'total_quantity': 0, 'project_count': 0, 'product_breakdown': [], 'video_pm_breakdown': []},
+                'first_cut_deliveries': {'total_quantity': 0, 'project_count': 0, 'product_breakdown': [], 'video_pm_breakdown': []},
+                'final_deliveries': {'total_quantity': 0, 'project_count': 0, 'product_breakdown': [], 'video_pm_breakdown': []},
+                'filters': {},
+                'products': [],
+                'video_pms': [],
+                'product_chart_json': '{}',
+                'video_pm_chart_json': '{}',
+                'fcd_product_chart_json': '{}',
+                'fcd_video_pm_chart_json': '{}',
+                'fd_product_chart_json': '{}',
+                'fd_video_pm_chart_json': '{}'
+            }
+    
+    @staticmethod
+    def _calculate_video_metrics(queryset, metric_name):
+        """
+        Calculate metrics for a given queryset of video projects.
+        """
+        from django.db.models import Sum, Count
+        
+        # Calculate totals
+        total_quantity = queryset.aggregate(total=Sum('quantity'))['total'] or 0
+        project_count = queryset.count()
+        
+        # Product-wise breakdown
+        product_breakdown = queryset.values('product__name').annotate(
+            quantity=Sum('quantity'),
+            project_count=Count('id')
+        ).order_by('-quantity')
+        
+        # Video PM-wise breakdown
+        video_pm_breakdown = queryset.values('video_pm__username').annotate(
+            quantity=Sum('quantity'),
+            project_count=Count('id')
+        ).order_by('-quantity')
+        
+        # Prepare chart data
+        chart_colors = ['#dc3545', '#fd7e14', '#ffc107', '#198754', '#0dcaf0', '#6f42c1', '#d63384', '#20c997']
+        
+        # Product chart data
+        product_chart_data = {
+            'labels': [item['product__name'] for item in product_breakdown],
+            'data': [item['quantity'] for item in product_breakdown],
+            'colors': chart_colors[:len(product_breakdown)]
+        }
+        
+        # Video PM chart data
+        video_pm_chart_data = {
+            'labels': [item['video_pm__username'] for item in video_pm_breakdown],
+            'data': [item['quantity'] for item in video_pm_breakdown],
+            'colors': chart_colors[:len(video_pm_breakdown)]
+        }
+        
+        # Format breakdown data
+        formatted_product_breakdown = [
+            {
+                'product_name': item['product__name'],
+                'quantity': item['quantity'],
+                'project_count': item['project_count']
+            }
+            for item in product_breakdown
+        ]
+        
+        formatted_video_pm_breakdown = [
+            {
+                'video_pm_name': item['video_pm__username'],
+                'quantity': item['quantity'],
+                'project_count': item['project_count']
+            }
+            for item in video_pm_breakdown
+        ]
+        
+        return {
+            'total_quantity': total_quantity,
+            'project_count': project_count,
+            'product_breakdown': formatted_product_breakdown,
+            'video_pm_breakdown': formatted_video_pm_breakdown,
+            'product_chart_data': product_chart_data,
+            'video_pm_chart_data': video_pm_chart_data
+        }

@@ -527,3 +527,65 @@ def video_complete_project(request, project_id):
     except VideoProject.DoesNotExist:
         messages.error(request, 'Video project not found.')
         return redirect('video_production:project_list')
+
+def ensure_has_management_access(user):
+    """Helper function to check management access for reports (DPM, VIDEO_PM, SENIOR_MANAGER)"""
+    allowed_roles = ['DPM', 'VIDEO_PM', 'SENIOR_MANAGER']
+    if user.role not in allowed_roles:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Access denied. Management role required.")
+
+@login_required
+def video_report(request):
+    """
+    Video Production Report for Senior Managers - similar to general_report.
+    Shows Sales Confirmed, 1st Cut Deliveries, and Final Deliveries metrics.
+    Accessible by SENIOR_MANAGER, VIDEO_PM, and DPM roles.
+    """
+    # Check management access
+    try:
+        ensure_has_management_access(request.user)
+    except Exception:
+        messages.error(request, "Access denied. Management role required.")
+        return redirect('home')
+    
+    # Parse filters from GET request
+    filters = {}
+    if request.GET.get('date_from'):
+        try:
+            filters['date_from'] = datetime.strptime(request.GET['date_from'], '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('date_to'):
+        try:
+            filters['date_to'] = datetime.strptime(request.GET['date_to'], '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('product'):
+        filters['product'] = request.GET['product']
+    
+    if request.GET.get('video_pm'):
+        filters['video_pm'] = request.GET['video_pm']
+    
+    # Get report data from service
+    report_data = VideoProjectService.get_video_report_data(filters)
+    
+    context = {
+        'sales_confirmed': report_data['sales_confirmed'],
+        'first_cut_deliveries': report_data['first_cut_deliveries'],
+        'final_deliveries': report_data['final_deliveries'],
+        'filters': report_data['filters'],
+        'products': report_data['products'],
+        'video_pms': report_data['video_pms'],
+        'product_chart_json': report_data['product_chart_json'],
+        'video_pm_chart_json': report_data['video_pm_chart_json'],
+        'fcd_product_chart_json': report_data['fcd_product_chart_json'],
+        'fcd_video_pm_chart_json': report_data['fcd_video_pm_chart_json'],
+        'fd_product_chart_json': report_data['fd_product_chart_json'],
+        'fd_video_pm_chart_json': report_data['fd_video_pm_chart_json'],
+        'page_title': 'Video Production Report'
+    }
+    
+    return render(request, 'video_production/reports/video_report.html', context)
