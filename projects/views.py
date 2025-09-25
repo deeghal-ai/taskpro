@@ -151,6 +151,9 @@ def project_detail(request, project_id):
     # Prepare the form for the modal
     form = ProjectStatusUpdateForm(initial={'status': project.current_status})
 
+    # Calculate total man-hours for the project
+    total_man_hours = ProjectService.calculate_project_total_hours(project_id)
+
     # Prepare context
     context = {
         'project': project,
@@ -158,6 +161,7 @@ def project_detail(request, project_id):
         'status_history': status_history,
         'status_options': status_options,
         'form': form,
+        'total_man_hours': total_man_hours,
         'today': timezone.now().date(),
         'title': f'Project: {project.project_name}'
     }
