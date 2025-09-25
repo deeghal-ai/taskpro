@@ -162,7 +162,7 @@ def project_detail(request, project_id):
         'status_options': status_options,
         'form': form,
         'total_man_hours': total_man_hours,
-        'today': timezone.now().date(),
+        'today': timezone.localtime(timezone.now()).date(),
         'title': f'Project: {project.project_name}'
     }
 
@@ -244,7 +244,7 @@ def update_project_status(request, project_id):
     return render(request, 'projects/status_update.html', {
         'form': form,
         'project': project,
-        'today': timezone.now().date(),
+        'today': timezone.localtime(timezone.now()).date(),
         'title': f'Update Status: {project.project_name}'
     })
 
