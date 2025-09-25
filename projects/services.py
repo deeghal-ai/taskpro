@@ -3708,6 +3708,32 @@ class ProjectService:
                 'has_timers': False
             }
 
+    @staticmethod
+    def calculate_project_total_hours(project_id):
+        """
+        Calculate total man-hours for a project from DailyTimeTotal.
+        Returns decimal hours (e.g., 45.5 for 45 hours 30 minutes).
+        """
+        from django.db.models import Sum
+        from projects.models import TaskAssignment
+        
+        try:
+            # Single query to get total minutes across all assignments
+            total_minutes = TaskAssignment.objects.filter(
+                task__project_id=project_id
+            ).aggregate(
+                total=Sum('daily_totals__total_minutes')
+            )['total'] or 0
+            
+            # Convert to decimal hours (e.g., 90 minutes = 1.5 hours)
+            total_hours = round(total_minutes / 60, 2)
+            
+            return total_hours
+            
+        except Exception as e:
+            logger.error(f"Error calculating project hours: {str(e)}")
+            return 0
+
 
 class ReportingService:
     """
@@ -4990,28 +5016,4 @@ class GeneralReportService:
             'dpm_breakdown': dpm_breakdown
         }
 
-    @staticmethod
-    def calculate_project_total_hours(project_id):
-        """
-        Calculate total man-hours for a project from DailyTimeTotal.
-        Returns decimal hours (e.g., 45.5 for 45 hours 30 minutes).
-        """
-        from django.db.models import Sum
-        from projects.models import TaskAssignment
-        
-        try:
-            # Single query to get total minutes across all assignments
-            total_minutes = TaskAssignment.objects.filter(
-                task__project_id=project_id
-            ).aggregate(
-                total=Sum('daily_totals__total_minutes')
-            )['total'] or 0
-            
-            # Convert to decimal hours (e.g., 90 minutes = 1.5 hours)
-            total_hours = round(total_minutes / 60, 2)
-            
-            return total_hours
-            
-        except Exception as e:
-            logger.error(f"Error calculating project hours: {str(e)}")
-            return 0
+    
