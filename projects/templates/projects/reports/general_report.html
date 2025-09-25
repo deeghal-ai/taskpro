@@ -588,6 +588,136 @@
             </div>
         </div>
     </div>
+
+    <!-- Man Hours Metric Section -->
+    <div class="report-card metric-section">
+        <h4 class="metric-title">
+            <i class="bi bi-clock-fill"></i> Man Hours
+        </h4>
+        
+        <!-- Hero Metric -->
+        <div class="metric-hero">
+            <div class="total">{{ man_hours.total_hours|default:0 }}</div>
+            <div class="label">Total Hours Logged</div>
+            <div class="mt-3 text-muted">
+                <span class="me-3">📊 Projects: {{ man_hours.project_count|default:0 }}</span>
+                {% if filters.date_from or filters.date_to %}
+                    <span>📅 Date Range: 
+                        {% if filters.date_from %}{{ filters.date_from|date:"M j, Y" }}{% else %}Start{% endif %} - 
+                        {% if filters.date_to %}{{ filters.date_to|date:"M j, Y" }}{% else %}End{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row">
+            <!-- Product-wise Man Hours -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-box"></i> Product-wise Distribution
+                    </h5>
+                    {% if man_hours.product_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="productMHChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-pie-chart fs-1"></i>
+                            <p class="mt-2">No man hours data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- DPM-wise Man Hours -->
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-people"></i> DPM-wise Distribution
+                    </h5>
+                    {% if man_hours.dpm_breakdown %}
+                        <div class="chart-container">
+                            <canvas id="dpmMHChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bar-chart fs-1"></i>
+                            <p class="mt-2">No man hours data available for selected period</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Tables Row -->
+        <div class="row mt-4">
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-table"></i> Product-wise Breakdown
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Hours</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in man_hours.product_breakdown %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td><strong>{{ product.hours }}</strong></td>
+                                    <td>{{ product.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="report-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-table"></i> DPM-wise Breakdown
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="report-table table">
+                            <thead>
+                                <tr>
+                                    <th>DPM</th>
+                                    <th>Hours</th>
+                                    <th>Projects</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dpm in man_hours.dpm_breakdown %}
+                                <tr>
+                                    <td>{{ dpm.dpm_name }}</td>
+                                    <td><strong>{{ dpm.hours }}</strong></td>
+                                    <td>{{ dpm.project_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -875,6 +1005,95 @@ if (fdDpmChartData.labels && fdDpmChartData.labels.length > 0) {
                     callbacks: {
                         label: function(context) {
                             return context.label + ': ' + context.parsed.y + ' units';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Man Hours - Product Doughnut Chart
+const mhProductChartData = JSON.parse('{{ mh_product_chart_json|escapejs }}');
+if (mhProductChartData.labels && mhProductChartData.labels.length > 0) {
+    const mhProductCtx = document.getElementById('productMHChart').getContext('2d');
+    
+    new Chart(mhProductCtx, {
+        type: 'doughnut',
+        data: {
+            labels: mhProductChartData.labels,
+            datasets: [{
+                data: mhProductChartData.data,
+                backgroundColor: mhProductChartData.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' hours';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Man Hours - DPM Bar Chart
+const mhDpmChartData = JSON.parse('{{ mh_dpm_chart_json|escapejs }}');
+if (mhDpmChartData.labels && mhDpmChartData.labels.length > 0) {
+    const mhDpmCtx = document.getElementById('dpmMHChart').getContext('2d');
+    
+    new Chart(mhDpmCtx, {
+        type: 'bar',
+        data: {
+            labels: mhDpmChartData.labels,
+            datasets: [{
+                data: mhDpmChartData.data,
+                backgroundColor: mhDpmChartData.colors,
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Hours'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'DPM'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.y + ' hours';
                         }
                     }
                 }

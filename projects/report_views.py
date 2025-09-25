@@ -700,11 +700,35 @@ def general_report_dashboard(request):
         'colors': ['#d63384', '#198754', '#0dcaf0', '#fd7e14', '#6f42c1', '#20c997']
     })
     
+    # Prepare chart data for Man Hours
+    man_hours = report_data.get('man_hours', {})
+    mh_product_breakdown = man_hours.get('product_breakdown', [])
+    mh_product_labels = [item['product_name'] for item in mh_product_breakdown]
+    mh_product_hours = [item['hours'] for item in mh_product_breakdown]
+    
+    mh_product_chart_json = json.dumps({
+        'labels': mh_product_labels,
+        'data': mh_product_hours,
+        'colors': ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#e83e8c']
+    })
+    
+    # Prepare DPM chart data for Man Hours
+    mh_dpm_breakdown = man_hours.get('dpm_breakdown', [])
+    mh_dpm_labels = [item['dpm_name'] for item in mh_dpm_breakdown]
+    mh_dpm_hours = [item['hours'] for item in mh_dpm_breakdown]
+    
+    mh_dpm_chart_json = json.dumps({
+        'labels': mh_dpm_labels,
+        'data': mh_dpm_hours,
+        'colors': ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14']
+    })
+
     context = {
         'report_data': report_data,
         'sales_confirmed': sales_confirmed,
         'first_cut_deliveries': first_cut_deliveries,
         'final_deliveries': final_deliveries,
+        'man_hours': man_hours,
         'filters': filters,
         'products': products,
         'dpms': dpms,
@@ -715,6 +739,8 @@ def general_report_dashboard(request):
         'fcd_dpm_chart_json': fcd_dpm_chart_json,
         'fd_product_chart_json': fd_product_chart_json,
         'fd_dpm_chart_json': fd_dpm_chart_json,
+        'mh_product_chart_json': mh_product_chart_json,
+        'mh_dpm_chart_json': mh_dpm_chart_json,
         'title': 'General Business Report'
     }
     

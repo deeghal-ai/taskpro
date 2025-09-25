@@ -3734,6 +3734,117 @@ class ProjectService:
             logger.error(f"Error calculating project hours: {str(e)}")
             return 0
 
+    @staticmethod
+    def _calculate_man_hours(projects_queryset, filters):
+        """
+        Calculate total man hours from DailyTimeTotal entries for the filtered time range.
+        
+        Args:
+            projects_queryset: Base queryset of projects (for DPM filtering)
+            filters: Date filters to apply to DailyTimeTotal entries
+            
+        Returns:
+            Dictionary with man hours data
+        """
+        from django.db.models import Sum, Count, Q
+        from projects.models import TaskAssignment, DailyTimeTotal, User
+        
+        # Get current DPM users to ensure filtering consistency
+        current_dpm_users = User.objects.filter(role='DPM')
+        
+        # Base queryset - filter projects to only those assigned to current DPMs
+        dpm_projects_queryset = projects_queryset.filter(dpm__in=current_dpm_users)
+        
+        # Start with DailyTimeTotal entries
+        daily_totals_queryset = DailyTimeTotal.objects.select_related(
+            'assignment', 'assignment__task', 'assignment__task__project',
+            'assignment__task__project__product', 'assignment__task__project__dpm'
+        )
+        
+        # Filter by date range using entry_date field
+        if filters:
+            if filters.get('date_from'):
+                daily_totals_queryset = daily_totals_queryset.filter(
+                    entry_date__gte=filters['date_from']
+                )
+            if filters.get('date_to'):
+                daily_totals_queryset = daily_totals_queryset.filter(
+                    entry_date__lte=filters['date_to']
+                )
+        
+        # Filter by associated project filters
+        project_filter = Q()
+        if filters:
+            if filters.get('product'):
+                project_filter &= Q(assignment__task__project__product__name=filters['product'])
+            if filters.get('dpm'):
+                project_filter &= Q(assignment__task__project__dpm__username=filters['dpm'])
+            if filters.get('city'):
+                project_filter &= Q(assignment__task__project__city__name=filters['city'])
+        
+        if project_filter:
+            daily_totals_queryset = daily_totals_queryset.filter(project_filter)
+        
+        # Further filter to only projects assigned to current DPMs
+        daily_totals_queryset = daily_totals_queryset.filter(
+            assignment__task__project__in=dpm_projects_queryset
+        )
+        
+        # Calculate total minutes and convert to hours
+        total_minutes = daily_totals_queryset.aggregate(
+            total=Sum('total_minutes')
+        )['total'] or 0
+        
+        total_hours = round(total_minutes / 60, 2)
+        
+        # Count unique projects that have time logged
+        project_count = daily_totals_queryset.values(
+            'assignment__task__project'
+        ).distinct().count()
+        
+        # Get product-wise breakdown
+        product_breakdown = []
+        product_data = daily_totals_queryset.values(
+            'assignment__task__project__product__name'
+        ).annotate(
+            total_minutes=Sum('total_minutes'),
+            project_count=Count('assignment__task__project', distinct=True)
+        ).order_by('-total_minutes')
+        
+        for item in product_data:
+            if item['assignment__task__project__product__name'] and item['total_minutes']:
+                hours = round(item['total_minutes'] / 60, 2)
+                product_breakdown.append({
+                    'product_name': item['assignment__task__project__product__name'],
+                    'hours': hours,
+                    'project_count': item['project_count'] or 0
+                })
+        
+        # Get DPM-wise breakdown
+        dpm_breakdown = []
+        dpm_data = daily_totals_queryset.values(
+            'assignment__task__project__dpm__username'
+        ).annotate(
+            total_minutes=Sum('total_minutes'),
+            project_count=Count('assignment__task__project', distinct=True)
+        ).order_by('-total_minutes')
+        
+        for item in dpm_data:
+            if item['assignment__task__project__dpm__username'] and item['total_minutes']:
+                hours = round(item['total_minutes'] / 60, 2)
+                dpm_breakdown.append({
+                    'dpm_name': item['assignment__task__project__dpm__username'],
+                    'hours': hours,
+                    'project_count': item['project_count'] or 0
+                })
+        
+        return {
+            'total_hours': total_hours,
+            'project_count': project_count,
+            'product_breakdown': product_breakdown,
+            'dpm_breakdown': dpm_breakdown
+        }
+
 
 class ReportingService:
     """
@@ -4730,11 +4841,17 @@ class GeneralReportService:
                 projects_queryset, filters
             )
             
+            # Calculate Man Hours metric
+            man_hours_data = GeneralReportService._calculate_man_hours(
+                projects_queryset, filters
+            )
+            
             return {
                 'success': True,
                 'sales_confirmed': sales_confirmed_data,
                 'first_cut_deliveries': first_cut_deliveries_data,
                 'final_deliveries': final_deliveries_data,
+                'man_hours': man_hours_data,
                 'filters_applied': filters or {}
             }
             
