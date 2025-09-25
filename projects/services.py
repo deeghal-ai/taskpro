@@ -4454,7 +4454,7 @@ class TATAnalyticsService:
             city_adherence = TATAnalyticsService._calculate_city_wise_adherence(projects_with_tat)
             region_adherence = TATAnalyticsService._calculate_region_wise_adherence(projects_with_tat)
             product_adherence = TATAnalyticsService._calculate_product_wise_adherence(projects_with_tat)
-            pipeline_delivered_adherence = TATAnalyticsService._calculate_pipeline_delivered_adherence(projects_with_tat)
+            pipeline_delivered_adherence = TATAnalyticsService._calculate_pipeline_delivered_adherence(projects_with_tat, filters)
             
             # Get monthly trend data
             trend_data = TATAnalyticsService.get_monthly_adherence_trend(filters)
@@ -4739,33 +4739,21 @@ class TATAnalyticsService:
             }
     
     @staticmethod
-    def _calculate_pipeline_delivered_adherence(projects_with_tat):
+    def _calculate_pipeline_delivered_adherence(projects_with_tat, filters=None):
         """
         Calculate TAT adherence for Pipeline vs Delivered projects.
         Pipeline: Shows ALL projects with category_two = 'Pipeline' (ignores date filters)
-        Delivered: Uses filtered projects (respects date filters)
+        Delivered: Shows delivered projects filtered by delivery date (when status changed to Final Delivery)
         """
         from collections import defaultdict
+        from django.db.models import Subquery, OuterRef
         
         pipeline_data = {'within': 0, 'beyond': 0, 'total': 0}
         delivered_data = {'within': 0, 'beyond': 0, 'total': 0}
         
-        # Calculate delivered data from filtered projects
-        for project_data in projects_with_tat:
-            project = project_data['project']
-            tat_data = project_data['tat_data']
-            
-            if project.is_delivered:
-                # Project is delivered (category_two = 'Final Delivery')
-                delivered_data['total'] += project.quantity
-                if tat_data['is_beyond_tat']:
-                    delivered_data['beyond'] += project.quantity
-                else:
-                    delivered_data['within'] += project.quantity
-        
         # Calculate pipeline data from ALL pipeline projects (ignore date filters)
         try:
-            from .models import Project
+            from .models import Project, ProjectStatusHistory
             
             # Get all projects with category_two = 'Pipeline' regardless of date filters
             all_pipeline_projects = Project.objects.select_related(
@@ -4800,6 +4788,74 @@ class TATAnalyticsService:
                         pipeline_data['beyond'] += project.quantity
                     else:
                         pipeline_data['within'] += project.quantity
+        
+        # Calculate delivered data filtered by delivery date
+        try:
+            from .models import Project, ProjectStatusHistory
+            
+            # Get delivered projects with delivery date filtering
+            delivered_projects_queryset = Project.objects.select_related(
+                'product', 'current_status', 'dpm', 'city'
+            ).prefetch_related('status_history__status').filter(
+                current_status__category_two='Final Delivery'
+            )
+            
+            # Add delivery date annotation using subquery
+            delivery_history_subquery = ProjectStatusHistory.objects.filter(
+                project=OuterRef('pk'),
+                status__category_two__iexact='Final Delivery'
+            ).order_by('changed_at').values('changed_at')[:1]
+            
+            delivered_projects_queryset = delivered_projects_queryset.annotate(
+                delivery_date_annotated=Subquery(delivery_history_subquery)
+            )
+            
+            # Apply date filters if provided
+            if filters:
+                if filters.get('date_from'):
+                    delivered_projects_queryset = delivered_projects_queryset.filter(
+                        delivery_date_annotated__date__gte=filters['date_from']
+                    )
+                if filters.get('date_to'):
+                    delivered_projects_queryset = delivered_projects_queryset.filter(
+                        delivery_date_annotated__date__lte=filters['date_to']
+                    )
+                # Apply other filters (product, dpm) if provided
+                if filters.get('product'):
+                    delivered_projects_queryset = delivered_projects_queryset.filter(
+                        product__name=filters['product']
+                    )
+                if filters.get('dpm'):
+                    delivered_projects_queryset = delivered_projects_queryset.filter(
+                        dpm__username=filters['dpm']
+                    )
+            
+            # Calculate TAT for filtered delivered projects
+            delivered_projects_with_tat = ProjectService.get_projects_with_tat_data(delivered_projects_queryset)
+            
+            for project_data in delivered_projects_with_tat:
+                project = project_data['project']
+                tat_data = project_data['tat_data']
+                
+                delivered_data['total'] += project.quantity
+                if tat_data['is_beyond_tat']:
+                    delivered_data['beyond'] += project.quantity
+                else:
+                    delivered_data['within'] += project.quantity
+                    
+        except Exception as e:
+            logger.exception(f"Error calculating delivered adherence: {str(e)}")
+            # Fallback to using filtered data if there's an error
+            for project_data in projects_with_tat:
+                project = project_data['project']
+                tat_data = project_data['tat_data']
+                
+                if project.is_delivered:
+                    delivered_data['total'] += project.quantity
+                    if tat_data['is_beyond_tat']:
+                        delivered_data['beyond'] += project.quantity
+                    else:
+                        delivered_data['within'] += project.quantity
         
         # Calculate adherence percentages
         pipeline_adherence_pct = round((pipeline_data['within'] / pipeline_data['total']) * 100, 1) if pipeline_data['total'] > 0 else 0
