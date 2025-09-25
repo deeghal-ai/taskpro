@@ -556,6 +556,10 @@ def video_report(request):
             filters['date_from'] = datetime.strptime(request.GET['date_from'], '%Y-%m-%d').date()
         except ValueError:
             pass
+    else:
+        # Default to July 1, 2025 if no date_from provided
+        from datetime import date
+        filters['date_from'] = date(2025, 7, 1)
     
     if request.GET.get('date_to'):
         try:

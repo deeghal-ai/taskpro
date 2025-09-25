@@ -590,6 +590,10 @@ def general_report_dashboard(request):
             filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
         except ValueError:
             pass
+    else:
+        # Default to July 1, 2025 if no date_from provided
+        from datetime import date
+        filters['date_from'] = date(2025, 7, 1)
     
     if request.GET.get('date_to'):
         try:
@@ -803,10 +807,9 @@ def tat_analytics_simple(request):
     # Add default date range if no filters provided to improve performance
     if not any([request.GET.get('date_from'), request.GET.get('date_to'), 
                 request.GET.get('product'), request.GET.get('dpm')]):
-        # Default to last 3 months for better performance
-        from datetime import timedelta
-        today = datetime.now().date()
-        default_start = today - timedelta(days=90)
+        # Default to July 1, 2025
+        from datetime import date
+        default_start = date(2025, 7, 1)
         filters['date_from'] = default_start
         applied_filters['date_from'] = default_start
     
@@ -919,6 +922,9 @@ def ageing_report_dashboard(request):
             filters['date_from'] = datetime.strptime(request.GET.get('date_from'), '%Y-%m-%d').date()
         except ValueError:
             pass
+    else:
+        # Default to July 1, 2025 if no date_from provided
+        filters['date_from'] = date(2025, 7, 1)
     
     if request.GET.get('date_to'):
         try:
