@@ -4740,18 +4740,20 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_pipeline_delivered_adherence(projects_with_tat):
-        """Calculate TAT adherence for Pipeline vs Delivered projects using specific category_two filtering."""
+        """
+        Calculate TAT adherence for Pipeline vs Delivered projects.
+        Pipeline: Shows ALL projects with category_two = 'Pipeline' (ignores date filters)
+        Delivered: Uses filtered projects (respects date filters)
+        """
         from collections import defaultdict
         
         pipeline_data = {'within': 0, 'beyond': 0, 'total': 0}
         delivered_data = {'within': 0, 'beyond': 0, 'total': 0}
         
+        # Calculate delivered data from filtered projects
         for project_data in projects_with_tat:
             project = project_data['project']
             tat_data = project_data['tat_data']
-            
-            # Pipeline projects: Only include projects with category_two = "Pipeline"
-            # Delivered projects: category_two = 'Final Delivery'
             
             if project.is_delivered:
                 # Project is delivered (category_two = 'Final Delivery')
@@ -4760,13 +4762,44 @@ class TATAnalyticsService:
                     delivered_data['beyond'] += project.quantity
                 else:
                     delivered_data['within'] += project.quantity
-            elif project.current_status and project.current_status.category_two == 'Pipeline':
-                # Project is in pipeline (category_two = 'Pipeline' only)
+        
+        # Calculate pipeline data from ALL pipeline projects (ignore date filters)
+        try:
+            from .models import Project
+            
+            # Get all projects with category_two = 'Pipeline' regardless of date filters
+            all_pipeline_projects = Project.objects.select_related(
+                'product', 'current_status', 'dpm', 'city'
+            ).prefetch_related('status_history__status').filter(
+                current_status__category_two='Pipeline'
+            )
+            
+            # Calculate TAT for all pipeline projects
+            pipeline_projects_with_tat = ProjectService.get_projects_with_tat_data(all_pipeline_projects)
+            
+            for project_data in pipeline_projects_with_tat:
+                project = project_data['project']
+                tat_data = project_data['tat_data']
+                
                 pipeline_data['total'] += project.quantity
                 if tat_data['is_beyond_tat']:
                     pipeline_data['beyond'] += project.quantity
                 else:
                     pipeline_data['within'] += project.quantity
+                    
+        except Exception as e:
+            logger.exception(f"Error calculating pipeline adherence: {str(e)}")
+            # Fallback to using filtered data if there's an error
+            for project_data in projects_with_tat:
+                project = project_data['project']
+                tat_data = project_data['tat_data']
+                
+                if project.current_status and project.current_status.category_two == 'Pipeline':
+                    pipeline_data['total'] += project.quantity
+                    if tat_data['is_beyond_tat']:
+                        pipeline_data['beyond'] += project.quantity
+                    else:
+                        pipeline_data['within'] += project.quantity
         
         # Calculate adherence percentages
         pipeline_adherence_pct = round((pipeline_data['within'] / pipeline_data['total']) * 100, 1) if pipeline_data['total'] > 0 else 0
