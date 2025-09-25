@@ -4842,7 +4842,7 @@ class GeneralReportService:
             )
             
             # Calculate Man Hours metric
-            man_hours_data = GeneralReportService._calculate_man_hours(
+            man_hours_data = ProjectService._calculate_man_hours(
                 projects_queryset, filters
             )
             
