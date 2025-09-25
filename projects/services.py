@@ -4740,7 +4740,7 @@ class TATAnalyticsService:
     
     @staticmethod
     def _calculate_pipeline_delivered_adherence(projects_with_tat):
-        """Calculate TAT adherence for Pipeline vs Delivered projects using Project model logic with quantity weighting."""
+        """Calculate TAT adherence for Pipeline vs Delivered projects using specific category_two filtering."""
         from collections import defaultdict
         
         pipeline_data = {'within': 0, 'beyond': 0, 'total': 0}
@@ -4750,9 +4750,8 @@ class TATAnalyticsService:
             project = project_data['project']
             tat_data = project_data['tat_data']
             
-            # Use the same classification logic as Project model properties
-            # is_delivered: category_two == 'Final Delivery'  
-            # is_pipeline: category_two != 'Final Delivery' (includes "Not Started", "On Hold", "Pipeline", etc.)
+            # Pipeline projects: Only include projects with category_two = "Pipeline"
+            # Delivered projects: category_two = 'Final Delivery'
             
             if project.is_delivered:
                 # Project is delivered (category_two = 'Final Delivery')
@@ -4761,8 +4760,8 @@ class TATAnalyticsService:
                     delivered_data['beyond'] += project.quantity
                 else:
                     delivered_data['within'] += project.quantity
-            elif project.is_pipeline:
-                # Project is in pipeline (category_two != 'Final Delivery')
+            elif project.current_status and project.current_status.category_two == 'Pipeline':
+                # Project is in pipeline (category_two = 'Pipeline' only)
                 pipeline_data['total'] += project.quantity
                 if tat_data['is_beyond_tat']:
                     pipeline_data['beyond'] += project.quantity
