@@ -3844,6 +3844,137 @@ class ProjectService:
             'product_breakdown': product_breakdown,
             'dpm_breakdown': dpm_breakdown
         }
+    
+    @staticmethod
+    def get_enriched_status_history_data(filters=None):
+        """
+        Get Project Status History data enriched with relevant project fields.
+        
+        Args:
+            filters (dict): Optional filters to apply
+                - start_date: Filter status changes from this date
+                - end_date: Filter status changes to this date
+                - product: Filter by product ID
+                - dpm: Filter by DPM user ID
+                - city: Filter by city ID
+                - project_type: Filter by project type
+        
+        Returns:
+            QuerySet: Enriched status history data
+        """
+        from .models import ProjectStatusHistory
+        
+        # Base query with select_related to avoid N+1 queries
+        queryset = ProjectStatusHistory.objects.select_related(
+            'project',
+            'project__product',
+            'project__city',
+            'project__dpm',
+            'project__current_status',
+            'project__product_subcategory',
+            'status',
+            'changed_by'
+        ).order_by('-changed_at')
+        
+        if filters:
+            # Date range filters
+            if filters.get('start_date'):
+                queryset = queryset.filter(changed_at__date__gte=filters['start_date'])
+            if filters.get('end_date'):
+                queryset = queryset.filter(changed_at__date__lte=filters['end_date'])
+            
+            # Project-related filters
+            if filters.get('product'):
+                queryset = queryset.filter(project__product_id=filters['product'])
+            if filters.get('dpm'):
+                queryset = queryset.filter(project__dpm_id=filters['dpm'])
+            if filters.get('city'):
+                queryset = queryset.filter(project__city_id=filters['city'])
+            if filters.get('project_type'):
+                queryset = queryset.filter(project__project_type__icontains=filters['project_type'])
+                
+        return queryset
+    
+    @staticmethod
+    def prepare_status_history_export_data(status_history_queryset):
+        """
+        Prepare status history data for export with all enriched fields.
+        
+        Args:
+            status_history_queryset: QuerySet of ProjectStatusHistory objects
+            
+        Returns:
+            list: List of dictionaries with export data
+        """
+        export_data = []
+        
+        for history in status_history_queryset:
+            project = history.project
+            
+            # Calculate TAT if project has start date
+            tat_days = None
+            project_start_date = ProjectService._get_project_start_date(project)
+            if project_start_date:
+                if project.is_delivered and hasattr(project, 'delivery_date') and project.delivery_date:
+                    end_date = project.delivery_date.date()
+                else:
+                    end_date = timezone.now().date()
+                tat_days = (end_date - project_start_date).days
+            
+            export_data.append({
+                # Status History fields
+                'status_change_date': timezone.localtime(history.changed_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'status_name': history.status.name,
+                'status_category_one': history.category_one_snapshot,
+                'status_category_two': history.category_two_snapshot,
+                'changed_by': f"{history.changed_by.first_name} {history.changed_by.last_name}",
+                'comments': history.comments or '',
+                
+                # Project basic information
+                'hs_id': project.hs_id,
+                'opportunity_id': project.opportunity_id,
+                'project_name': project.project_name,
+                'builder_name': project.builder_name,
+                'project_type': project.project_type or '',
+                'package_id': project.package_id or '',
+                'quantity': project.quantity,
+                
+                # Product and location
+                'product_name': project.product.name,
+                'product_subcategory': project.product_subcategory.name if project.product_subcategory else '',
+                'city': project.city.name,
+                
+                # Team and management
+                'dpm_name': f"{project.dpm.first_name} {project.dpm.last_name}",
+                'account_manager': project.account_manager,
+                'project_incharge': f"{project.project_incharge.first_name} {project.project_incharge.last_name}" if project.project_incharge else '',
+                
+                # Important dates
+                'purchase_date': project.purchase_date.strftime('%Y-%m-%d'),
+                'sales_confirmation_date': project.sales_confirmation_date.strftime('%Y-%m-%d'),
+                'expected_completion_date': project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
+                
+                # Current project status
+                'current_status': project.current_status.name,
+                'current_status_category_one': project.current_status.category_one,
+                'current_status_category_two': project.current_status.category_two,
+                
+                # TAT and performance
+                'expected_tat_days': project.expected_tat,
+                'actual_tat_days': tat_days,
+                'tat_status': 'On Time' if tat_days and tat_days <= project.expected_tat else 'Delayed' if tat_days else 'In Progress',
+                'delivery_performance_rating': project.delivery_performance_rating or '',
+                
+                # Project classification
+                'is_pipeline': 'Yes' if project.is_pipeline else 'No',
+                'is_delivered': 'Yes' if project.is_delivered else 'No',
+                
+                # Timestamps
+                'project_created_at': timezone.localtime(project.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+                'project_updated_at': timezone.localtime(project.updated_at).strftime('%Y-%m-%d %H:%M:%S'),
+            })
+            
+        return export_data
 
 
 class ReportingService:

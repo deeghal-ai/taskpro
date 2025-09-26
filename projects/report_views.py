@@ -343,12 +343,21 @@ def reports_dashboard(request):
         if productivity_scores:
             avg_productivity = sum(productivity_scores) / len(productivity_scores)
     
+    # Get data for status history export modal
+    products = Product.objects.filter(is_active=True).order_by('name')
+    cities = City.objects.all().order_by('name')
+    dpms = User.objects.filter(role__in=['DPM', 'VIDEO_PM']).order_by('first_name', 'last_name')
+    
     context = {
         'total_team_members': total_team_members,
         'active_projects': active_projects,
         'deliveries_this_month': deliveries_this_month,
         'avg_productivity': avg_productivity,
-        'title': 'Reports Dashboard'
+        'title': 'Reports Dashboard',
+        # Data for status history export modal
+        'products': products,
+        'cities': cities,
+        'dpms': dpms,
     }
     
     return render(request, 'projects/reports/reports_dashboard.html', context)
@@ -1072,3 +1081,165 @@ def export_tat_data(request, filters, format='csv'):
     else:
         messages.error(request, f"Export failed: {result}")
         return redirect('projects:tat_analytics_dashboard')
+
+
+@login_required
+def export_status_history(request):
+    """
+    Export Project Status History data with enriched project information.
+    Supports both CSV and Excel formats with filtering options.
+    """
+    # Check permissions
+    ensure_has_management_access(request)
+    
+    # Get export format (default to excel)
+    export_format = request.GET.get('format', 'excel').lower()
+    
+    # Get filters from request
+    filters = {}
+    if request.GET.get('start_date'):
+        try:
+            filters['start_date'] = datetime.strptime(request.GET.get('start_date'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('end_date'):
+        try:
+            filters['end_date'] = datetime.strptime(request.GET.get('end_date'), '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    if request.GET.get('product'):
+        filters['product'] = request.GET.get('product')
+    
+    if request.GET.get('dpm'):
+        filters['dpm'] = request.GET.get('dpm')
+    
+    if request.GET.get('city'):
+        filters['city'] = request.GET.get('city')
+    
+    if request.GET.get('project_type'):
+        filters['project_type'] = request.GET.get('project_type')
+    
+    # Get enriched status history data
+    status_history_queryset = ProjectService.get_enriched_status_history_data(filters)
+    export_data = ProjectService.prepare_status_history_export_data(status_history_queryset)
+    
+    if not export_data:
+        messages.warning(request, "No status history data found for the selected filters.")
+        return redirect('projects:reports_dashboard')
+    
+    # Create filename with timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    
+    if export_format == 'csv':
+        return _export_status_history_csv(export_data, timestamp)
+    else:
+        return _export_status_history_excel(export_data, timestamp)
+
+
+def _export_status_history_csv(export_data, timestamp):
+    """Export status history data as CSV."""
+    import csv
+    from io import StringIO
+    
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    filename = f"project_status_history_{timestamp}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    # Get field names from first record
+    if export_data:
+        fieldnames = list(export_data[0].keys())
+        
+        writer = csv.DictWriter(response, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        for row in export_data:
+            writer.writerow(row)
+    
+    return response
+
+
+def _export_status_history_excel(export_data, timestamp):
+    """Export status history data as Excel with formatting."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Project Status History"
+    
+    if not export_data:
+        # Empty workbook
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheet.sheet'
+        )
+        filename = f"project_status_history_{timestamp}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        return response
+    
+    # Define styles
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    center_alignment = Alignment(horizontal="center", vertical="center")
+    border = Border(
+        left=Side(border_style="thin"),
+        right=Side(border_style="thin"),
+        top=Side(border_style="thin"),
+        bottom=Side(border_style="thin")
+    )
+    
+    # Get headers from first record
+    headers = list(export_data[0].keys())
+    
+    # Write headers
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=header.replace('_', ' ').title())
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_alignment
+        cell.border = border
+        
+        # Set column width based on header length
+        column_letter = get_column_letter(col_idx)
+        ws.column_dimensions[column_letter].width = max(15, len(str(header)) + 2)
+    
+    # Write data
+    for row_idx, record in enumerate(export_data, 2):
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=record[header])
+            cell.border = border
+            
+            # Center align numeric and date columns
+            if header in ['quantity', 'expected_tat_days', 'actual_tat_days'] or 'date' in header:
+                cell.alignment = center_alignment
+    
+    # Add title and summary info
+    ws.insert_rows(1, 3)
+    
+    # Title
+    ws.merge_cells('A1:E1')
+    title_cell = ws['A1']
+    title_cell.value = "Project Status History Export"
+    title_cell.font = Font(bold=True, size=16, color="4472C4")
+    title_cell.alignment = center_alignment
+    
+    # Export info
+    ws.merge_cells('A2:E2')
+    info_cell = ws['A2']
+    info_cell.value = f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total Records: {len(export_data)}"
+    info_cell.font = Font(italic=True)
+    info_cell.alignment = center_alignment
+    
+    # Create response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheet.sheet'
+    )
+    filename = f"project_status_history_{timestamp}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response

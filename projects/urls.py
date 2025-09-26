@@ -89,4 +89,7 @@ urlpatterns = [
     # TAT Analytics Dashboard (legacy - comprehensive version)
     path('reports/tat-analytics/', report_views.tat_analytics_dashboard, name='tat_analytics_dashboard'),
     
+    # Status History Export
+    path('reports/status-history/export/', report_views.export_status_history, name='export_status_history'),
+    
 ]

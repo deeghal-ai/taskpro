@@ -147,6 +147,11 @@
         color: white;
     }
 
+    .report-icon.status-history {
+        background: linear-gradient(135deg, #fd7e14 0%, #e63946 100%);
+        color: white;
+    }
+
     .report-card h4 {
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -490,6 +495,169 @@
             </a>
         </div>
 
+        <!-- Project Status History Export -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <div class="report-card" onclick="showStatusHistoryExportModal()">
+                <div class="report-icon status-history">
+                    <i class="bi bi-download"></i>
+                </div>
+                <h4>Project Status History Export</h4>
+                <p>
+                    Export comprehensive project status change history with enriched project details including HS_ID, product, 
+                    DPM assignments, dates, and TAT analysis. Available in CSV and Excel formats with filtering options.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        Export Data <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Status History Export Modal -->
+    <div class="modal fade" id="statusHistoryExportModal" tabindex="-1" aria-labelledby="statusHistoryExportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="statusHistoryExportModalLabel">
+                        <i class="bi bi-download me-2"></i>
+                        Export Project Status History
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="statusHistoryExportForm" method="get" action="{% url 'projects:export_status_history' %}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        Start Date
+                                    </label>
+                                    <input type="date" class="form-control" id="startDate" name="start_date">
+                                    <div class="form-text">Filter status changes from this date</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        End Date
+                                    </label>
+                                    <input type="date" class="form-control" id="endDate" name="end_date">
+                                    <div class="form-text">Filter status changes to this date</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="product" class="form-label">
+                                        <i class="bi bi-box me-1"></i>
+                                        Product
+                                    </label>
+                                    <select class="form-select" id="product" name="product">
+                                        <option value="">All Products</option>
+                                        {% for product in products %}
+                                            <option value="{{ product.id }}">{{ product.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="city" class="form-label">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        City
+                                    </label>
+                                    <select class="form-select" id="city" name="city">
+                                        <option value="">All Cities</option>
+                                        {% for city in cities %}
+                                            <option value="{{ city.id }}">{{ city.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dpm" class="form-label">
+                                        <i class="bi bi-person me-1"></i>
+                                        DPM
+                                    </label>
+                                    <select class="form-select" id="dpm" name="dpm">
+                                        <option value="">All DPMs</option>
+                                        {% for dpm in dpms %}
+                                            <option value="{{ dpm.id }}">{{ dpm.first_name }} {{ dpm.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="projectType" class="form-label">
+                                        <i class="bi bi-tag me-1"></i>
+                                        Project Type
+                                    </label>
+                                    <input type="text" class="form-control" id="projectType" name="project_type" placeholder="e.g. Interior, Exterior">
+                                    <div class="form-text">Leave blank for all project types</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="format" class="form-label">
+                                <i class="bi bi-file-earmark me-1"></i>
+                                Export Format
+                            </label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="format" id="formatExcel" value="excel" checked>
+                                        <label class="form-check-label" for="formatExcel">
+                                            <i class="bi bi-file-earmark-excel me-1 text-success"></i>
+                                            Excel (.xlsx) - Recommended
+                                        </label>
+                                        <div class="form-text">Formatted with colors and styling</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="format" id="formatCsv" value="csv">
+                                        <label class="form-check-label" for="formatCsv">
+                                            <i class="bi bi-filetype-csv me-1 text-info"></i>
+                                            CSV (.csv)
+                                        </label>
+                                        <div class="form-text">Plain text format</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Export includes:</strong> Status change history, HS_ID, project details, product info, 
+                            DPM assignments, important dates, TAT analysis, and current project status.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" form="statusHistoryExportForm" class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -509,6 +677,22 @@
                 card.style.transform = 'translateY(0)';
             }, index * 100);
         });
+    });
+
+    // Show status history export modal
+    function showStatusHistoryExportModal() {
+        const modal = new bootstrap.Modal(document.getElementById('statusHistoryExportModal'));
+        modal.show();
+    }
+
+    // Set default date range (last 30 days)
+    document.addEventListener('DOMContentLoaded', function() {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        
+        document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+        document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
     });
 </script>
 {% endblock %}
