@@ -4428,14 +4428,32 @@ class TATAnalyticsService:
             
             # Apply filters if provided
             if filters:
-                if filters.get('date_from'):
-                    projects_queryset = projects_queryset.filter(
-                        purchase_date__gte=filters['date_from']
+                # Add project start date annotation for date filtering
+                if filters.get('date_from') or filters.get('date_to'):
+                    from django.db.models import Subquery, OuterRef
+                    from .models import ProjectStatusHistory
+                    
+                    # Create subquery to get project start date from status history
+                    project_start_date_subquery = ProjectStatusHistory.objects.filter(
+                        project=OuterRef('pk'),
+                        status__name__iexact='Project Start Date'
+                    ).order_by('changed_at').values('changed_at')[:1]
+                    
+                    # Annotate projects with their start date
+                    projects_queryset = projects_queryset.annotate(
+                        project_start_date_annotated=Subquery(project_start_date_subquery)
                     )
-                if filters.get('date_to'):
-                    projects_queryset = projects_queryset.filter(
-                        purchase_date__lte=filters['date_to']
-                    )
+                    
+                    # Apply date filters on project start date
+                    if filters.get('date_from'):
+                        projects_queryset = projects_queryset.filter(
+                            project_start_date_annotated__date__gte=filters['date_from']
+                        )
+                    if filters.get('date_to'):
+                        projects_queryset = projects_queryset.filter(
+                            project_start_date_annotated__date__lte=filters['date_to']
+                        )
+                
                 if filters.get('product'):
                     projects_queryset = projects_queryset.filter(
                         product__name=filters['product']
