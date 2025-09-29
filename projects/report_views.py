@@ -1266,10 +1266,18 @@ def pipeline_report(request):
             'total_quantity': 0,
             'total_projects': 0,
             'status_breakdown': [],
+            'pipeline_breakdowns': {
+                'dpm': [],
+                'product': [],
+                'city': []
+            },
             'other_categories': {
                 'total_quantity': 0,
                 'total_projects': 0,
-                'breakdown': []
+                'breakdown': [],
+                'dpm_breakdown': [],
+                'product_breakdown': [],
+                'city_breakdown': []
             }
         }
     

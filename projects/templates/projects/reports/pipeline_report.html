@@ -282,6 +282,112 @@
         {% endif %}
     </div>
 
+    <!-- Pipeline Charts Section -->
+    <div class="report-card">
+        <div class="d-flex align-items-center mb-4">
+            <div class="me-3">
+                <i class="bi bi-graph-up text-primary" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+                <h3 class="mb-1">Pipeline Analysis Charts</h3>
+                <p class="text-muted mb-0">DPM, Product, and City-wise breakdown for pipeline projects</p>
+            </div>
+        </div>
+
+        {% if report_data.pipeline_breakdowns.dpm or report_data.pipeline_breakdowns.product or report_data.pipeline_breakdowns.city %}
+        <div class="row">
+            <!-- Pipeline DPM Chart -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-fill me-2"></i>DPM Wise</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="pipelineDpmChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pipeline Product Chart -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-box-fill me-2"></i>Product Wise</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="pipelineProductChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pipeline City Chart -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>City Wise</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="pipelineCityChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Other Categories Charts Section -->
+    {% if report_data.other_categories.dpm_breakdown or report_data.other_categories.product_breakdown or report_data.other_categories.city_breakdown %}
+    <div class="report-card">
+        <div class="d-flex align-items-center mb-4">
+            <div class="me-3">
+                <i class="bi bi-bar-chart text-warning" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+                <h3 class="mb-1">Other Categories Analysis Charts</h3>
+                <p class="text-muted mb-0">DPM, Product, and City-wise breakdown for other category projects</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Other Categories DPM Chart -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-person-fill me-2"></i>DPM Wise</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="otherDpmChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other Categories Product Chart -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0"><i class="bi bi-box-fill me-2"></i>Product Wise</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="otherProductChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other Categories City Chart -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>City Wise</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="otherCityChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Information Note -->
     <div class="alert alert-info">
         <i class="bi bi-info-circle me-2"></i>
@@ -294,7 +400,7 @@
 
 {% block extra_js %}
 <script>
-    // Enhanced animations
+    // Enhanced animations and chart rendering
     document.addEventListener('DOMContentLoaded', function() {
         // Fade in report cards
         const cards = document.querySelectorAll('.report-card, .summary-card');
@@ -308,8 +414,122 @@
             }, index * 100);
         });
 
-        // Render Other Categories Chart
-        {% if report_data.other_categories.breakdown %}
+        // Color palettes for charts
+        const primaryColors = ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754'];
+        const successColors = ['#198754', '#20c997', '#0dcaf0', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107'];
+        const infoColors = ['#0dcaf0', '#6610f2', '#198754', '#ffc107', '#fd7e14', '#dc3545', '#d63384', '#6f42c1'];
+        const warningColors = ['#ffc107', '#fd7e14', '#dc3545', '#d63384', '#6f42c1', '#6610f2', '#0dcaf0', '#198754'];
+        const dangerColors = ['#dc3545', '#d63384', '#6f42c1', '#6610f2', '#0dcaf0', '#198754', '#ffc107', '#fd7e14'];
+        const secondaryColors = ['#6c757d', '#495057', '#343a40', '#212529', '#f8f9fa', '#e9ecef', '#dee2e6', '#ced4da'];
+
+        // Common chart options
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 10,
+                        usePointStyle: true,
+                        font: { size: 10 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' projects';
+                        }
+                    }
+                }
+            }
+        };
+
+        // Pipeline DPM Chart
+        const pipelineDpmData = [
+            {% for dpm in report_data.pipeline_breakdowns.dpm %}
+            {
+                name: '{{ dpm.dpm_name }}',
+                project_count: {{ dpm.project_count }},
+                quantity: {{ dpm.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (pipelineDpmData.length > 0) {
+            const pipelineDpmCtx = document.getElementById('pipelineDpmChart').getContext('2d');
+            new Chart(pipelineDpmCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: pipelineDpmData.map(item => item.name),
+                    datasets: [{
+                        data: pipelineDpmData.map(item => item.project_count),
+                        backgroundColor: primaryColors.slice(0, pipelineDpmData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Pipeline Product Chart
+        const pipelineProductData = [
+            {% for product in report_data.pipeline_breakdowns.product %}
+            {
+                name: '{{ product.product_name }}',
+                project_count: {{ product.project_count }},
+                quantity: {{ product.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (pipelineProductData.length > 0) {
+            const pipelineProductCtx = document.getElementById('pipelineProductChart').getContext('2d');
+            new Chart(pipelineProductCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: pipelineProductData.map(item => item.name),
+                    datasets: [{
+                        data: pipelineProductData.map(item => item.project_count),
+                        backgroundColor: successColors.slice(0, pipelineProductData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Pipeline City Chart
+        const pipelineCityData = [
+            {% for city in report_data.pipeline_breakdowns.city %}
+            {
+                name: '{{ city.city_name }}',
+                project_count: {{ city.project_count }},
+                quantity: {{ city.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (pipelineCityData.length > 0) {
+            const pipelineCityCtx = document.getElementById('pipelineCityChart').getContext('2d');
+            new Chart(pipelineCityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: pipelineCityData.map(item => item.name),
+                    datasets: [{
+                        data: pipelineCityData.map(item => item.project_count),
+                        backgroundColor: infoColors.slice(0, pipelineCityData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Other Categories Main Chart
         const otherCategoriesData = [
             {% for category in report_data.other_categories.breakdown %}
             {
@@ -320,56 +540,119 @@
             {% endfor %}
         ];
 
-        const ctx = document.getElementById('otherCategoriesChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: otherCategoriesData.map(item => item.category),
-                datasets: [{
-                    label: 'Project Count',
-                    data: otherCategoriesData.map(item => item.project_count),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF',
-                        '#FF9F40',
-                        '#FF6384',
-                        '#C9CBCF'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const category = otherCategoriesData[context.dataIndex];
-                                return context.label + ': ' + context.parsed + ' projects (Quantity: ' + category.quantity + ')';
+        if (otherCategoriesData.length > 0) {
+            const otherCategoriesCtx = document.getElementById('otherCategoriesChart').getContext('2d');
+            new Chart(otherCategoriesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: otherCategoriesData.map(item => item.category),
+                    datasets: [{
+                        data: otherCategoriesData.map(item => item.project_count),
+                        backgroundColor: warningColors.slice(0, otherCategoriesData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const category = otherCategoriesData[context.dataIndex];
+                                    return context.label + ': ' + context.parsed + ' projects (Qty: ' + category.quantity + ')';
+                                }
                             }
                         }
                     }
-                },
-                elements: {
-                    arc: {
-                        borderWidth: 2
-                    }
                 }
-            }
-        });
-        {% endif %}
+            });
+        }
+
+        // Other Categories DPM Chart
+        const otherDpmData = [
+            {% for dpm in report_data.other_categories.dpm_breakdown %}
+            {
+                name: '{{ dpm.dpm_name }}',
+                project_count: {{ dpm.project_count }},
+                quantity: {{ dpm.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (otherDpmData.length > 0) {
+            const otherDpmCtx = document.getElementById('otherDpmChart').getContext('2d');
+            new Chart(otherDpmCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: otherDpmData.map(item => item.name),
+                    datasets: [{
+                        data: otherDpmData.map(item => item.project_count),
+                        backgroundColor: warningColors.slice(0, otherDpmData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Other Categories Product Chart
+        const otherProductData = [
+            {% for product in report_data.other_categories.product_breakdown %}
+            {
+                name: '{{ product.product_name }}',
+                project_count: {{ product.project_count }},
+                quantity: {{ product.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (otherProductData.length > 0) {
+            const otherProductCtx = document.getElementById('otherProductChart').getContext('2d');
+            new Chart(otherProductCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: otherProductData.map(item => item.name),
+                    datasets: [{
+                        data: otherProductData.map(item => item.project_count),
+                        backgroundColor: dangerColors.slice(0, otherProductData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Other Categories City Chart
+        const otherCityData = [
+            {% for city in report_data.other_categories.city_breakdown %}
+            {
+                name: '{{ city.city_name }}',
+                project_count: {{ city.project_count }},
+                quantity: {{ city.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        if (otherCityData.length > 0) {
+            const otherCityCtx = document.getElementById('otherCityChart').getContext('2d');
+            new Chart(otherCityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: otherCityData.map(item => item.name),
+                    datasets: [{
+                        data: otherCityData.map(item => item.project_count),
+                        backgroundColor: secondaryColors.slice(0, otherCityData.length),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: chartOptions
+            });
+        }
     });
 </script>
 {% endblock %}

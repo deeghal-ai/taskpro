@@ -4201,6 +4201,54 @@ class ProjectService:
                     'project_count': item['project_count'] or 0
                 })
             
+            # Get pipeline breakdowns by DPM, Product, and City
+            pipeline_dpm_breakdown = pipeline_projects.values(
+                'dpm__first_name', 'dpm__last_name'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            pipeline_product_breakdown = pipeline_projects.values(
+                'product__name'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            pipeline_city_breakdown = pipeline_projects.values(
+                'city__name'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            # Format pipeline breakdowns
+            pipeline_dpm_data = []
+            for item in pipeline_dpm_breakdown:
+                dpm_name = f"{item['dpm__first_name'] or ''} {item['dpm__last_name'] or ''}".strip() or 'Unassigned'
+                pipeline_dpm_data.append({
+                    'dpm_name': dpm_name,
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
+            pipeline_product_data = []
+            for item in pipeline_product_breakdown:
+                pipeline_product_data.append({
+                    'product_name': item['product__name'] or 'Unspecified',
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
+            pipeline_city_data = []
+            for item in pipeline_city_breakdown:
+                pipeline_city_data.append({
+                    'city_name': item['city__name'] or 'Unspecified',
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
             # Get projects with other categories (not Pipeline or Final Delivery)
             other_category_projects = Project.objects.select_related(
                 'current_status', 'product', 'dpm'
@@ -4233,15 +4281,71 @@ class ProjectService:
                     'project_count': item['project_count'] or 0
                 })
             
+            # Get other categories breakdowns by DPM, Product, and City
+            other_dpm_breakdown = other_category_projects.values(
+                'dpm__first_name', 'dpm__last_name'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            other_product_breakdown = other_category_projects.values(
+                'product__name'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            other_city_breakdown = other_category_projects.values(
+                'city__name'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            # Format other categories breakdowns
+            other_dpm_data = []
+            for item in other_dpm_breakdown:
+                dpm_name = f"{item['dpm__first_name'] or ''} {item['dpm__last_name'] or ''}".strip() or 'Unassigned'
+                other_dpm_data.append({
+                    'dpm_name': dpm_name,
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
+            other_product_data = []
+            for item in other_product_breakdown:
+                other_product_data.append({
+                    'product_name': item['product__name'] or 'Unspecified',
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
+            other_city_data = []
+            for item in other_city_breakdown:
+                other_city_data.append({
+                    'city_name': item['city__name'] or 'Unspecified',
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
             return {
                 'success': True,
                 'total_quantity': total_quantity,
                 'total_projects': total_projects,
                 'status_breakdown': status_breakdown,
+                'pipeline_breakdowns': {
+                    'dpm': pipeline_dpm_data,
+                    'product': pipeline_product_data,
+                    'city': pipeline_city_data
+                },
                 'other_categories': {
                     'total_quantity': other_total_quantity,
                     'total_projects': other_total_projects,
-                    'breakdown': other_categories_breakdown
+                    'breakdown': other_categories_breakdown,
+                    'dpm_breakdown': other_dpm_data,
+                    'product_breakdown': other_product_data,
+                    'city_breakdown': other_city_data
                 }
             }
             
@@ -4253,10 +4357,18 @@ class ProjectService:
                 'total_quantity': 0,
                 'total_projects': 0,
                 'status_breakdown': [],
+                'pipeline_breakdowns': {
+                    'dpm': [],
+                    'product': [],
+                    'city': []
+                },
                 'other_categories': {
                     'total_quantity': 0,
                     'total_projects': 0,
-                    'breakdown': []
+                    'breakdown': [],
+                    'dpm_breakdown': [],
+                    'product_breakdown': [],
+                    'city_breakdown': []
                 }
             }
 
