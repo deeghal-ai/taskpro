@@ -152,6 +152,11 @@
         color: white;
     }
 
+    .report-icon.pipeline-report {
+        background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+        color: white;
+    }
+
     .report-card h4 {
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -448,6 +453,25 @@
                 <p>
                     Comprehensive business metrics with date range filtering including Sales Confirmed, 
                     deliveries, and other key performance indicators with quantity-weighted calculations.
+                </p>
+                <div class="card-footer">
+                    <span class="report-link">
+                        View Report <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Pipeline Status Report -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="{% url 'projects:pipeline_report' %}" class="report-card">
+                <div class="report-icon pipeline-report">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <h4>Pipeline Status Report</h4>
+                <p>
+                    View quantity-weighted breakdown of all pipeline projects by current status. 
+                    No date filtering - shows all projects where current status category is 'Pipeline'.
                 </p>
                 <div class="card-footer">
                     <span class="report-link">

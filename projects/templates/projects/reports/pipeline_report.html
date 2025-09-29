@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pipeline Status Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Clean, Professional Dashboard Styling */
+    .dashboard-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: transform 0.2s;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.12);
+    }
+    
+    .metric-hero {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .metric-hero .total {
+        font-size: 3.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .metric-hero .label {
+        font-size: 1.25rem;
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-table {
+        margin-top: 2rem;
+    }
+    
+    .status-table .table {
+        margin-bottom: 0;
+    }
+    
+    .status-table .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+    }
+    
+    .status-table .table td {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        vertical-align: middle;
+    }
+    
+    .status-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .quantity-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2d3748;
+    }
+    
+    .project-count {
+        color: #6f42c1;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .project-count:hover {
+        color: #8e44ad;
+        text-decoration: underline;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    
+    .summary-cards {
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card {
+        background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
+        color: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .summary-card .value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .summary-card .label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="mb-2">
+                    <i class="bi bi-diagram-3 me-2"></i>
+                    Pipeline Status Report
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Quantity-weighted breakdown of all pipeline projects by current status
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row summary-cards">
+        <div class="col-md-6">
+            <div class="summary-card">
+                <div class="value">{{ report_data.total_quantity|default:"0" }}</div>
+                <div class="label">Total Quantity</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="summary-card">
+                <div class="value">{{ report_data.total_projects|default:"0" }}</div>
+                <div class="label">Total Projects</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pipeline Status Breakdown -->
+    <div class="report-card">
+        <div class="d-flex align-items-center mb-4">
+            <div class="me-3">
+                <i class="bi bi-bar-chart-fill text-primary" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+                <h3 class="mb-1">Pipeline Status Breakdown</h3>
+                <p class="text-muted mb-0">Projects grouped by current status</p>
+            </div>
+        </div>
+
+        {% if report_data.status_breakdown %}
+        <div class="status-table">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-center">Projects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in report_data.status_breakdown %}
+                        <tr>
+                            <td>
+                                <div class="status-name">{{ status.status_name }}</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="quantity-value">{{ status.quantity }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="project-count">{{ status.project_count }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-data">
+            <i class="bi bi-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+            <h5 class="text-muted">No Pipeline Projects Found</h5>
+            <p class="text-muted">There are currently no projects with status category 'Pipeline'.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Information Note -->
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Note:</strong> This report shows only projects where the current status has category_two = 'Pipeline'. 
+        No date filtering is applied - all pipeline projects are included regardless of when they were created or last updated.
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enhanced animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fade in report cards
+        const cards = document.querySelectorAll('.report-card, .summary-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

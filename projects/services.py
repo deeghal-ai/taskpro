@@ -4154,6 +4154,69 @@ class ProjectService:
             'individual_projects': analysis_results
         }
 
+    @staticmethod
+    def get_pipeline_status_report():
+        """
+        Get pipeline projects grouped by status with quantity and project count.
+        No date filtering - only projects where current_status.category_two == 'Pipeline'
+        
+        Returns:
+            Dictionary with pipeline status data
+        """
+        try:
+            from .models import Project, ProjectStatusOption
+            from django.db.models import Sum, Count
+            
+            # Get all projects where current status has category_two = 'Pipeline'
+            pipeline_projects = Project.objects.select_related(
+                'current_status', 'product', 'dpm'
+            ).filter(
+                current_status__category_two='Pipeline'
+            )
+            
+            # Group by current status and aggregate quantity and count
+            status_data = pipeline_projects.values(
+                'current_status__name',
+                'current_status__id'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            # Calculate totals
+            total_quantity = pipeline_projects.aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            
+            total_projects = pipeline_projects.count()
+            
+            # Format the results
+            status_breakdown = []
+            for item in status_data:
+                status_breakdown.append({
+                    'status_name': item['current_status__name'],
+                    'status_id': item['current_status__id'],
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
+            return {
+                'success': True,
+                'total_quantity': total_quantity,
+                'total_projects': total_projects,
+                'status_breakdown': status_breakdown
+            }
+            
+        except Exception as e:
+            logger.exception(f"Error generating pipeline status report: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e),
+                'total_quantity': 0,
+                'total_projects': 0,
+                'status_breakdown': []
+            }
+
 
 class ReportingService:
     """

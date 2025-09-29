@@ -1244,3 +1244,33 @@ def _export_status_history_excel(export_data, timestamp):
     
     wb.save(response)
     return response
+
+
+@login_required
+def pipeline_report(request):
+    """
+    Pipeline Report Dashboard showing quantity and project count by status.
+    No date filtering - only for projects with current_status.category_two = 'Pipeline'
+    """
+    # Check permissions - allow SENIOR_MANAGER, DPM, and VIDEO_PM
+    redirect_response = ensure_has_management_access(request)
+    if redirect_response:
+        return redirect_response
+    
+    # Get pipeline report data from service
+    report_data = ProjectService.get_pipeline_status_report()
+    
+    if not report_data.get('success'):
+        messages.error(request, f"Error generating pipeline report: {report_data.get('error', 'Unknown error')}")
+        report_data = {
+            'total_quantity': 0,
+            'total_projects': 0,
+            'status_breakdown': []
+        }
+    
+    context = {
+        'report_data': report_data,
+        'title': 'Pipeline Status Report'
+    }
+    
+    return render(request, 'projects/reports/pipeline_report.html', context)

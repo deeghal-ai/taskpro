@@ -86,6 +86,9 @@ urlpatterns = [
     # General Business Report Dashboard
     path('reports/general-report/', report_views.general_report_dashboard, name='general_report_dashboard'),
     
+    # Pipeline Status Report
+    path('reports/pipeline/', report_views.pipeline_report, name='pipeline_report'),
+    
     # TAT Analytics Dashboard (legacy - comprehensive version)
     path('reports/tat-analytics/', report_views.tat_analytics_dashboard, name='tat_analytics_dashboard'),
     
