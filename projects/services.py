@@ -3836,15 +3836,15 @@ class ProjectService:
             'assignment__task__project__product', 'assignment__task__project__dpm'
         )
         
-        # Filter by date range using entry_date field
+        # Filter by date range using date_worked field
         if filters:
             if filters.get('date_from'):
                 daily_totals_queryset = daily_totals_queryset.filter(
-                    entry_date__gte=filters['date_from']
+                    date_worked__gte=filters['date_from']
                 )
             if filters.get('date_to'):
                 daily_totals_queryset = daily_totals_queryset.filter(
-                    entry_date__lte=filters['date_to']
+                    date_worked__lte=filters['date_to']
                 )
         
         # Filter by associated project filters
