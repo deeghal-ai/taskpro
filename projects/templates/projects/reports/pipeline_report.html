@@ -256,6 +256,7 @@
                         <thead>
                             <tr>
                                 <th>Category</th>
+                                <th class="text-center">Quantity</th>
                                 <th class="text-center">Projects</th>
                             </tr>
                         </thead>
@@ -263,6 +264,7 @@
                             {% for category in report_data.other_categories.breakdown %}
                             <tr>
                                 <td><span class="fw-bold">{{ category.category_name }}</span></td>
+                                <td class="text-center"><span class="quantity-value">{{ category.quantity }}</span></td>
                                 <td class="text-center">{{ category.project_count }}</td>
                             </tr>
                             {% endfor %}
