@@ -4917,10 +4917,25 @@ class TATAnalyticsService:
                         start_month = start_month.replace(month=start_month.month - 1)
                 start_date = start_month
             
-            # Get projects in date range
+            # Get projects in date range using project start date
+            from django.db.models import Subquery, OuterRef
+            from .models import ProjectStatusHistory
+            
             projects_queryset = Project.objects.select_related(
                 'product', 'current_status', 'dpm', 'city'
-            ).filter(purchase_date__range=[start_date, end_date])
+            ).prefetch_related('status_history__status')
+            
+            # Add project start date annotation
+            project_start_date_subquery = ProjectStatusHistory.objects.filter(
+                project=OuterRef('pk'),
+                status__name__iexact='Project Start Date'
+            ).order_by('changed_at').values('changed_at')[:1]
+            
+            projects_queryset = projects_queryset.annotate(
+                project_start_date_annotated=Subquery(project_start_date_subquery)
+            ).filter(
+                project_start_date_annotated__date__range=[start_date, end_date]
+            )
             
             # Group projects by month and calculate adherence
             monthly_data = defaultdict(lambda: {'within': 0, 'beyond': 0, 'total': 0})
@@ -4931,8 +4946,14 @@ class TATAnalyticsService:
                 project = project_data['project']
                 tat_data = project_data['tat_data']
                 
-                # Get month key (YYYY-MM format)
-                month_key = project.purchase_date.strftime('%Y-%m')
+                # Get project start date for month grouping
+                project_start_date = ProjectService._get_project_start_date(project)
+                if project_start_date:
+                    # Get month key (YYYY-MM format) from project start date
+                    month_key = project_start_date.strftime('%Y-%m')
+                else:
+                    # Skip projects without project start date
+                    continue
                 
                 monthly_data[month_key]['total'] += project.quantity
                 if tat_data['is_beyond_tat']:
