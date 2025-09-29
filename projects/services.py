@@ -3976,6 +3976,109 @@ class ProjectService:
             
         return export_data
 
+    @staticmethod
+    def analyze_project_start_to_first_cut_timeline():
+        """
+        Analyzes the time taken between 'Project Start Date' and '1st Cut Delivery' 
+        for projects from February 1st, 2025 onwards, grouped by product.
+        
+        Returns:
+            dict: Analysis results with product-wise averages
+        """
+        from django.db.models import F, Case, When, Value, IntegerField
+        from datetime import date, timedelta
+        from .models import Project, ProjectStatusHistory, ProjectStatusOption
+        
+        # Get projects from Feb 1st, 2025 onwards
+        target_date = date(2025, 2, 1)
+        projects = Project.objects.filter(
+            sales_confirmation_date__gte=target_date
+        ).select_related('product')
+        
+        analysis_results = []
+        product_summaries = {}
+        
+        for project in projects:
+            try:
+                # Find the Project Start Date status change
+                start_status_history = ProjectStatusHistory.objects.filter(
+                    project=project,
+                    status__name='Project Start Date'
+                ).order_by('changed_at').first()
+                
+                # Find the 1st Cut Delivery status change
+                first_cut_history = ProjectStatusHistory.objects.filter(
+                    project=project,
+                    status__name='1st Cut Delivery'
+                ).order_by('changed_at').first()
+                
+                if start_status_history and first_cut_history:
+                    # Calculate the time difference in days
+                    start_date = start_status_history.changed_at.date()
+                    first_cut_date = first_cut_history.changed_at.date()
+                    days_taken = (first_cut_date - start_date).days
+                    
+                    # Only include if first cut came after start (positive days)
+                    if days_taken >= 0:
+                        product_name = project.product.name
+                        
+                        # Track individual project results
+                        project_result = {
+                            'hs_id': project.hs_id,
+                            'project_name': project.project_name,
+                            'product': product_name,
+                            'start_date': start_date,
+                            'first_cut_date': first_cut_date,
+                            'days_taken': days_taken,
+                            'quantity': project.quantity
+                        }
+                        analysis_results.append(project_result)
+                        
+                        # Aggregate by product for average calculation
+                        if product_name not in product_summaries:
+                            product_summaries[product_name] = {
+                                'total_days': 0,
+                                'total_projects': 0,
+                                'total_quantity': 0,
+                                'projects': []
+                            }
+                        
+                        product_summaries[product_name]['total_days'] += days_taken
+                        product_summaries[product_name]['total_projects'] += 1
+                        product_summaries[product_name]['total_quantity'] += project.quantity
+                        product_summaries[product_name]['projects'].append(project_result)
+            
+            except Exception as e:
+                # Log error but continue with other projects
+                print(f"Error processing project {project.hs_id}: {str(e)}")
+                continue
+        
+        # Calculate averages for each product
+        product_averages = []
+        for product_name, summary in product_summaries.items():
+            if summary['total_projects'] > 0:
+                average_days = round(summary['total_days'] / summary['total_projects'], 2)
+                product_averages.append({
+                    'product': product_name,
+                    'average_days': average_days,
+                    'project_count': summary['total_projects'],
+                    'total_quantity': summary['total_quantity'],
+                    'total_days': summary['total_days']
+                })
+        
+        # Sort by average days for better readability
+        product_averages.sort(key=lambda x: x['average_days'])
+        
+        return {
+            'summary': {
+                'analysis_date_from': target_date,
+                'total_projects_analyzed': len(analysis_results),
+                'products_analyzed': len(product_averages)
+            },
+            'product_averages': product_averages,
+            'individual_projects': analysis_results
+        }
+
 
 class ReportingService:
     """
@@ -5369,5 +5472,3 @@ class GeneralReportService:
             'product_breakdown': product_breakdown,
             'dpm_breakdown': dpm_breakdown
         }
-
-    
