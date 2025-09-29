@@ -4,6 +4,8 @@
 {% block title %}Pipeline Status Report{% endblock %}
 
 {% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     /* Clean, Professional Dashboard Styling */
     .dashboard-header {
@@ -214,11 +216,76 @@
         {% endif %}
     </div>
 
+    <!-- Other Categories Breakdown -->
+    <div class="report-card">
+        <div class="d-flex align-items-center mb-4">
+            <div class="me-3">
+                <i class="bi bi-pie-chart-fill text-warning" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+                <h3 class="mb-1">Other Categories Breakdown</h3>
+                <p class="text-muted mb-0">Projects with category_two other than 'Pipeline' or 'Final Delivery'</p>
+            </div>
+        </div>
+
+        {% if report_data.other_categories.breakdown %}
+        <!-- Other Categories Summary -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="text-center p-3 bg-light rounded">
+                    <div class="h4 text-warning mb-1">{{ report_data.other_categories.total_quantity|default:"0" }}</div>
+                    <div class="text-muted small">Total Quantity</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-center p-3 bg-light rounded">
+                    <div class="h4 text-warning mb-1">{{ report_data.other_categories.total_projects|default:"0" }}</div>
+                    <div class="text-muted small">Total Projects</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="row">
+            <div class="col-md-8">
+                <canvas id="otherCategoriesChart" width="400" height="300"></canvas>
+            </div>
+            <div class="col-md-4">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-center">Projects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in report_data.other_categories.breakdown %}
+                            <tr>
+                                <td><span class="fw-bold">{{ category.category_name }}</span></td>
+                                <td class="text-center">{{ category.project_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-data">
+            <i class="bi bi-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+            <h5 class="text-muted">No Other Categories Found</h5>
+            <p class="text-muted">All projects are either 'Pipeline' or 'Final Delivery' categories.</p>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Information Note -->
     <div class="alert alert-info">
         <i class="bi bi-info-circle me-2"></i>
         <strong>Note:</strong> This report shows only projects where the current status has category_two = 'Pipeline'. 
-        No date filtering is applied - all pipeline projects are included regardless of when they were created or last updated.
+        The chart below shows project breakdown for all other category_two values (excluding 'Pipeline' and 'Final Delivery').
+        No date filtering is applied - all projects are included regardless of when they were created or last updated.
     </div>
 </div>
 {% endblock %}
@@ -238,6 +305,69 @@
                 card.style.transform = 'translateY(0)';
             }, index * 100);
         });
+
+        // Render Other Categories Chart
+        {% if report_data.other_categories.breakdown %}
+        const otherCategoriesData = [
+            {% for category in report_data.other_categories.breakdown %}
+            {
+                category: '{{ category.category_name }}',
+                project_count: {{ category.project_count }},
+                quantity: {{ category.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        const ctx = document.getElementById('otherCategoriesChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: otherCategoriesData.map(item => item.category),
+                datasets: [{
+                    label: 'Project Count',
+                    data: otherCategoriesData.map(item => item.project_count),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF',
+                        '#FF9F40',
+                        '#FF6384',
+                        '#C9CBCF'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const category = otherCategoriesData[context.dataIndex];
+                                return context.label + ': ' + context.parsed + ' projects (Quantity: ' + category.quantity + ')';
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    arc: {
+                        borderWidth: 2
+                    }
+                }
+            }
+        });
+        {% endif %}
     });
 </script>
 {% endblock %}

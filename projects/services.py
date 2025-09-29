@@ -4158,10 +4158,11 @@ class ProjectService:
     def get_pipeline_status_report():
         """
         Get pipeline projects grouped by status with quantity and project count.
-        No date filtering - only projects where current_status.category_two == 'Pipeline'
+        Also get other category projects (not Pipeline or Final Delivery).
+        No date filtering applied.
         
         Returns:
-            Dictionary with pipeline status data
+            Dictionary with pipeline status data and other categories data
         """
         try:
             from .models import Project, ProjectStatusOption
@@ -4183,14 +4184,14 @@ class ProjectService:
                 project_count=Count('id')
             ).order_by('-total_quantity')
             
-            # Calculate totals
+            # Calculate totals for pipeline
             total_quantity = pipeline_projects.aggregate(
                 total=Sum('quantity')
             )['total'] or 0
             
             total_projects = pipeline_projects.count()
             
-            # Format the results
+            # Format the pipeline results
             status_breakdown = []
             for item in status_data:
                 status_breakdown.append({
@@ -4200,11 +4201,48 @@ class ProjectService:
                     'project_count': item['project_count'] or 0
                 })
             
+            # Get projects with other categories (not Pipeline or Final Delivery)
+            other_category_projects = Project.objects.select_related(
+                'current_status', 'product', 'dpm'
+            ).exclude(
+                current_status__category_two__in=['Pipeline', 'Final Delivery']
+            )
+            
+            # Group other categories by category_two and aggregate
+            other_categories_data = other_category_projects.values(
+                'current_status__category_two'
+            ).annotate(
+                total_quantity=Sum('quantity'),
+                project_count=Count('id')
+            ).order_by('-total_quantity')
+            
+            # Calculate totals for other categories
+            other_total_quantity = other_category_projects.aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            
+            other_total_projects = other_category_projects.count()
+            
+            # Format the other categories results
+            other_categories_breakdown = []
+            for item in other_categories_data:
+                category_name = item['current_status__category_two'] or 'Unspecified'
+                other_categories_breakdown.append({
+                    'category_name': category_name,
+                    'quantity': item['total_quantity'] or 0,
+                    'project_count': item['project_count'] or 0
+                })
+            
             return {
                 'success': True,
                 'total_quantity': total_quantity,
                 'total_projects': total_projects,
-                'status_breakdown': status_breakdown
+                'status_breakdown': status_breakdown,
+                'other_categories': {
+                    'total_quantity': other_total_quantity,
+                    'total_projects': other_total_projects,
+                    'breakdown': other_categories_breakdown
+                }
             }
             
         except Exception as e:
@@ -4214,7 +4252,12 @@ class ProjectService:
                 'error': str(e),
                 'total_quantity': 0,
                 'total_projects': 0,
-                'status_breakdown': []
+                'status_breakdown': [],
+                'other_categories': {
+                    'total_quantity': 0,
+                    'total_projects': 0,
+                    'breakdown': []
+                }
             }
 
 

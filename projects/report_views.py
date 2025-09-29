@@ -1265,7 +1265,12 @@ def pipeline_report(request):
         report_data = {
             'total_quantity': 0,
             'total_projects': 0,
-            'status_breakdown': []
+            'status_breakdown': [],
+            'other_categories': {
+                'total_quantity': 0,
+                'total_projects': 0,
+                'breakdown': []
+            }
         }
     
     context = {
