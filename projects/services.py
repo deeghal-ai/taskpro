@@ -2227,6 +2227,81 @@ class ProjectService:
             return 0.0
 
     @staticmethod
+    def _calculate_aggregated_timer_usage_percentage(team_member, start_date, end_date):
+        """
+        Calculate aggregated timer usage percentage for a team member across all assignments
+        within the specified date range. This is used for team overview reports.
+
+        Args:
+            team_member: User object
+            start_date: Start date for filtering
+            end_date: End date for filtering
+
+        Returns:
+            float: Aggregated timer usage percentage (0.0 to 100.0)
+        """
+        try:
+            from .models import TimeSession
+            
+            # Get all time sessions for this team member within the date range
+            sessions = TimeSession.objects.filter(
+                team_member=team_member,
+                date_worked__range=[start_date, end_date]
+            )
+
+            if not sessions.exists():
+                return 0.0
+
+            total_timer_minutes = 0
+            total_manual_minutes = 0
+
+            for session in sessions:
+                session_duration = session.duration_minutes or 0
+
+                if session.session_type == 'MANUAL':
+                    # Manual entries: 100% manual contribution
+                    total_manual_minutes += session_duration
+
+                elif session.session_type == 'TIMER':
+                    if not session.is_edited:
+                        # Unedited timer sessions: 100% timer contribution
+                        total_timer_minutes += session_duration
+                    else:
+                        # Edited timer sessions: Split contribution based on original vs final duration
+                        if session.started_at and session.ended_at:
+                            # Calculate original timer duration (what the timer actually recorded)
+                            original_duration_seconds = (session.ended_at - session.started_at).total_seconds()
+                            original_duration_minutes = int(original_duration_seconds // 60)
+
+                            # Final duration is what the user edited it to
+                            final_duration_minutes = session_duration
+
+                            if final_duration_minutes <= original_duration_minutes:
+                                # User edited down: timer contributed the final amount, no manual addition
+                                total_timer_minutes += final_duration_minutes
+                                # total_manual_minutes += 0  (no manual contribution)
+                            else:
+                                # User edited up: timer contributed original amount, user added the difference manually
+                                total_timer_minutes += original_duration_minutes
+                                total_manual_minutes += (final_duration_minutes - original_duration_minutes)
+                        else:
+                            # Fallback: if timestamps are missing, treat as 100% timer
+                            total_timer_minutes += session_duration
+
+            total_minutes = total_timer_minutes + total_manual_minutes
+
+            if total_minutes == 0:
+                return 0.0
+
+            # Calculate percentage with proper rounding
+            timer_percentage = (total_timer_minutes / total_minutes) * 100
+            return round(timer_percentage, 1)
+
+        except Exception as e:
+            logger.exception(f"Error calculating aggregated timer usage percentage: {str(e)}")
+            return 0.0
+
+    @staticmethod
     def _calculate_days_remaining(expected_delivery_date):
         """
         Calculate and format days remaining until expected delivery date.
@@ -4243,6 +4318,11 @@ class ReportingService:
         on_time_count = on_time_deliveries.count()
         total_deliveries = deliveries.count()
 
+        # Calculate aggregated timer usage percentage
+        timer_usage_percentage = ProjectService._calculate_aggregated_timer_usage_percentage(
+            team_member, start_date, end_date
+        )
+
         return {
             'period': f"{start_date} to {end_date}",
             'productivity': {
@@ -4278,6 +4358,9 @@ class ReportingService:
                 'total_projects': total_deliveries,
                 'on_time_rate': (on_time_count / total_deliveries * 100) if total_deliveries > 0 else None,
                 'on_time_count': on_time_count,
+            },
+            'timer_usage': {
+                'percentage': timer_usage_percentage,
             }
         }
 

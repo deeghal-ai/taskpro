@@ -51,6 +51,15 @@
                 </div>
             </div>
         </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-stopwatch display-6 text-purple mb-2"></i>
+                    <h6 class="card-title">Timer Usage</h6>
+                    <h3 class="text-purple mb-0">{{ team_averages.avg_timer_usage|floatformat:1|default:"N/A" }}%</h3>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="row">
@@ -155,6 +164,10 @@
                             <th>
                                 <i class="bi bi-lightning me-1"></i>
                                 Task Efficiency
+                            </th>
+                            <th>
+                                <i class="bi bi-stopwatch me-1"></i>
+                                Timer Usage
                             </th>
                             <th>
                                 <i class="bi bi-star me-1"></i>
@@ -262,6 +275,29 @@
                                 {% endif %}
                             </td>
                             <td>
+                                {% if data.metrics.avg_timer_usage %}
+                                    <div class="metric-display">
+                                        <span class="badge 
+                                            {% if data.metrics.avg_timer_usage >= 85 %}bg-success
+                                            {% elif data.metrics.avg_timer_usage >= 70 %}bg-info
+                                            {% elif data.metrics.avg_timer_usage >= 50 %}bg-warning text-dark
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ data.metrics.avg_timer_usage|floatformat:1 }}%
+                                        </span>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar 
+                                                {% if data.metrics.avg_timer_usage >= 85 %}bg-success
+                                                {% elif data.metrics.avg_timer_usage >= 70 %}bg-info
+                                                {% elif data.metrics.avg_timer_usage >= 50 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ data.metrics.avg_timer_usage|default:0 }}%"></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if data.metrics.avg_quality %}
                                     <div class="metric-display">
                                         <span class="badge bg-info">{{ data.metrics.avg_quality|floatformat:1 }}/5</span>
@@ -316,7 +352,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="10" class="text-center py-4">
+                            <td colspan="11" class="text-center py-4">
                                 <div class="empty-state">
                                     <i class="bi bi-people display-1 text-muted"></i>
                                     <h5 class="text-muted mt-2">No team members found</h5>
@@ -364,6 +400,11 @@
     .empty-state i {
         font-size: 4rem;
         opacity: 0.3;
+    }
+
+    /* Purple color for timer usage */
+    .text-purple {
+        color: #6f42c1 !important;
     }
 </style>
 {% endblock %}

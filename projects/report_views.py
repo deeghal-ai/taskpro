@@ -129,6 +129,7 @@ def team_overview_report(request):
                 'avg_efficiency': item['metrics']['efficiency']['score'],
                 'avg_quality': item['metrics']['quality']['average_rating'],
                 'avg_delivery': item['metrics']['delivery']['average_rating'],
+                'avg_timer_usage': item['metrics']['timer_usage']['percentage'],
                 'total_assignments': item['metrics']['quality']['total_assignments'],
                 'total_projects': item['metrics']['delivery']['total_projects']
             }
@@ -140,7 +141,7 @@ def team_overview_report(request):
     
     if formatted_overview:
         # Calculate averages for each metric
-        metrics_to_average = ['avg_productivity', 'avg_optimization', 'avg_utilization', 'avg_efficiency', 'avg_quality', 'avg_delivery']
+        metrics_to_average = ['avg_productivity', 'avg_optimization', 'avg_utilization', 'avg_efficiency', 'avg_quality', 'avg_delivery', 'avg_timer_usage']
         for metric in metrics_to_average:
             values = [item['metrics'][metric] for item in formatted_overview if item['metrics'][metric] is not None]
             team_averages[metric] = sum(values) / len(values) if values else None
