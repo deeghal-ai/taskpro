@@ -239,12 +239,22 @@ class VideoProjectService:
         """
         try:
             # Base queryset - get all video projects with related data
-            queryset = VideoProject.objects.select_related(
+            latest_status_date_subquery = VideoProjectStatusHistory.objects.filter(
+                project=OuterRef('pk')
+            ).order_by('-changed_at').values('changed_at')[:1]
+
+            queryset = VideoProject.objects.annotate(
+                latest_status_date=Subquery(latest_status_date_subquery)
+            ).select_related(
                 'product',
-                'city', 
+                'city',
+                'city__region',
                 'video_pm',
                 'current_status'
-            ).order_by('-created_at')
+            ).order_by(
+                F('latest_status_date').desc(nulls_last=True),
+                '-created_at'
+            )
             
             # Define the statuses that are considered 'delivered' based on category_two field
             delivered_status_query = Q(category_two__iexact='Final Delivery')
