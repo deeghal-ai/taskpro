@@ -134,7 +134,8 @@ def video_update_project_status(request, project_id):
                 project_id,
                 form.cleaned_data['status'].id,
                 form.cleaned_data['comments'],
-                request.user
+                request.user,
+                form.cleaned_data['status_date']
             )
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

@@ -5,6 +5,7 @@ Simplified forms without video-specific complexity.
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from .models import VideoProject, VideoProjectStatusOption, VideoProduct
 from locations.models import City, Region
 from accounts.models import User
@@ -104,6 +105,16 @@ class VideoProjectStatusUpdateForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         required=True,
         label="New Status"
+    )
+    status_date = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date',
+            'value': timezone.localtime(timezone.now()).date().strftime('%Y-%m-%d')
+        }),
+        required=True,
+        label="Status Date",
+        help_text="Date when this status change occurred"
     )
     comments = forms.CharField(
         widget=forms.Textarea(attrs={

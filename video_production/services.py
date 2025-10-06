@@ -189,7 +189,7 @@ class VideoProjectService:
     
     @staticmethod
     @transaction.atomic
-    def update_project_status(project_id, status_id, comments, user):
+    def update_project_status(project_id, status_id, comments, user, status_date=None):
         """
         Update project status and create audit trail - mirrors projects service.
         """
@@ -205,6 +205,17 @@ class VideoProjectService:
         # Set user and comment for the model's save method to use
         project._current_user = user
         project._status_change_comment = comments or ""
+        
+        # Use provided status_date or current time
+        if status_date:
+            # Convert date to datetime with time component for status history
+            from datetime import time
+            status_datetime = timezone.make_aware(
+                timezone.datetime.combine(status_date, time(12, 0))
+            )
+            project._status_change_date = status_datetime
+        else:
+            project._status_change_date = timezone.now()
         
         # Save project - this will create the status history through the model's save method
         project.save()
