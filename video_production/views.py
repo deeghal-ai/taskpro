@@ -383,7 +383,7 @@ def export_pipeline_video_projects(request):
         'HS ID', 'Opportunity ID', 'Project Name', 'Builder Name', 'City', 'Region',
         'Product', 'Package ID', 'Quantity', 'Purchase Date',
         'Sales Confirmation Date', 'Expected TAT', 'Account Manager', 'Video PM',
-        'Current Status', 'Expected Completion Date', 'Created At'
+        'Current Status', 'Created At'
     ]
 
     if export_format == 'xlsx':
@@ -417,7 +417,6 @@ def _export_video_projects_to_csv(projects, headers):
             project.account_manager or '',
             project.video_pm.get_full_name() if project.video_pm else '',
             project.current_status.name if project.current_status else '',
-            project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
         ]
         writer.writerow(row)
@@ -453,7 +452,6 @@ def _export_video_projects_to_xlsx(projects, headers):
             project.account_manager or '',
             project.video_pm.get_full_name() if project.video_pm else '',
             project.current_status.name if project.current_status else '',
-            project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
         ]
         
