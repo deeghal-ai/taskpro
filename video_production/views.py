@@ -73,10 +73,7 @@ def video_project_detail(request, project_id):
     
     project = result
     
-    # Check if user owns this project
-    if project.video_pm != request.user:
-        messages.error(request, "You can only view your own projects.")
-        return redirect('video_production:project_list')
+    # Any VIDEO_PM can view any video project
     
     # Get comprehensive project details
     success, details = VideoProjectService.get_video_project_details(project_id)
@@ -119,13 +116,7 @@ def video_update_project_status(request, project_id):
     
     project = result
     
-    # Check if user owns this project
-    if project.video_pm != request.user:
-        if is_ajax:
-            return JsonResponse({'success': False, 'error': 'You can only update your own projects'})
-        else:
-            messages.error(request, 'You can only update your own projects')
-            return redirect('video_production:project_detail', project_id=project_id)
+    # Any VIDEO_PM can update any video project
     
     form = VideoProjectStatusUpdateForm(request.POST)
     if form.is_valid():
@@ -477,10 +468,7 @@ def video_edit_project(request, project_id):
     try:
         project = VideoProjectService.get_video_project(project_id)
         
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            messages.error(request, "You can only edit your own projects.")
-            return redirect('video_production:project_list')
+        # Any VIDEO_PM can edit any video project
         
         if request.method == 'POST':
             form = VideoProjectEditForm(request.POST, instance=project)
@@ -513,10 +501,7 @@ def video_complete_project(request, project_id):
     try:
         project = VideoProjectService.get_video_project(project_id)
         
-        # Check if user owns this project
-        if project.video_pm != request.user:
-            messages.error(request, "You can only complete your own projects.")
-            return redirect('video_production:project_list')
+        # Any VIDEO_PM can complete any video project
         
         delivery = VideoProjectService.track_video_project_delivery(project_id)
         messages.success(request, f'Project {project.hs_id} marked as completed. Delivery performance: {delivery.delivery_performance_rating}')
