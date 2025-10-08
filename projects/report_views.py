@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
 from datetime import date, timedelta, datetime
 from accounts.models import User
 from .services import ReportingService, TATAnalyticsService, AgeingReportService, ProjectService, GeneralReportService
@@ -48,7 +49,7 @@ def team_member_report(request, team_member_id=None):
         return redirect('projects:team_overview_report')
     
     # Get date range from request or default to last 30 days
-    end_date = request.GET.get('end_date', date.today())
+    end_date = request.GET.get('end_date', timezone.localtime(timezone.now()).date())
     if isinstance(end_date, str):
         end_date = date.fromisoformat(end_date)
     
@@ -106,7 +107,7 @@ def team_overview_report(request):
         return redirect_response
     
     # Get date range
-    end_date = request.GET.get('end_date', date.today())
+    end_date = request.GET.get('end_date', timezone.localtime(timezone.now()).date())
     if isinstance(end_date, str):
         end_date = date.fromisoformat(end_date)
     
@@ -170,7 +171,7 @@ def delivery_performance_report(request):
         return redirect_response
     
     # Get date range
-    end_date = request.GET.get('end_date', date.today())
+    end_date = request.GET.get('end_date', timezone.localtime(timezone.now()).date())
     if isinstance(end_date, str):
         end_date = date.fromisoformat(end_date)
     
@@ -247,7 +248,7 @@ def lol_report(request):
     report_data = []
     
     # Get date range from request or default to last 30 days
-    end_date = request.GET.get('end_date', date.today())
+    end_date = request.GET.get('end_date', timezone.localtime(timezone.now()).date())
     if isinstance(end_date, str):
         end_date = date.fromisoformat(end_date)
     
@@ -321,13 +322,13 @@ def reports_dashboard(request):
     ).count()
     
     # This month's deliveries
-    current_month_start = date.today().replace(day=1)
+    current_month_start = timezone.localtime(timezone.now()).date().replace(day=1)
     deliveries_this_month = ProjectDelivery.objects.filter(
         delivery_date__gte=current_month_start
     ).count()
     
     # Calculate average productivity using the same logic as team overview
-    end_date = date.today()
+    end_date = timezone.localtime(timezone.now()).date()
     start_date = end_date - timedelta(days=30)  # Last 30 days
     
     # Get team overview data to calculate average productivity
@@ -373,7 +374,7 @@ def lol_report_export_excel(request):
         return redirect_response
     
     # Get parameters from request
-    end_date = request.GET.get('end_date', date.today())
+    end_date = request.GET.get('end_date', timezone.localtime(timezone.now()).date())
     if isinstance(end_date, str):
         end_date = date.fromisoformat(end_date)
     

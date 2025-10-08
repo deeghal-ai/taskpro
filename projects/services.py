@@ -1265,7 +1265,7 @@ class ProjectService:
         Verified to include product information.
         """
         try:
-            today = date.today()
+            today = timezone.localtime(timezone.now()).date()
 
             # Get active assignments - VERIFY select_related includes product path
             active_assignments = TaskAssignment.objects.filter(
@@ -2322,7 +2322,7 @@ class ProjectService:
             else:
                 expected_date = expected_delivery_date
 
-            today = date.today()
+            today = timezone.localtime(timezone.now()).date()
             days_difference = (expected_date - today).days
 
             if days_difference > 0:
@@ -2857,7 +2857,7 @@ class ProjectService:
         Simplified delivery tracking - just store the event, no metrics calculation.
         """
         if not delivery_date:
-            delivery_date = date.today()
+            delivery_date = timezone.localtime(timezone.now()).date()
 
         if not project.project_incharge:
             return None
