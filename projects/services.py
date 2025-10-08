@@ -2316,9 +2316,9 @@ class ProjectService:
             if not expected_delivery_date:
                 return "No deadline set"
 
-            # Convert to date if it's a datetime object
+            # Convert to date if it's a datetime object - ensure timezone conversion
             if hasattr(expected_delivery_date, 'date'):
-                expected_date = expected_delivery_date.date()
+                expected_date = timezone.localtime(expected_delivery_date).date()
             else:
                 expected_date = expected_delivery_date
 
