@@ -101,7 +101,8 @@
                                 <small>Progress: {{ timer.progress.percentage }}%</small>
                                 <div class="progress" style="height: 4px;">
                                     <div class="progress-bar {{ timer.progress.status_class }}" 
-                                         data-width="{{ timer.progress.percentage }}"></div>
+                                         data-width="{{ timer.progress.percentage }}" 
+                                         style="width: {% if timer.progress.percentage > 100 %}100{% else %}{{ timer.progress.percentage }}{% endif %}%"></div>
                                 </div>
                                 <small class="text-muted">
                                     {{ timer.progress.total_worked_formatted }} / {{ timer.assignment.projected_formatted }}
@@ -632,7 +633,7 @@
                             <small>Progress: ${timer.progress.percentage}%</small>
                             <div class="progress" style="height: 4px;">
                                 <div class="progress-bar ${timer.progress.status_class}" 
-                                     style="width: ${timer.progress.percentage}%"></div>
+                                     style="width: ${Math.min(100, timer.progress.percentage)}%"></div>
                             </div>
                         </div>
                     </div>
@@ -653,9 +654,9 @@
         },
         
         attachEventHandlers() {
-            // Set progress bar widths
+            // Set progress bar widths (cap at 100% visually)
             document.querySelectorAll('.progress-bar[data-width]').forEach(bar => {
-                const width = bar.dataset.width;
+                const width = Math.min(100, parseFloat(bar.dataset.width));
                 bar.style.width = width + '%';
             });
             

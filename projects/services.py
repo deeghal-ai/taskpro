@@ -3596,9 +3596,9 @@ class ProjectService:
                     # Get projected hours
                     projected_minutes = timer.assignment.projected_hours or 0
                     
-                    # Calculate progress percentage
+                    # Calculate progress percentage (allow > 100% to show overrun)
                     if projected_minutes > 0:
-                        progress_percentage = min(100, (total_worked_minutes / projected_minutes) * 100)
+                        progress_percentage = (total_worked_minutes / projected_minutes) * 100
                     else:
                         progress_percentage = 0
                     
