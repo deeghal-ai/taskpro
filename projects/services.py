@@ -2461,11 +2461,11 @@ class ProjectService:
     def get_monthly_roster_summary_only(team_member, year, month):
         """
         Get ONLY the monthly summary data for a team member - optimized for roster list view.
-        This avoids expensive calendar generation and daily roster creation.
+        Auto-creates missing roster entries to ensure accurate counts.
         """
         try:
             from django.db.models import Sum, Count, Q
-            from .models import DailyRoster, MiscHours
+            from .models import DailyRoster, MiscHours, Holiday
             
             # Get the date range for the month
             _, last_day = calendar.monthrange(year, month)
@@ -2477,7 +2477,73 @@ class ProjectService:
             if year == today.year and month == today.month:
                 end_date = min(end_date, today)
             
+            # Get all dates to process (up to end_date)
+            dates_to_process = [
+                date(year, month, day)
+                for day in range(1, last_day + 1)
+                if date(year, month, day) <= end_date
+            ]
+            
+            # Get holidays for the date range
+            holidays = set(
+                Holiday.objects.filter(
+                    date__gte=start_date,
+                    date__lte=end_date,
+                    location='Gurgaon',
+                    is_active=True
+                ).values_list('date', flat=True)
+            )
+            
             # Fetch existing roster entries in a single query
+            existing_rosters = {
+                roster.date: roster
+                for roster in DailyRoster.objects.filter(
+                    team_member=team_member,
+                    date__gte=start_date,
+                    date__lte=end_date
+                ).select_related('team_member')
+            }
+            
+            # Create missing roster entries
+            rosters_to_create = []
+            for single_date in dates_to_process:
+                if single_date not in existing_rosters:
+                    # Determine default status based on holiday/weekend
+                    day_of_week = single_date.weekday()
+                    if single_date in holidays:
+                        default_status = 'HOLIDAY'
+                    elif day_of_week in [5, 6]:  # Saturday, Sunday
+                        default_status = 'WEEK_OFF'
+                    else:
+                        default_status = 'PRESENT'
+                    
+                    rosters_to_create.append(DailyRoster(
+                        team_member=team_member,
+                        date=single_date,
+                        status=default_status,
+                        is_auto_created=True
+                    ))
+            
+            # Bulk create missing rosters
+            if rosters_to_create:
+                try:
+                    DailyRoster.objects.bulk_create(rosters_to_create, ignore_conflicts=True)
+                except Exception as e:
+                    # Fallback: create individually if bulk fails
+                    for roster in rosters_to_create:
+                        try:
+                            DailyRoster.objects.get_or_create(
+                                team_member=roster.team_member,
+                                date=roster.date,
+                                defaults={
+                                    'status': roster.status,
+                                    'is_auto_created': roster.is_auto_created
+                                }
+                            )
+                        except Exception:
+                            pass  # Continue if individual create also fails
+            
+            # Now fetch ALL roster entries (including newly created ones)
             roster_entries = DailyRoster.objects.filter(
                 team_member=team_member,
                 date__gte=start_date,
