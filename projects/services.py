@@ -4587,7 +4587,7 @@ class ReportingService:
         """
         Get overview for all team members.
         """
-        team_members = User.objects.filter(role='TEAM_MEMBER')
+        team_members = User.objects.filter(role='TEAM_MEMBER', is_active=True)
         overview_data = []
 
         for member in team_members:

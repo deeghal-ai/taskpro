@@ -1065,7 +1065,7 @@ class TaskAssignmentFilterForm(forms.Form):
     
     # Team member filter
     team_member = forms.ModelChoiceField(
-        queryset=User.objects.filter(role='TEAM_MEMBER'),
+        queryset=User.objects.filter(role='TEAM_MEMBER', is_active=True),
         required=False,
         empty_label="All Team Members",
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -1074,8 +1074,7 @@ class TaskAssignmentFilterForm(forms.Form):
     
     # DPM filter
     dpm = forms.ModelChoiceField(
-        queryset=User.objects.filter(role='DPM'),
-        required=False,
+        queryset=User.objects.filter(role='DPM', is_active=True),
         empty_label="All DPMs",
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Filter by Project Manager"

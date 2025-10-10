@@ -263,7 +263,7 @@ def lol_report(request):
         selected_member_ids = request.GET.getlist('team_members')
     
     # Get all team members for the form
-    all_team_members = User.objects.filter(role='TEAM_MEMBER').order_by('first_name', 'last_name')
+    all_team_members = User.objects.filter(role='TEAM_MEMBER', is_active=True).order_by('first_name', 'last_name')
     
     # If team members are selected, generate the report
     if selected_member_ids:
@@ -314,7 +314,7 @@ def reports_dashboard(request):
     from datetime import date, timedelta
     
     # Calculate some basic stats
-    total_team_members = User.objects.filter(role='TEAM_MEMBER').count()
+    total_team_members = User.objects.filter(role='TEAM_MEMBER', is_active=True).count()
     
     # Active projects (those not in 'Final Delivery' status)
     active_projects = Project.objects.exclude(

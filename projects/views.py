@@ -2459,7 +2459,7 @@ def dpm_assignments_overview(request):
                 for assignment in result_members:
                     member_ids.add(assignment.assigned_to.id)
                 
-                members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER').order_by('first_name', 'last_name', 'username')
+                members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER', is_active=True).order_by('first_name', 'last_name', 'username')
                 response_data['team_members'] = [
                     {
                         'id': m.id, 
@@ -2634,7 +2634,7 @@ def assignment_graph_view(request):
                 for assignment in result_members:
                     member_ids.add(assignment.assigned_to.id)
                 
-                members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER').order_by('first_name', 'last_name', 'username')
+                members = User.objects.filter(id__in=member_ids, role='TEAM_MEMBER', is_active=True).order_by('first_name', 'last_name', 'username')
                 response_data['team_members'] = [
                     {
                         'id': m.id, 
@@ -2901,7 +2901,7 @@ def team_roster_list(request):
         return redirect_response
     
     # Get all team members (excluding DPMs)
-    team_members = User.objects.filter(role='TEAM_MEMBER').order_by('first_name', 'last_name')
+    team_members = User.objects.filter(role='TEAM_MEMBER', is_active=True).order_by('first_name', 'last_name')
     
     # Get current month and date info
     today = date.today()

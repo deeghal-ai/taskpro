@@ -37,6 +37,15 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} - {self.get_role_display()}"
     
+    def get_full_name(self):
+        """
+        Override AbstractUser's get_full_name to provide username as fallback.
+        Returns full name if available, otherwise returns username.
+        This ensures user names never appear blank in templates.
+        """
+        full_name = f"{self.first_name} {self.last_name}".strip()
+        return full_name if full_name else self.username
+    
     def save(self, *args, **kwargs):
         # If user is DPM or VIDEO_PM, automatically grant staff status and superuser
         if self.role in ['DPM', 'VIDEO_PM']:
