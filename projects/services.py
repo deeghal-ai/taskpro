@@ -2011,15 +2011,30 @@ class ProjectService:
                 calendar_weeks.append(week_data)
 
             # Calculate monthly summary efficiently using cached values
+            # Only count days up to today if this is the current month
+            today = timezone.localtime(timezone.now()).date()
             roster_entries = list(roster_dict.values())
-            total_present_days = len([r for r in roster_entries if r.status == 'PRESENT'])
-            total_leave_days = len([r for r in roster_entries if r.status in ['LEAVE', 'SICK_LEAVE']])
-            total_weekoffs = len([r for r in roster_entries if r.status == 'WEEK_OFF'])
+            
+            # Filter roster entries up to today for summary calculation if current month
+            if year == today.year and month == today.month:
+                roster_entries_for_summary = [r for r in roster_entries if r.date <= today]
+            else:
+                roster_entries_for_summary = roster_entries
+            
+            total_present_days = len([r for r in roster_entries_for_summary if r.status == 'PRESENT'])
+            total_leave_days = len([r for r in roster_entries_for_summary if r.status in ['LEAVE', 'SICK_LEAVE']])
+            total_weekoffs = len([r for r in roster_entries_for_summary if r.status == 'WEEK_OFF'])
             
             # Use cached values for totals to avoid additional queries
-            total_assignment_minutes = sum(getattr(r, '_cached_assignment_hours', 0) for r in roster_entries)
-            legacy_misc_minutes = sum(getattr(r, 'misc_hours', 0) for r in roster_entries)
-            new_misc_minutes = sum(misc_totals_by_date.values())
+            total_assignment_minutes = sum(getattr(r, '_cached_assignment_hours', 0) for r in roster_entries_for_summary)
+            legacy_misc_minutes = sum(getattr(r, 'misc_hours', 0) for r in roster_entries_for_summary)
+            
+            # Also filter misc hours by date when calculating totals
+            if year == today.year and month == today.month:
+                new_misc_minutes = sum(minutes for date, minutes in misc_totals_by_date.items() if date <= today)
+            else:
+                new_misc_minutes = sum(misc_totals_by_date.values())
+            
             total_misc_minutes = legacy_misc_minutes + new_misc_minutes
 
             # Return identical data structure to original method
@@ -2667,15 +2682,30 @@ class ProjectService:
                 calendar_weeks.append(week_data)
 
             # Calculate monthly summary efficiently using cached values
+            # Only count days up to today if this is the current month
+            today = timezone.localtime(timezone.now()).date()
             roster_entries = list(roster_dict.values())
-            total_present_days = len([r for r in roster_entries if r.status == 'PRESENT'])
-            total_leave_days = len([r for r in roster_entries if r.status in ['LEAVE', 'SICK_LEAVE']])
-            total_weekoffs = len([r for r in roster_entries if r.status == 'WEEK_OFF'])
+            
+            # Filter roster entries up to today for summary calculation if current month
+            if year == today.year and month == today.month:
+                roster_entries_for_summary = [r for r in roster_entries if r.date <= today]
+            else:
+                roster_entries_for_summary = roster_entries
+            
+            total_present_days = len([r for r in roster_entries_for_summary if r.status == 'PRESENT'])
+            total_leave_days = len([r for r in roster_entries_for_summary if r.status in ['LEAVE', 'SICK_LEAVE']])
+            total_weekoffs = len([r for r in roster_entries_for_summary if r.status == 'WEEK_OFF'])
             
             # Use cached values for totals to avoid additional queries
-            total_assignment_minutes = sum(getattr(r, '_cached_assignment_hours', 0) for r in roster_entries)
-            legacy_misc_minutes = sum(getattr(r, 'misc_hours', 0) for r in roster_entries)
-            new_misc_minutes = sum(misc_totals_by_date.values())
+            total_assignment_minutes = sum(getattr(r, '_cached_assignment_hours', 0) for r in roster_entries_for_summary)
+            legacy_misc_minutes = sum(getattr(r, 'misc_hours', 0) for r in roster_entries_for_summary)
+            
+            # Also filter misc hours by date when calculating totals
+            if year == today.year and month == today.month:
+                new_misc_minutes = sum(minutes for date, minutes in misc_totals_by_date.items() if date <= today)
+            else:
+                new_misc_minutes = sum(misc_totals_by_date.values())
+            
             total_misc_minutes = legacy_misc_minutes + new_misc_minutes
 
             # Return identical data structure to original method
