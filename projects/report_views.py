@@ -613,11 +613,11 @@ def general_report_dashboard(request):
         except ValueError:
             pass
     
-    if request.GET.get('product'):
-        filters['product'] = request.GET.get('product')
+    if request.GET.getlist('product'):
+        filters['product'] = request.GET.getlist('product')
     
-    if request.GET.get('dpm'):
-        filters['dpm'] = request.GET.get('dpm')
+    if request.GET.getlist('dpm'):
+        filters['dpm'] = request.GET.getlist('dpm')
     
     if request.GET.get('city'):
         filters['city'] = request.GET.get('city')

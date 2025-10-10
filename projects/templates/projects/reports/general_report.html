@@ -6,6 +6,9 @@
 {% block extra_css %}
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <style>
     /* Clean, Professional Dashboard Styling */
     .dashboard-header {
@@ -161,10 +164,9 @@
                 </div>
                 <div class="col-md-2">
                     <label for="product" class="form-label">Product</label>
-                    <select class="form-select" id="product" name="product">
-                        <option value="">All Products</option>
+                    <select class="form-select" id="product" name="product" multiple>
                         {% for product in products %}
-                            <option value="{{ product }}" {% if filters.product == product %}selected{% endif %}>
+                            <option value="{{ product }}" {% if product in filters.product %}selected{% endif %}>
                                 {{ product }}
                             </option>
                         {% endfor %}
@@ -172,10 +174,9 @@
                 </div>
                 <div class="col-md-2">
                     <label for="dpm" class="form-label">DPM</label>
-                    <select class="form-select" id="dpm" name="dpm">
-                        <option value="">All DPMs</option>
+                    <select class="form-select" id="dpm" name="dpm" multiple>
                         {% for dpm in dpms %}
-                            <option value="{{ dpm }}" {% if filters.dpm == dpm %}selected{% endif %}>
+                            <option value="{{ dpm }}" {% if dpm in filters.dpm %}selected{% endif %}>
                                 {{ dpm }}
                             </option>
                         {% endfor %}
@@ -726,6 +727,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Flatpickr JS -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
 // Initialize date pickers
@@ -736,6 +741,23 @@ flatpickr("#date_from", {
 flatpickr("#date_to", {
     dateFormat: "Y-m-d",
     allowInput: true
+});
+
+// Initialize Select2 for multi-select
+$(document).ready(function() {
+    $('#product').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'All Products',
+        allowClear: true,
+        width: '100%'
+    });
+
+    $('#dpm').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'All DPMs',
+        allowClear: true,
+        width: '100%'
+    });
 });
 
 // Chart colors

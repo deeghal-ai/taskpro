@@ -5512,9 +5512,17 @@ class GeneralReportService:
             # Apply filters if provided
             if filters:
                 if filters.get('product'):
-                    projects_queryset = projects_queryset.filter(product__name=filters['product'])
+                    product_filter = filters['product']
+                    if isinstance(product_filter, list):
+                        projects_queryset = projects_queryset.filter(product__name__in=product_filter)
+                    else:
+                        projects_queryset = projects_queryset.filter(product__name=product_filter)
                 if filters.get('dpm'):
-                    projects_queryset = projects_queryset.filter(dpm__username=filters['dpm'])
+                    dpm_filter = filters['dpm']
+                    if isinstance(dpm_filter, list):
+                        projects_queryset = projects_queryset.filter(dpm__username__in=dpm_filter)
+                    else:
+                        projects_queryset = projects_queryset.filter(dpm__username=dpm_filter)
                 if filters.get('city'):
                     projects_queryset = projects_queryset.filter(city__name=filters['city'])
             
