@@ -586,7 +586,7 @@ def export_all_projects(request):
         'Product', 'Product Subcategory', 'Package ID', 'Quantity', 'Purchase Date',
         'Sales Confirmation Date', 'Expected TAT', 'Account Manager', 'DPM',
         'Current Status', 'Project Incharge', 'Expected Completion Date',
-        'Delivery Performance Rating', 'Created At', 'Project Type'
+        'Delivery Performance Rating', 'Created At', 'Project Type', 'Project Classification'
     ]
 
     if export_format == 'xlsx':
@@ -625,6 +625,7 @@ def _export_all_to_csv(projects, headers):
             project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
             project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            project.project_type or '',
             'Delivered' if project.is_delivered else 'Pipeline'
         ]
         writer.writerow(row)
@@ -671,6 +672,7 @@ def _export_all_to_xlsx(projects, headers):
             project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
             project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            project.project_type or '',
             'Delivered' if project.is_delivered else 'Pipeline'
         ]
         
@@ -769,7 +771,7 @@ def export_pipeline_projects(request):
         'Product', 'Product Subcategory', 'Package ID', 'Quantity', 'Purchase Date',
         'Sales Confirmation Date', 'Expected TAT', 'Account Manager', 'DPM',
         'Current Status', 'Project Incharge', 'Expected Completion Date',
-        'Delivery Performance Rating', 'Created At'
+        'Delivery Performance Rating', 'Created At', 'Project Type'
     ]
 
     if export_format == 'xlsx':
@@ -807,7 +809,8 @@ def _export_to_csv(projects, headers):
             project.project_incharge.get_full_name() if project.project_incharge else '',
             project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
-            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            project.project_type or ''
         ]
         writer.writerow(row)
     
@@ -852,7 +855,8 @@ def _export_to_xlsx(projects, headers):
             project.project_incharge.get_full_name() if project.project_incharge else '',
             project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
-            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            project.project_type or ''
         ]
         
         for col_num, value in enumerate(data, 1):
@@ -1636,7 +1640,7 @@ def export_delivered_projects(request):
         'Product', 'Product Subcategory', 'Package ID', 'Quantity', 'Purchase Date',
         'Sales Confirmation Date', 'Expected TAT', 'Account Manager', 'DPM',
         'Current Status', 'Project Incharge', 'Expected Completion Date',
-        'Delivery Date', 'Delivery Performance Rating', 'Created At'
+        'Delivery Date', 'Delivery Performance Rating', 'Created At', 'Project Type'
     ]
 
     if export_format == 'xlsx':
@@ -1675,7 +1679,8 @@ def _export_delivered_to_csv(projects, headers):
             project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             project.delivery_date.strftime('%Y-%m-%d') if project.delivery_date else '',
             str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
-            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            project.project_type or ''
         ]
         writer.writerow(row)
     
@@ -1721,7 +1726,8 @@ def _export_delivered_to_xlsx(projects, headers):
             project.expected_completion_date.strftime('%Y-%m-%d') if project.expected_completion_date else '',
             project.delivery_date.strftime('%Y-%m-%d') if project.delivery_date else '',
             str(project.delivery_performance_rating) if project.delivery_performance_rating else '',
-            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else ''
+            project.created_at.strftime('%Y-%m-%d %H:%M:%S') if project.created_at else '',
+            project.project_type or ''
         ]
         
         for col_num, value in enumerate(data, 1):
