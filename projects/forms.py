@@ -1075,6 +1075,7 @@ class TaskAssignmentFilterForm(forms.Form):
     # DPM filter
     dpm = forms.ModelChoiceField(
         queryset=User.objects.filter(role='DPM', is_active=True),
+        required=False,
         empty_label="All DPMs",
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Filter by Project Manager"
