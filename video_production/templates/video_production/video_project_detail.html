@@ -276,7 +276,7 @@
                     <dd>
                         <div class="status-display">
                             <span class="status-badge">{{ project.current_status.name }}</span>
-                            {% if user == project.video_pm %}
+                            {% if user.role == 'VIDEO_PM' %}
                                 <button type="button" 
                                         class="btn btn-sm btn-primary status-update-btn"
                                         data-bs-toggle="modal" 
@@ -373,7 +373,7 @@
 </div>
 
 <!-- Status Update Modal -->
-{% if user == project.video_pm %}
+{% if user.role == 'VIDEO_PM' %}
 <div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
