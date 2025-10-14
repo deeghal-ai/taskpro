@@ -3909,16 +3909,17 @@ class ProjectService:
     def _calculate_man_hours(projects_queryset, filters):
         """
         Calculate total man hours from DailyTimeTotal entries for the filtered time range.
+        Uses quantity-weighted project counts.
         
         Args:
             projects_queryset: Base queryset of projects (for DPM filtering)
             filters: Date filters to apply to DailyTimeTotal entries
             
         Returns:
-            Dictionary with man hours data
+            Dictionary with man hours data (quantity-weighted)
         """
         from django.db.models import Sum, Count, Q
-        from projects.models import TaskAssignment, DailyTimeTotal, User
+        from projects.models import TaskAssignment, DailyTimeTotal, User, Project
         
         # Get current DPM users to ensure filtering consistency
         current_dpm_users = User.objects.filter(role='DPM')
@@ -3968,50 +3969,73 @@ class ProjectService:
         
         total_hours = round(total_minutes / 60, 2)
         
-        # Count unique projects that have time logged
-        project_count = daily_totals_queryset.values(
-            'assignment__task__project'
-        ).distinct().count()
+        # Get unique project IDs that have time logged and calculate quantity-weighted count
+        project_ids = daily_totals_queryset.values_list(
+            'assignment__task__project_id', flat=True
+        ).distinct()
         
-        # Get product-wise breakdown
+        # Sum quantities for those projects (quantity-weighted)
+        project_quantity = Project.objects.filter(
+            id__in=project_ids
+        ).aggregate(total=Sum('quantity'))['total'] or 0
+        
+        # Get product-wise breakdown (quantity-weighted)
         product_breakdown = []
         product_data = daily_totals_queryset.values(
             'assignment__task__project__product__name'
         ).annotate(
-            total_minutes=Sum('total_minutes'),
-            project_count=Count('assignment__task__project', distinct=True)
+            total_minutes=Sum('total_minutes')
         ).order_by('-total_minutes')
         
         for item in product_data:
             if item['assignment__task__project__product__name'] and item['total_minutes']:
                 hours = round(item['total_minutes'] / 60, 2)
+                
+                # Get project IDs for this product and calculate quantity-weighted count
+                product_project_ids = daily_totals_queryset.filter(
+                    assignment__task__project__product__name=item['assignment__task__project__product__name']
+                ).values_list('assignment__task__project_id', flat=True).distinct()
+                
+                product_quantity = Project.objects.filter(
+                    id__in=product_project_ids
+                ).aggregate(total=Sum('quantity'))['total'] or 0
+                
                 product_breakdown.append({
                     'product_name': item['assignment__task__project__product__name'],
                     'hours': hours,
-                    'project_count': item['project_count'] or 0
+                    'project_count': product_quantity
                 })
         
-        # Get DPM-wise breakdown
+        # Get DPM-wise breakdown (quantity-weighted)
         dpm_breakdown = []
         dpm_data = daily_totals_queryset.values(
             'assignment__task__project__dpm__username'
         ).annotate(
-            total_minutes=Sum('total_minutes'),
-            project_count=Count('assignment__task__project', distinct=True)
+            total_minutes=Sum('total_minutes')
         ).order_by('-total_minutes')
         
         for item in dpm_data:
             if item['assignment__task__project__dpm__username'] and item['total_minutes']:
                 hours = round(item['total_minutes'] / 60, 2)
+                
+                # Get project IDs for this DPM and calculate quantity-weighted count
+                dpm_project_ids = daily_totals_queryset.filter(
+                    assignment__task__project__dpm__username=item['assignment__task__project__dpm__username']
+                ).values_list('assignment__task__project_id', flat=True).distinct()
+                
+                dpm_quantity = Project.objects.filter(
+                    id__in=dpm_project_ids
+                ).aggregate(total=Sum('quantity'))['total'] or 0
+                
                 dpm_breakdown.append({
                     'dpm_name': item['assignment__task__project__dpm__username'],
                     'hours': hours,
-                    'project_count': item['project_count'] or 0
+                    'project_count': dpm_quantity
                 })
         
         return {
             'total_hours': total_hours,
-            'project_count': project_count,
+            'project_count': project_quantity,
             'product_breakdown': product_breakdown,
             'dpm_breakdown': dpm_breakdown
         }
