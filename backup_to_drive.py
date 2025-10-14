@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """
-Database Backup Script for TaskPro
-Exports all database tables to Excel and uploads to Google Drive
+Database Backup Script for TaskPro - Shared Drive Version
+Exports all database tables to Excel and uploads to Google Shared Drive
 
 Author: TaskPro Team
 Created for: deeghalbhaumik
+Authentication: Service Account (for corporate Google Workspace)
 """
 import os
 import sys
@@ -26,34 +27,52 @@ from googleapiclient.http import MediaFileUpload
 
 class DatabaseBackup:
     """
-    Handles daily database backups to Google Drive.
-    Each table is exported as a separate Excel file.
+    Handles daily database backups to Google Shared Drive.
+    Uses service account authentication for corporate accounts.
     """
     
-    def __init__(self, drive_folder_id, service_account_file):
+    def __init__(self, shared_drive_id, service_account_file):
         """
         Initialize backup configuration.
         
         Args:
-            drive_folder_id: Google Drive folder ID where backups will be stored
+            shared_drive_id: Google Shared Drive ID (not a regular folder!)
             service_account_file: Path to Google service account JSON key file
         """
-        self.drive_folder_id = drive_folder_id
+        self.shared_drive_id = shared_drive_id
         self.backup_folder = '/tmp/taskpro_backups'
         self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         self.date_str = datetime.now().strftime('%Y-%m-%d')
         
         # Setup Google Drive API
-        SCOPES = ['https://www.googleapis.com/auth/drive.file']
+        SCOPES = ['https://www.googleapis.com/auth/drive']
         
         try:
             creds = service_account.Credentials.from_service_account_file(
                 service_account_file, scopes=SCOPES)
             self.drive_service = build('drive', 'v3', credentials=creds)
             print("✓ Connected to Google Drive API")
+            
+            # Verify access to Shared Drive
+            self._verify_shared_drive_access()
+            
         except Exception as e:
             print(f"✗ Failed to connect to Google Drive: {str(e)}")
             sys.exit(1)
+    
+    def _verify_shared_drive_access(self):
+        """Verify that service account has access to the Shared Drive"""
+        try:
+            # Try to get Shared Drive info
+            drive = self.drive_service.drives().get(driveId=self.shared_drive_id).execute()
+            print(f"✓ Access verified to Shared Drive: {drive['name']}")
+        except Exception as e:
+            print(f"\n⚠️  WARNING: Could not verify Shared Drive access")
+            print(f"   Error: {str(e)}")
+            print(f"\n   Make sure:")
+            print(f"   1. This is a Shared Drive ID (not a regular folder)")
+            print(f"   2. Service account is added as a member of the Shared Drive")
+            print(f"   3. Service account has 'Content Manager' or 'Manager' role\n")
     
     def get_all_tables(self):
         """Get list of all tables from MySQL database"""
@@ -106,7 +125,7 @@ class DatabaseBackup:
     
     def upload_to_drive(self, filepath):
         """
-        Upload file to Google Drive.
+        Upload file to Google Shared Drive.
         
         Args:
             filepath: Local path to the file to upload
@@ -117,21 +136,23 @@ class DatabaseBackup:
         try:
             file_metadata = {
                 'name': os.path.basename(filepath),
-                'parents': [self.drive_folder_id]
+                'parents': [self.shared_drive_id]
             }
             
             media = MediaFileUpload(filepath, resumable=True)
             
+            # IMPORTANT: For Shared Drives, use supportsAllDrives=True
             file = self.drive_service.files().create(
                 body=file_metadata,
                 media_body=media,
-                fields='id, name, size'
+                fields='id, name, size',
+                supportsAllDrives=True  # Critical for Shared Drives!
             ).execute()
             
             # Get uploaded file size
             file_size_mb = int(file.get('size', 0)) / (1024 * 1024)
             
-            print(f"    → Uploaded to Drive ({file_size_mb:.2f} MB)")
+            print(f"    → Uploaded to Shared Drive ({file_size_mb:.2f} MB)")
             return True
             
         except Exception as e:
@@ -154,19 +175,25 @@ class DatabaseBackup:
     
     def cleanup_old_backups(self, days_to_keep=30):
         """
-        Delete backups older than specified days from Drive.
+        Delete backups older than specified days from Shared Drive.
         
         Args:
             days_to_keep: Number of days to keep backups (default: 30)
         """
         try:
             cutoff_date = (datetime.now() - timedelta(days=days_to_keep)).isoformat()
-            query = f"'{self.drive_folder_id}' in parents and createdTime < '{cutoff_date}'"
+            
+            # Query for old files in Shared Drive
+            query = f"'{self.shared_drive_id}' in parents and createdTime < '{cutoff_date}'"
             
             results = self.drive_service.files().list(
                 q=query,
                 fields='files(id, name, createdTime)',
-                pageSize=1000
+                pageSize=1000,
+                supportsAllDrives=True,  # Critical for Shared Drives!
+                includeItemsFromAllDrives=True,
+                corpora='drive',
+                driveId=self.shared_drive_id
             ).execute()
             
             files = results.get('files', [])
@@ -174,7 +201,10 @@ class DatabaseBackup:
             if files:
                 print(f"\n🗑️  Cleaning up old backups (older than {days_to_keep} days):")
                 for file in files:
-                    self.drive_service.files().delete(fileId=file['id']).execute()
+                    self.drive_service.files().delete(
+                        fileId=file['id'],
+                        supportsAllDrives=True  # Critical for Shared Drives!
+                    ).execute()
                     print(f"  ✓ Deleted: {file['name']}")
                 
                 print(f"✓ Removed {len(files)} old backup files")
@@ -214,7 +244,7 @@ class DatabaseBackup:
             filepath = self.export_table_to_excel(table)
             
             if filepath:
-                # Upload to Drive
+                # Upload to Shared Drive
                 if self.upload_to_drive(filepath):
                     successful_uploads += 1
                 else:
@@ -225,7 +255,7 @@ class DatabaseBackup:
         # Cleanup local files
         self.cleanup_local_files()
         
-        # Cleanup old backups from Drive
+        # Cleanup old backups from Shared Drive
         self.cleanup_old_backups(days_to_keep=30)
         
         # Summary
@@ -259,10 +289,11 @@ if __name__ == "__main__":
     # ==================== CONFIGURATION ====================
     # TODO: Update these values with your actual credentials
     
-    # Google Drive folder ID (get from folder URL)
-    # Example URL: https://drive.google.com/drive/folders/1ABcD-EfGhIjKlMnOpQrStUvWxYz
-    # Folder ID is: 1ABcD-EfGhIjKlMnOpQrStUvWxYz
-    DRIVE_FOLDER_ID = '1oJhqYYdeNESAGmEM-4WFdiMJMQKnjIJr'
+    # Google SHARED DRIVE ID (NOT a regular folder!)
+    # Get this from the Shared Drive URL in Google Drive
+    # Example URL: https://drive.google.com/drive/folders/0ABC-defGHijKLmnoPqr
+    # Shared Drive ID is: 0ABC-defGHijKLmnoPqr
+    SHARED_DRIVE_ID = '0AHW-ZGa6TVhSUk9PVA'
     
     # Path to Google service account JSON key file
     SERVICE_ACCOUNT_FILE = '/home/deeghalbhaumik/service-account-key.json'
@@ -270,10 +301,11 @@ if __name__ == "__main__":
     # =======================================================
     
     # Validate configuration
-    if DRIVE_FOLDER_ID == 'YOUR_FOLDER_ID_HERE':
-        print("\n❌ ERROR: Please configure DRIVE_FOLDER_ID in the script!")
-        print("   Edit backup_to_drive.py and replace 'YOUR_FOLDER_ID_HERE'")
-        print("   with your actual Google Drive folder ID.\n")
+    if SHARED_DRIVE_ID == 'YOUR_SHARED_DRIVE_ID_HERE':
+        print("\n❌ ERROR: Please configure SHARED_DRIVE_ID in the script!")
+        print("   Edit backup_to_drive.py and replace 'YOUR_SHARED_DRIVE_ID_HERE'")
+        print("   with your actual Google Shared Drive ID.\n")
+        print("   NOTE: This must be a SHARED DRIVE, not a regular folder!\n")
         sys.exit(1)
     
     if not os.path.exists(SERVICE_ACCOUNT_FILE):
@@ -284,7 +316,7 @@ if __name__ == "__main__":
     
     # Run backup
     try:
-        backup = DatabaseBackup(DRIVE_FOLDER_ID, SERVICE_ACCOUNT_FILE)
+        backup = DatabaseBackup(SHARED_DRIVE_ID, SERVICE_ACCOUNT_FILE)
         backup.run_backup()
     except KeyboardInterrupt:
         print("\n\n⚠️  Backup interrupted by user")
