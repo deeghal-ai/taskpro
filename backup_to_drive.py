@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Database Backup Script for TaskPro - Shared Drive Version
-Exports all database tables to Excel and uploads to Google Shared Drive
+Database Backup Script for TaskPro - Single Excel File Version
+Exports selected tables as sheets in ONE Excel file and uploads to Google Shared Drive
 
 Author: TaskPro Team
 Created for: deeghalbhaumik
@@ -28,8 +28,32 @@ from googleapiclient.http import MediaFileUpload
 class DatabaseBackup:
     """
     Handles daily database backups to Google Shared Drive.
-    Uses service account authentication for corporate accounts.
+    Creates ONE Excel file with all tables as separate sheets.
     """
+    
+    # Tables to backup - organized by app
+    TABLES_TO_BACKUP = [
+        # Projects app (10 tables)
+        'projects_project',
+        'projects_projecttask',
+        'projects_producttask',
+        'projects_taskassignment',
+        'projects_timesession',
+        'projects_dailytimetotal',
+        'projects_product',
+        'projects_projectstatusoption',  # CORRECTED: projectstatusoption not productstatusoption
+        'projects_dailyroster',
+        'projects_mischours',
+        
+        # Video production app (4 tables - excluding videoprojectdelivery)
+        'video_production_videoproduct',
+        'video_production_videoproject',
+        'video_production_videoprojectstatushistory',
+        'video_production_videoprojectstatusoption',
+        
+        # Locations app (1 table)
+        'locations_city',
+    ]
     
     def __init__(self, shared_drive_id, service_account_file):
         """
@@ -63,9 +87,8 @@ class DatabaseBackup:
     def _verify_shared_drive_access(self):
         """Verify that service account has access to the Shared Drive"""
         try:
-            # Try to get Shared Drive info
             drive = self.drive_service.drives().get(driveId=self.shared_drive_id).execute()
-            print(f"✓ Access verified to Shared Drive: {drive['name']}")
+            print(f"✓ Access verified to Shared Drive: {drive['name']}\n")
         except Exception as e:
             print(f"\n⚠️  WARNING: Could not verify Shared Drive access")
             print(f"   Error: {str(e)}")
@@ -74,53 +97,83 @@ class DatabaseBackup:
             print(f"   2. Service account is added as a member of the Shared Drive")
             print(f"   3. Service account has 'Content Manager' or 'Manager' role\n")
     
-    def get_all_tables(self):
-        """Get list of all tables from MySQL database"""
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("SHOW TABLES")
-                tables = [row[0] for row in cursor.fetchall()]
-            print(f"✓ Found {len(tables)} tables in database")
-            return tables
-        except Exception as e:
-            print(f"✗ Error getting table list: {str(e)}")
-            return []
-    
-    def export_table_to_excel(self, table_name):
+    def get_table_data(self, table_name):
         """
-        Export a single table to Excel using pandas.
+        Get data from a specific table.
         
         Args:
-            table_name: Name of the database table to export
+            table_name: Name of the database table
             
+        Returns:
+            DataFrame with table data, or None if failed
+        """
+        try:
+            query = f"SELECT * FROM {table_name}"
+            df = pd.read_sql(query, connection)
+            return df
+        except Exception as e:
+            print(f"  ✗ Error reading {table_name}: {str(e)}")
+            return None
+    
+    def create_excel_with_all_tables(self):
+        """
+        Create a single Excel file with all tables as separate sheets.
+        
         Returns:
             filepath: Path to the created Excel file, or None if failed
         """
         try:
-            # Read table data using pandas
-            query = f"SELECT * FROM {table_name}"
-            df = pd.read_sql(query, connection)
-            
             # Create backup folder if doesn't exist
             os.makedirs(self.backup_folder, exist_ok=True)
             
             # Generate filename with timestamp
-            filename = f"{table_name}_{self.timestamp}.xlsx"
+            filename = f"taskpro_backup_{self.timestamp}.xlsx"
             filepath = os.path.join(self.backup_folder, filename)
             
-            # Export to Excel
-            df.to_excel(filepath, index=False, engine='openpyxl')
+            print(f"📝 Creating Excel file with {len(self.TABLES_TO_BACKUP)} sheets...\n")
+            
+            # Create Excel writer
+            with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
+                successful_sheets = 0
+                failed_tables = []
+                
+                for i, table_name in enumerate(self.TABLES_TO_BACKUP, 1):
+                    print(f"[{i}/{len(self.TABLES_TO_BACKUP)}] Processing {table_name}...")
+                    
+                    # Get table data
+                    df = self.get_table_data(table_name)
+                    
+                    if df is not None:
+                        # Create sheet name (Excel has 31 char limit)
+                        # Remove app prefix for cleaner sheet names
+                        sheet_name = table_name.replace('projects_', '').replace('video_production_', 'vp_').replace('locations_', '')
+                        
+                        # Truncate if still too long
+                        if len(sheet_name) > 31:
+                            sheet_name = sheet_name[:31]
+                        
+                        # Write to Excel sheet
+                        df.to_excel(writer, sheet_name=sheet_name, index=False)
+                        
+                        print(f"  ✓ Added sheet: {sheet_name} ({len(df)} rows)")
+                        successful_sheets += 1
+                    else:
+                        failed_tables.append(table_name)
+                        print(f"  ✗ Skipped {table_name}")
             
             # Get file size for logging
-            file_size_kb = os.path.getsize(filepath) / 1024
+            file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
             
-            print(f"  ✓ Exported {table_name}")
-            print(f"    → {len(df)} rows, {file_size_kb:.2f} KB")
+            print(f"\n✓ Excel file created: {filename}")
+            print(f"  → {successful_sheets} sheets, {file_size_mb:.2f} MB")
+            
+            if failed_tables:
+                print(f"\n⚠️  Failed tables: {', '.join(failed_tables)}")
             
             return filepath
             
         except Exception as e:
-            print(f"  ✗ Error exporting {table_name}: {str(e)}")
+            print(f"\n✗ Error creating Excel file: {str(e)}")
             return None
     
     def upload_to_drive(self, filepath):
@@ -134,6 +187,8 @@ class DatabaseBackup:
             bool: True if upload successful, False otherwise
         """
         try:
+            print(f"\n📤 Uploading to Shared Drive...")
+            
             file_metadata = {
                 'name': os.path.basename(filepath),
                 'parents': [self.shared_drive_id]
@@ -145,18 +200,22 @@ class DatabaseBackup:
             file = self.drive_service.files().create(
                 body=file_metadata,
                 media_body=media,
-                fields='id, name, size',
+                fields='id, name, size, webViewLink',
                 supportsAllDrives=True  # Critical for Shared Drives!
             ).execute()
             
-            # Get uploaded file size
+            # Get uploaded file info
             file_size_mb = int(file.get('size', 0)) / (1024 * 1024)
             
-            print(f"    → Uploaded to Shared Drive ({file_size_mb:.2f} MB)")
+            print(f"✓ Upload successful!")
+            print(f"  → File ID: {file.get('id')}")
+            print(f"  → Size: {file_size_mb:.2f} MB")
+            print(f"  → Link: {file.get('webViewLink')}")
+            
             return True
             
         except Exception as e:
-            print(f"    ✗ Upload failed: {str(e)}")
+            print(f"✗ Upload failed: {str(e)}")
             return False
     
     def cleanup_local_files(self):
@@ -169,7 +228,7 @@ class DatabaseBackup:
                 file_count += 1
             
             os.rmdir(self.backup_folder)
-            print(f"\n✓ Cleaned up {file_count} local files")
+            print(f"\n✓ Cleaned up {file_count} local file(s)")
         except Exception as e:
             print(f"\n✗ Cleanup error: {str(e)}")
     
@@ -183,14 +242,14 @@ class DatabaseBackup:
         try:
             cutoff_date = (datetime.now() - timedelta(days=days_to_keep)).isoformat()
             
-            # Query for old files in Shared Drive
-            query = f"'{self.shared_drive_id}' in parents and createdTime < '{cutoff_date}'"
+            # Query for old backup files in Shared Drive
+            query = f"'{self.shared_drive_id}' in parents and name contains 'taskpro_backup_' and createdTime < '{cutoff_date}'"
             
             results = self.drive_service.files().list(
                 q=query,
                 fields='files(id, name, createdTime)',
                 pageSize=1000,
-                supportsAllDrives=True,  # Critical for Shared Drives!
+                supportsAllDrives=True,
                 includeItemsFromAllDrives=True,
                 corpora='drive',
                 driveId=self.shared_drive_id
@@ -203,11 +262,11 @@ class DatabaseBackup:
                 for file in files:
                     self.drive_service.files().delete(
                         fileId=file['id'],
-                        supportsAllDrives=True  # Critical for Shared Drives!
+                        supportsAllDrives=True
                     ).execute()
                     print(f"  ✓ Deleted: {file['name']}")
                 
-                print(f"✓ Removed {len(files)} old backup files")
+                print(f"✓ Removed {len(files)} old backup file(s)")
             else:
                 print(f"\n✓ No old backups to clean up")
                 
@@ -215,7 +274,7 @@ class DatabaseBackup:
             print(f"\n✗ Cleanup error: {str(e)}")
     
     def run_backup(self):
-        """Main backup process - orchestrates the entire backup workflow"""
+        """Main backup process"""
         
         print("\n" + "="*70)
         print(f"📦 TaskPro Database Backup")
@@ -223,34 +282,18 @@ class DatabaseBackup:
         print(f"⏰ Time: {datetime.now().strftime('%H:%M:%S')}")
         print("="*70 + "\n")
         
-        # Get all tables
-        print("📋 Scanning database...")
-        tables = self.get_all_tables()
+        print(f"📋 Tables to backup: {len(self.TABLES_TO_BACKUP)}")
+        print(f"📄 Output: Single Excel file with multiple sheets\n")
         
-        if not tables:
-            print("\n✗ No tables found. Backup aborted.")
+        # Create Excel file with all tables
+        excel_file = self.create_excel_with_all_tables()
+        
+        if not excel_file:
+            print("\n❌ Backup failed: Could not create Excel file")
             return
         
-        successful_uploads = 0
-        failed_tables = []
-        
-        print(f"\n💾 Starting backup of {len(tables)} tables...\n")
-        
-        # Backup each table
-        for i, table in enumerate(tables, 1):
-            print(f"[{i}/{len(tables)}] {table}")
-            
-            # Export to Excel
-            filepath = self.export_table_to_excel(table)
-            
-            if filepath:
-                # Upload to Shared Drive
-                if self.upload_to_drive(filepath):
-                    successful_uploads += 1
-                else:
-                    failed_tables.append(table)
-            else:
-                failed_tables.append(table)
+        # Upload to Shared Drive
+        upload_success = self.upload_to_drive(excel_file)
         
         # Cleanup local files
         self.cleanup_local_files()
@@ -262,22 +305,15 @@ class DatabaseBackup:
         print("\n" + "="*70)
         print("📊 BACKUP SUMMARY")
         print("="*70)
-        print(f"  Total tables:      {len(tables)}")
-        print(f"  ✓ Successful:      {successful_uploads}")
-        print(f"  ✗ Failed:          {len(failed_tables)}")
         
-        if failed_tables:
-            print(f"\n  Failed tables:")
-            for table in failed_tables:
-                print(f"    • {table}")
+        if upload_success:
+            print("✅ Backup completed successfully!")
+            print(f"   Single Excel file with {len(self.TABLES_TO_BACKUP)} table sheets uploaded")
+        else:
+            print("⚠️  Backup completed with errors")
+            print("   Excel file created but upload failed")
         
         print("="*70)
-        
-        if successful_uploads == len(tables):
-            print("\n✅ Backup completed successfully!")
-        else:
-            print(f"\n⚠️  Backup completed with {len(failed_tables)} errors")
-        
         print(f"🕐 Completed at: {datetime.now().strftime('%H:%M:%S')}\n")
 
 
@@ -287,12 +323,8 @@ if __name__ == "__main__":
     """
     
     # ==================== CONFIGURATION ====================
-    # TODO: Update these values with your actual credentials
     
     # Google SHARED DRIVE ID (NOT a regular folder!)
-    # Get this from the Shared Drive URL in Google Drive
-    # Example URL: https://drive.google.com/drive/folders/0ABC-defGHijKLmnoPqr
-    # Shared Drive ID is: 0ABC-defGHijKLmnoPqr
     SHARED_DRIVE_ID = '0AHW-ZGa6TVhSUk9PVA'
     
     # Path to Google service account JSON key file
@@ -305,7 +337,6 @@ if __name__ == "__main__":
         print("\n❌ ERROR: Please configure SHARED_DRIVE_ID in the script!")
         print("   Edit backup_to_drive.py and replace 'YOUR_SHARED_DRIVE_ID_HERE'")
         print("   with your actual Google Shared Drive ID.\n")
-        print("   NOTE: This must be a SHARED DRIVE, not a regular folder!\n")
         sys.exit(1)
     
     if not os.path.exists(SERVICE_ACCOUNT_FILE):
