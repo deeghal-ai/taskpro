@@ -53,7 +53,6 @@ class DatabaseBackup:
         'projects_projectstatushistory',
         'projects_dailyroster',
         'projects_mischours',
-        'projects_projectdelivery',
         
         # Video production app (4 tables - excluding videoprojectdelivery)
         'video_production_videoproduct',
