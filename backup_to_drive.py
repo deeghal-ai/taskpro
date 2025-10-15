@@ -33,7 +33,14 @@ class DatabaseBackup:
     
     # Tables to backup - organized by app
     TABLES_TO_BACKUP = [
-        # Projects app (10 tables)
+        # Accounts app (1 table)
+        'accounts_user',
+        
+        # Locations app (2 tables)
+        'locations_city',
+        'locations_region',
+        
+        # Projects app (13 tables)
         'projects_project',
         'projects_projecttask',
         'projects_producttask',
@@ -41,18 +48,18 @@ class DatabaseBackup:
         'projects_timesession',
         'projects_dailytimetotal',
         'projects_product',
-        'projects_projectstatusoption',  # CORRECTED: projectstatusoption not productstatusoption
+        'projects_productsubcategory',
+        'projects_projectstatusoption',
+        'projects_projectstatushistory',
         'projects_dailyroster',
         'projects_mischours',
+        'projects_projectdelivery',
         
         # Video production app (4 tables - excluding videoprojectdelivery)
         'video_production_videoproduct',
         'video_production_videoproject',
         'video_production_videoprojectstatushistory',
         'video_production_videoprojectstatusoption',
-        
-        # Locations app (1 table)
-        'locations_city',
     ]
     
     def __init__(self, shared_drive_id, service_account_file):
@@ -333,12 +340,6 @@ if __name__ == "__main__":
     # =======================================================
     
     # Validate configuration
-    if SHARED_DRIVE_ID == 'YOUR_SHARED_DRIVE_ID_HERE':
-        print("\n❌ ERROR: Please configure SHARED_DRIVE_ID in the script!")
-        print("   Edit backup_to_drive.py and replace 'YOUR_SHARED_DRIVE_ID_HERE'")
-        print("   with your actual Google Shared Drive ID.\n")
-        sys.exit(1)
-    
     if not os.path.exists(SERVICE_ACCOUNT_FILE):
         print(f"\n❌ ERROR: Service account key file not found!")
         print(f"   Expected location: {SERVICE_ACCOUNT_FILE}")
