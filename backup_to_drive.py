@@ -305,7 +305,7 @@ class DatabaseBackup:
         self.cleanup_local_files()
         
         # Cleanup old backups from Shared Drive
-        self.cleanup_old_backups(days_to_keep=30)
+        self.cleanup_old_backups(days_to_keep=7)
         
         # Summary
         print("\n" + "="*70)
